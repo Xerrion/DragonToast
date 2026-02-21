@@ -9,7 +9,7 @@
 ## IconTexture: Interface\AddOns\DragonToast\DragonToast_Icon
 ## X-License: MIT
 ## X-Curse-Project-ID: PLACEHOLDER
-## X-Wago-ID: PLACEHOLDER
+## X-Wago-ID: E6gvQAN1
 
 # Libraries
 Libs\embeds.xml
