@@ -353,6 +353,12 @@ function ns.ToastManager.OnToastFinished(toast)
         end
     end
 
+    -- Safety: cancel any pending fade timer before releasing
+    if toast.fadeTimer then
+        ns.Addon:CancelTimer(toast.fadeTimer)
+        toast.fadeTimer = nil
+    end
+
     -- Release frame back to pool
     ns.ToastAnimations.StopAll(toast)
     ns.ToastFrame.Release(toast)
