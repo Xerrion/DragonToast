@@ -449,11 +449,18 @@ function ns.ToastFrame.Acquire()
 end
 
 function ns.ToastFrame.Release(frame)
+    -- Cancel any pending fade timer before releasing
+    if frame.fadeTimer then
+        ns.Addon:CancelTimer(frame.fadeTimer)
+    end
+
     frame:Hide()
     frame:ClearAllPoints()
     frame.lootData = nil
     frame.isHovered = false
     frame.fadeTimer = nil
+    frame.fadeTimerStart = nil
+    frame.fadeTimerRemaining = nil
     frame._isEntering = false
     frame._entranceStartTime = nil
     frame._entranceDuration = nil
@@ -464,6 +471,11 @@ function ns.ToastFrame.Release(frame)
     frame:SetScript("OnUpdate", nil)
     frame:SetAlpha(1)
     frame:SetScale(1)
+
+    -- Pool duplication guard
+    for _, pooled in ipairs(framePool) do
+        if pooled == frame then return end
+    end
     table.insert(framePool, frame)
 end
 

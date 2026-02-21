@@ -110,6 +110,9 @@ end
 -------------------------------------------------------------------------------
 
 function ns.ToastAnimations.PlayEntrance(frame)
+    -- Defensive: clear any stale animation state from previous frame use
+    ns.ToastAnimations.StopAll(frame)
+
     local db = ns.Addon.db.profile
 
     if not db.animation.enableAnimations then
@@ -277,8 +280,10 @@ function ns.ToastAnimations.StopAll(frame)
     end
 
     for _, group in pairs(frame.animGroups) do
-        if group:IsPlaying() then
-            group:Stop()
-        end
+        group:Stop()
     end
+
+    -- Guarantee clean visual state after stopping all groups
+    frame:SetAlpha(1)
+    frame:SetScale(1)
 end
