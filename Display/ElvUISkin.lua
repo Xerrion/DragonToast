@@ -44,33 +44,11 @@ function ns.ElvUISkin.GetFont()
     return nil -- use default
 end
 
-function ns.ElvUISkin.GetFontSize()
-    local db = ns.Addon.db.profile
-    if db.appearance.fontSize then
-        return db.appearance.fontSize
-    end
-    return 12
-end
-
-function ns.ElvUISkin.GetBackdropTexture()
-    if elvuiDetected and E and E.media and E.media.blankTex then
-        return E.media.blankTex
-    end
-    return nil -- use default ColorTexture
-end
-
 function ns.ElvUISkin.GetBorderColor()
     if elvuiDetected and E and E.media and E.media.bordercolor then
         return E.media.bordercolor[1], E.media.bordercolor[2], E.media.bordercolor[3], E.media.bordercolor[4] or 1
     end
     return 0.3, 0.3, 0.3, 0.8 -- default
-end
-
-function ns.ElvUISkin.GetBackdropColor()
-    if elvuiDetected and E and E.media and E.media.backdropcolor then
-        return E.media.backdropcolor[1], E.media.backdropcolor[2], E.media.backdropcolor[3], 0.8
-    end
-    return 0.05, 0.05, 0.05, 0.7 -- default
 end
 
 -------------------------------------------------------------------------------
@@ -82,25 +60,27 @@ function ns.ElvUISkin.SkinToast(frame)
         return -- nothing to do
     end
 
-    local font = ns.ElvUISkin.GetFont()
-    local fontSize = ns.ElvUISkin.GetFontSize()
-    local br, bg, bb, ba = ns.ElvUISkin.GetBorderColor()
-    local bgr, bgg, bgb, bga = ns.ElvUISkin.GetBackdropColor()
+    local db = ns.Addon.db.profile
 
-    -- Apply font
+    -- Apply ElvUI font FACE only — respect user's sizes and outline from Appearance
+    local font = ns.ElvUISkin.GetFont()
     if font then
-        frame.itemName:SetFont(font, fontSize, "OUTLINE")
-        frame.quantity:SetFont(font, fontSize - 2, "OUTLINE")
-        frame.itemLevel:SetFont(font, fontSize - 2, "OUTLINE")
-        frame.itemType:SetFont(font, fontSize - 3, "OUTLINE")
-        frame.looter:SetFont(font, fontSize - 3, "OUTLINE")
+        local fontSize = db.appearance.fontSize
+        local secondaryFontSize = db.appearance.secondaryFontSize
+        local fontOutline = db.appearance.fontOutline
+        frame.itemName:SetFont(font, fontSize, fontOutline)
+        frame.quantity:SetFont(font, secondaryFontSize, fontOutline)
+        frame.itemLevel:SetFont(font, secondaryFontSize, fontOutline)
+        frame.itemType:SetFont(font, secondaryFontSize, fontOutline)
+        frame.looter:SetFont(font, secondaryFontSize, fontOutline)
     end
 
-    -- Apply backdrop color
-    frame.bg:SetColorTexture(bgr, bgg, bgb, bga)
+    -- Background: respect user's Appearance settings (already applied by PopulateToast)
+    -- Do NOT override with ElvUI backdrop color
 
-    -- Apply border color (unless quality border is active — quality takes priority)
-    if not ns.Addon.db.profile.appearance.qualityBorder then
+    -- Apply ElvUI border color (unless quality border is active — quality takes priority)
+    if not db.appearance.qualityBorder then
+        local br, bg, bb, ba = ns.ElvUISkin.GetBorderColor()
         frame.borderTop:SetColorTexture(br, bg, bb, ba)
         frame.borderBottom:SetColorTexture(br, bg, bb, ba)
         frame.borderLeft:SetColorTexture(br, bg, bb, ba)
