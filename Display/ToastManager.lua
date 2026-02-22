@@ -479,6 +479,15 @@ function ns.ToastManager.SetAnchor(point, x, y)
     ns.ToastManager.UpdatePositions()
 end
 
+function ns.ToastManager.ResetAnchor()
+    local db = ns.Addon.db.profile
+    db.display.anchorPoint = "RIGHT"
+    db.display.anchorX = -20
+    db.display.anchorY = 0
+    ns.ToastManager.SetAnchor("RIGHT", -20, 0)
+    ns.Print("Anchor position reset to default.")
+end
+
 -------------------------------------------------------------------------------
 -- Initialize
 -------------------------------------------------------------------------------
