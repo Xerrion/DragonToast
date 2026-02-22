@@ -896,7 +896,7 @@ local function MigrateProfile(db)
     local version = profile.schemaVersion or 0
 
     if version < 1 then
-        -- v0 → v1: entranceDirection → entranceAnimation (LibAnimate-1.0 integration)
+        -- v0 → v1: entranceDirection → entranceAnimation (LibAnimate integration)
         if profile.animation.entranceDirection then
             profile.animation.entranceAnimation = DIRECTION_TO_ANIMATION[profile.animation.entranceDirection]
                 or "slideInRight"

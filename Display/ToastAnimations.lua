@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- ToastAnimations.lua
--- Animation sequences for toast frames using LibAnimate-1.0
+-- Animation sequences for toast frames using LibAnimate
 --
 -- Supported versions: TBC Anniversary, Retail
 -------------------------------------------------------------------------------
@@ -11,7 +11,7 @@ local ADDON_NAME, ns = ...
 -- LibAnimate reference
 -------------------------------------------------------------------------------
 
-local lib = LibStub("LibAnimate-1.0")
+local lib = LibStub("LibAnimate")
 ns.LibAnimate = lib
 
 -------------------------------------------------------------------------------
