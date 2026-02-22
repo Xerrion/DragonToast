@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/Xerrion/DragonToast/compare/1.2.0...v1.2.1) (2026-02-22)
+
+
+### Bug Fixes
+
+* workflow should now work? ([#21](https://github.com/Xerrion/DragonToast/issues/21)) ([eaa999f](https://github.com/Xerrion/DragonToast/commit/eaa999f6e3c424a48433d42270da8abcd48ae146))
+
 ## [1.2.0](https://github.com/Xerrion/DragonToast/compare/1.1.0...1.2.0) (2026-02-22)
 
 
