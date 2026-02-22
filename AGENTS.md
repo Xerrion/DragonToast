@@ -170,11 +170,35 @@ Config uses `type = "header"` separators and `type = "description"` intro text o
 | `lint.yml` | `pull_request_target` to master | Luacheck (uses `pull_request_target` so it runs on release-please bot PRs) |
 | `release.yml` | `push` to master | release-please creates/updates release PR; on tag push, BigWigsMods packager publishes |
 
-### Branch Protection
+### Repository Rulesets
 
-- **Required check**: Luacheck (strict mode)
-- **Merge method**: Squash only (merge commit and rebase disabled)
-- **Auto-delete branches** on merge
+Managed via `gh api`. The `master` branch requires:
+- **Linear History**: No merge commits
+- **Signed Commits**: All commits must be verified
+- **Required Status Checks**: `Lint / luacheck (pull_request_target)` must pass
+
+```powershell
+# Configure general repository settings
+gh repo edit --enable-squash-merge --enable-auto-merge --delete-branch-on-merge
+
+# Apply master ruleset
+$ruleset = @"
+{
+  "name": "Protect master",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": { "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] } },
+  "rules": [
+    { "type": "deletion" },
+    { "type": "non_fast_forward" },
+    { "type": "required_linear_history" },
+    { "type": "required_signatures" },
+    { "type": "required_status_checks", "parameters": { "strict_required_status_checks_policy": true, "required_status_checks": [ { "context": "Lint / luacheck (pull_request_target)" } ] } }
+  ]
+}
+"@
+$ruleset | gh api repos/Xerrion/DragonToast/rulesets --input -
+```
 
 ### Secrets
 
