@@ -108,31 +108,15 @@ function ns.ToastManager.UpdatePositions()
             toast._entranceFinalX = x
             toast._entranceFinalY = y
         else
-            -- Capture old position for smooth sliding
-            local oldY = 0
             local _, _, _, _, prevY = toast:GetPoint()
-            if prevY then
-                oldY = prevY
-            end
 
-            -- Capture remaining slide displacement before stopping
-            local slideRemainingY = 0
-            if toast:IsShown() and toast._slideTranslation
-                and toast.animGroups.slide:IsPlaying() then
-                local progress = toast._slideTranslation:GetSmoothProgress()
-                local _, oldOffsetY = toast._slideTranslation:GetOffset()
-                slideRemainingY = oldOffsetY * (1 - progress)
-            end
+            local alreadySlidingToTarget = toast._isSliding and toast._slideToY == y
 
-            toast:ClearAllPoints()
-            toast:SetPoint(point, relativeTo, relativePoint, x, y)
-
-            -- Animate existing (visible) toasts to new position
-            if toast:IsShown() and prevY and prevY ~= y then
-                local deltaY = (oldY - y) + slideRemainingY
-                if math.abs(deltaY) > 0.5 then
-                    ns.ToastAnimations.PlaySlide(toast, 0, deltaY)
-                end
+            if not alreadySlidingToTarget and toast:IsShown() and prevY and math.abs(prevY - y) > 0.5 then
+                ns.ToastAnimations.PlaySlide(toast, prevY, y, point, relativeTo, relativePoint, x)
+            elseif not alreadySlidingToTarget and not toast._isSliding then
+                toast:ClearAllPoints()
+                toast:SetPoint(point, relativeTo, relativePoint, x, y)
             end
         end
     end
