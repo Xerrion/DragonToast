@@ -81,10 +81,7 @@ function ns.ElvUISkin.SkinToast(frame)
     -- Apply ElvUI border color (unless quality border is active — quality takes priority)
     if not db.appearance.qualityBorder then
         local br, bg, bb, ba = ns.ElvUISkin.GetBorderColor()
-        frame.borderTop:SetColorTexture(br, bg, bb, ba)
-        frame.borderBottom:SetColorTexture(br, bg, bb, ba)
-        frame.borderLeft:SetColorTexture(br, bg, bb, ba)
-        frame.borderRight:SetColorTexture(br, bg, bb, ba)
+        frame:SetBackdropBorderColor(br, bg, bb, ba)
         frame.iconBorder:SetColorTexture(br, bg, bb, ba)
     end
 end

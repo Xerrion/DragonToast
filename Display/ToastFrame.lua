@@ -35,41 +35,20 @@ local function CreateToastFrame()
     frameCount = frameCount + 1
     local frameName = "DragonToastFrame" .. frameCount
 
-    local frame = CreateFrame("Button", frameName, UIParent)
+    local frame = CreateFrame("Button", frameName, UIParent, "BackdropTemplate")
     frame:SetSize(350, 48)
     frame:SetFrameStrata("MEDIUM")
     frame:SetFrameLevel(100 + frameCount)
     frame:Hide()
 
-    -- Background
-    frame.bg = frame:CreateTexture(nil, "BACKGROUND")
-    frame.bg:SetAllPoints()
-    frame.bg:SetColorTexture(0.05, 0.05, 0.05, 0.7)
-
-    -- Border: top, bottom, left, right (1px lines)
-    frame.borderTop = frame:CreateTexture(nil, "BORDER")
-    frame.borderTop:SetHeight(1)
-    frame.borderTop:SetPoint("TOPLEFT")
-    frame.borderTop:SetPoint("TOPRIGHT")
-    frame.borderTop:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-
-    frame.borderBottom = frame:CreateTexture(nil, "BORDER")
-    frame.borderBottom:SetHeight(1)
-    frame.borderBottom:SetPoint("BOTTOMLEFT")
-    frame.borderBottom:SetPoint("BOTTOMRIGHT")
-    frame.borderBottom:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-
-    frame.borderLeft = frame:CreateTexture(nil, "BORDER")
-    frame.borderLeft:SetWidth(1)
-    frame.borderLeft:SetPoint("TOPLEFT")
-    frame.borderLeft:SetPoint("BOTTOMLEFT")
-    frame.borderLeft:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-
-    frame.borderRight = frame:CreateTexture(nil, "BORDER")
-    frame.borderRight:SetWidth(1)
-    frame.borderRight:SetPoint("TOPRIGHT")
-    frame.borderRight:SetPoint("BOTTOMRIGHT")
-    frame.borderRight:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    -- Background + border via BackdropTemplate
+    frame:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    frame:SetBackdropColor(0.05, 0.05, 0.05, 0.7)
+    frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
 
     -- Quality glow strip (left edge, 4px wide)
     frame.qualityGlow = frame:CreateTexture(nil, "ARTWORK")
@@ -254,31 +233,24 @@ local function PopulateToast(frame, lootData)
             frame.qualityGlow:Hide()
         end
 
-        -- XP border color: gold
+        -- Border size, background, and border color
+        local borderSize = db.appearance.borderSize or 1
+        frame:SetBackdrop({
+            bgFile = "Interface\\Buttons\\WHITE8x8",
+            edgeFile = "Interface\\Buttons\\WHITE8x8",
+            edgeSize = borderSize,
+        })
+
+        local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
+        frame:SetBackdropColor(bgColor.r, bgColor.g, bgColor.b, db.appearance.backgroundAlpha)
+
         if db.appearance.qualityBorder then
-            frame.borderTop:SetColorTexture(xpR, xpG, xpB, 0.6)
-            frame.borderBottom:SetColorTexture(xpR, xpG, xpB, 0.6)
-            frame.borderLeft:SetColorTexture(xpR, xpG, xpB, 0.6)
-            frame.borderRight:SetColorTexture(xpR, xpG, xpB, 0.6)
+            frame:SetBackdropBorderColor(xpR, xpG, xpB, 0.6)
             frame.iconBorder:SetColorTexture(xpR, xpG, xpB, 0.6)
         else
-            frame.borderTop:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-            frame.borderBottom:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-            frame.borderLeft:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-            frame.borderRight:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+            frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
             frame.iconBorder:SetColorTexture(0.3, 0.3, 0.3, 0.8)
         end
-
-        -- Border size
-        local borderSize = db.appearance.borderSize or 1
-        frame.borderTop:SetHeight(borderSize)
-        frame.borderBottom:SetHeight(borderSize)
-        frame.borderLeft:SetWidth(borderSize)
-        frame.borderRight:SetWidth(borderSize)
-
-        -- Background
-        local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
-        frame.bg:SetColorTexture(bgColor.r, bgColor.g, bgColor.b, db.appearance.backgroundAlpha)
 
         -- Size
         frame:SetSize(db.display.toastWidth, db.display.toastHeight)
@@ -393,31 +365,24 @@ local function PopulateToast(frame, lootData)
         frame.qualityGlow:Hide()
     end
 
-    -- Quality border
+    -- Border size, background, and border color
+    local borderSize = db.appearance.borderSize or 1
+    frame:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = borderSize,
+    })
+
+    local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
+    frame:SetBackdropColor(bgColor.r, bgColor.g, bgColor.b, db.appearance.backgroundAlpha)
+
     if db.appearance.qualityBorder then
-        frame.borderTop:SetColorTexture(r, g, b, 0.6)
-        frame.borderBottom:SetColorTexture(r, g, b, 0.6)
-        frame.borderLeft:SetColorTexture(r, g, b, 0.6)
-        frame.borderRight:SetColorTexture(r, g, b, 0.6)
+        frame:SetBackdropBorderColor(r, g, b, 0.6)
         frame.iconBorder:SetColorTexture(r, g, b, 0.6)
     else
-        frame.borderTop:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-        frame.borderBottom:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-        frame.borderLeft:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-        frame.borderRight:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+        frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
         frame.iconBorder:SetColorTexture(0.3, 0.3, 0.3, 0.8)
     end
-
-    -- Apply configurable border size
-    local borderSize = db.appearance.borderSize or 1
-    frame.borderTop:SetHeight(borderSize)
-    frame.borderBottom:SetHeight(borderSize)
-    frame.borderLeft:SetWidth(borderSize)
-    frame.borderRight:SetWidth(borderSize)
-
-    -- Background color and alpha
-    local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
-    frame.bg:SetColorTexture(bgColor.r, bgColor.g, bgColor.b, db.appearance.backgroundAlpha)
 
     -- Size from config
     frame:SetSize(db.display.toastWidth, db.display.toastHeight)
