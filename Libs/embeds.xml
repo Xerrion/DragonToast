@@ -25,7 +25,7 @@
 	<Script file="LibDataBroker-1.1\LibDataBroker-1.1.lua"/>
 
 	<!-- LibDBIcon -->
-	<Include file="LibDBIcon-1.0\embeds.xml"/>
+	<Include file="LibDBIcon-1.0\lib.xml"/>
 
 	<!-- LibSharedMedia -->
 	<Include file="LibSharedMedia-3.0\lib.xml"/>
