@@ -65,6 +65,7 @@ local function PrintHelp()
     print("  " .. ns.COLOR_WHITE .. "/dt lock" .. ns.COLOR_RESET .. " — Toggle anchor lock (drag to move)")
     print("  " .. ns.COLOR_WHITE .. "/dt test" .. ns.COLOR_RESET .. " — Show a test toast")
     print("  " .. ns.COLOR_WHITE .. "/dt clear" .. ns.COLOR_RESET .. " — Dismiss all toasts")
+    print("  " .. ns.COLOR_WHITE .. "/dt reset" .. ns.COLOR_RESET .. " — Reset anchor position to default")
     print("  " .. ns.COLOR_WHITE .. "/dt status" .. ns.COLOR_RESET .. " — Show current settings")
     print("  " .. ns.COLOR_WHITE .. "/dt help" .. ns.COLOR_RESET .. " — Show this help")
 end
@@ -105,6 +106,9 @@ function ns.HandleSlashCommand(input)
     elseif cmd == "clear" then
         ns.ToastManager.ClearAll()
         ns.Print("All toasts cleared.")
+
+    elseif cmd == "reset" then
+        ns.ToastManager.ResetAnchor()
 
     elseif cmd == "status" then
         PrintStatus()
