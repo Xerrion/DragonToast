@@ -1,3 +1,8 @@
+## [1.4.1] - 2026-02-22
+
+### 🐛 Bug Fixes
+
+- Use latest libanimate (#36)
 ## [1.4.0] - 2026-02-22
 
 ### 🚀 Features
@@ -7,6 +12,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - Fix release workflow (#32)
+- Release 1.4.0 (#33)
 ## [1.3.0] - 2026-02-22
 
 ### 🚀 Features
