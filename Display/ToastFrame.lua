@@ -71,23 +71,27 @@ local function CreateToastFrame()
     frame.borderRight:SetPoint("BOTTOMRIGHT")
     frame.borderRight:SetColorTexture(0.3, 0.3, 0.3, 0.8)
 
+    -- Content container (scales independently for pop animation)
+    frame.content = CreateFrame("Frame", nil, frame)
+    frame.content:SetAllPoints()
+
     -- Quality glow strip (left edge, 4px wide)
-    frame.qualityGlow = frame:CreateTexture(nil, "ARTWORK")
+    frame.qualityGlow = frame.content:CreateTexture(nil, "ARTWORK")
     frame.qualityGlow:SetWidth(4)
-    frame.qualityGlow:SetPoint("TOPLEFT", frame, "TOPLEFT", 1, -1)
-    frame.qualityGlow:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 1, 1)
+    frame.qualityGlow:SetPoint("TOPLEFT", frame.content, "TOPLEFT", 1, -1)
+    frame.qualityGlow:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", 1, 1)
     frame.qualityGlow:SetColorTexture(1, 1, 1, 0.8)
 
     -- Icon frame (container for icon + icon border)
     local iconSize = 36
     local iconPadding = 6
 
-    frame.icon = frame:CreateTexture(nil, "ARTWORK")
+    frame.icon = frame.content:CreateTexture(nil, "ARTWORK")
     frame.icon:SetSize(iconSize, iconSize)
-    frame.icon:SetPoint("LEFT", frame, "LEFT", iconPadding + 4, 0) -- +4 for glow strip
+    frame.icon:SetPoint("LEFT", frame.content, "LEFT", iconPadding + 4, 0) -- +4 for glow strip
     frame.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92) -- trim default icon borders
 
-    frame.iconBorder = frame:CreateTexture(nil, "OVERLAY")
+    frame.iconBorder = frame.content:CreateTexture(nil, "OVERLAY")
     frame.iconBorder:SetPoint("TOPLEFT", frame.icon, "TOPLEFT", -1, 1)
     frame.iconBorder:SetPoint("BOTTOMRIGHT", frame.icon, "BOTTOMRIGHT", 1, -1)
     frame.iconBorder:SetColorTexture(0.3, 0.3, 0.3, 0.8)
@@ -95,33 +99,33 @@ local function CreateToastFrame()
     frame.icon:SetDrawLayer("OVERLAY", 1)
 
     -- Item name (row 1, left)
-    frame.itemName = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    frame.itemName = frame.content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.itemName:SetPoint("TOPLEFT", frame.icon, "TOPRIGHT", 8, -2)
-    frame.itemName:SetPoint("RIGHT", frame, "RIGHT", -80, 0)
+    frame.itemName:SetPoint("RIGHT", frame.content, "RIGHT", -80, 0)
     frame.itemName:SetJustifyH("LEFT")
     frame.itemName:SetWordWrap(false)
 
     -- Quantity badge (bottom-right of icon, stack count style)
-    frame.quantity = frame:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+    frame.quantity = frame.content:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
     frame.quantity:SetPoint("BOTTOMRIGHT", frame.icon, "BOTTOMRIGHT", 2, -2)
     frame.quantity:SetJustifyH("RIGHT")
     frame.quantity:SetTextColor(1, 1, 1)
 
     -- Item level (row 1, right)
-    frame.itemLevel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    frame.itemLevel:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -8, -6)
+    frame.itemLevel = frame.content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    frame.itemLevel:SetPoint("TOPRIGHT", frame.content, "TOPRIGHT", -8, -6)
     frame.itemLevel:SetJustifyH("RIGHT")
     frame.itemLevel:SetTextColor(0.6, 0.6, 0.6)
 
     -- Type/Subtype (row 2, left)
-    frame.itemType = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    frame.itemType = frame.content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     frame.itemType:SetPoint("BOTTOMLEFT", frame.icon, "BOTTOMRIGHT", 8, 2)
     frame.itemType:SetJustifyH("LEFT")
     frame.itemType:SetTextColor(0.5, 0.5, 0.5)
 
     -- Looter name (row 2, right)
-    frame.looter = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    frame.looter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -8, 6)
+    frame.looter = frame.content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    frame.looter:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", -8, 6)
     frame.looter:SetJustifyH("RIGHT")
     frame.looter:SetTextColor(0.7, 0.7, 0.7)
 
@@ -208,8 +212,8 @@ local function PopulateToast(frame, lootData)
         else
             frame.icon:Hide()
             frame.iconBorder:Hide()
-            frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -6)
-            frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, 6)
+            frame.itemName:SetPoint("TOPLEFT", frame.content, "TOPLEFT", 10, -6)
+            frame.itemType:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", 10, 6)
         end
 
         -- XP name in gold color
@@ -309,8 +313,8 @@ local function PopulateToast(frame, lootData)
         frame.icon:Hide()
         frame.iconBorder:Hide()
         -- Position text at left edge when no icon
-        frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -6)
-        frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, 6)
+        frame.itemName:SetPoint("TOPLEFT", frame.content, "TOPLEFT", 10, -6)
+        frame.itemType:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", 10, 6)
     end
 
     -- Quality color
@@ -471,6 +475,7 @@ function ns.ToastFrame.Release(frame)
     frame:SetScript("OnUpdate", nil)
     frame:SetAlpha(1)
     frame:SetScale(1)
+    if frame.content then frame.content:SetScale(1) end
 
     -- Pool duplication guard
     for _, pooled in ipairs(framePool) do

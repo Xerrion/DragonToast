@@ -42,7 +42,7 @@ function ns.ToastAnimations.SetupAnimations(frame)
     frame.animGroups.entrance = entrance
 
     -- Pop animation group (plays after entrance finishes)
-    local pop = frame:CreateAnimationGroup()
+    local pop = frame.content:CreateAnimationGroup()
 
     -- Pop: Scale up
     local popUp = pop:CreateAnimation("Scale")
@@ -51,7 +51,7 @@ function ns.ToastAnimations.SetupAnimations(frame)
     popUp:SetScaleTo(1.05, 1.05)
     popUp:SetSmoothing("IN_OUT")
     popUp:SetOrder(1)
-    popUp:SetOrigin("LEFT", 0, 0)
+    popUp:SetOrigin("CENTER", 0, 0)
 
     -- Pop: Scale back down
     local popDown = pop:CreateAnimation("Scale")
@@ -60,7 +60,7 @@ function ns.ToastAnimations.SetupAnimations(frame)
     popDown:SetScaleTo(1.0, 1.0)
     popDown:SetSmoothing("IN_OUT")
     popDown:SetOrder(2)
-    popDown:SetOrigin("LEFT", 0, 0)
+    popDown:SetOrigin("CENTER", 0, 0)
 
     frame.animGroups.pop = pop
 
@@ -286,4 +286,5 @@ function ns.ToastAnimations.StopAll(frame)
     -- Guarantee clean visual state after stopping all groups
     frame:SetAlpha(1)
     frame:SetScale(1)
+    if frame.content then frame.content:SetScale(1) end
 end
