@@ -1,9 +1,18 @@
+## [1.4.3] - 2026-02-22
+
+### 🐛 Bug Fixes
+
+- Again (#42)
 ## [1.4.2] - 2026-02-22
 
 ### 🐛 Bug Fixes
 
 - Include Libs/embeds.xml in git tracking (#39)
 - Load correct xml for LibDBIcon-1.0 (#41)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 1.4.2 (#40)
 ## [1.4.1] - 2026-02-22
 
 ### 🐛 Bug Fixes
