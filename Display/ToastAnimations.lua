@@ -41,37 +41,6 @@ function ns.ToastAnimations.SetupAnimations(frame)
 
     frame.animGroups.entrance = entrance
 
-    -- Pop animation group (plays after entrance finishes)
-    local pop = frame.content:CreateAnimationGroup()
-
-    -- Pop: Scale up
-    local popUp = pop:CreateAnimation("Scale")
-    popUp:SetDuration(0.08)
-    popUp:SetScaleFrom(1.0, 1.0)
-    popUp:SetScaleTo(1.05, 1.05)
-    popUp:SetSmoothing("IN_OUT")
-    popUp:SetOrder(1)
-    popUp:SetOrigin("CENTER", 0, 0)
-
-    -- Pop: Scale back down
-    local popDown = pop:CreateAnimation("Scale")
-    popDown:SetDuration(0.07)
-    popDown:SetScaleFrom(1.05, 1.05)
-    popDown:SetScaleTo(1.0, 1.0)
-    popDown:SetSmoothing("IN_OUT")
-    popDown:SetOrder(2)
-    popDown:SetOrigin("CENTER", 0, 0)
-
-    frame.animGroups.pop = pop
-
-    -- Chain: entrance -> pop
-    entrance:SetScript("OnFinished", function()
-        local db = ns.Addon.db.profile
-        if db.animation.enableAnimations and db.animation.enablePopEffect then
-            pop:Play()
-        end
-    end)
-
     -- Exit animation group
     local exit = frame:CreateAnimationGroup()
     exit:SetToFinalAlpha(true)
@@ -229,12 +198,9 @@ function ns.ToastAnimations.PlayExit(frame)
         return
     end
 
-    -- Stop any running entrance/pop animations
+    -- Stop any running entrance animations
     if frame.animGroups.entrance:IsPlaying() then
         frame.animGroups.entrance:Stop()
-    end
-    if frame.animGroups.pop:IsPlaying() then
-        frame.animGroups.pop:Stop()
     end
 
     -- Set duration from config
@@ -286,5 +252,4 @@ function ns.ToastAnimations.StopAll(frame)
     -- Guarantee clean visual state after stopping all groups
     frame:SetAlpha(1)
     frame:SetScale(1)
-    if frame.content then frame.content:SetScale(1) end
 end
