@@ -5,3 +5,4 @@
 Libs/*
 !Libs/Ace3
 !Libs/LibAnimate
+!Libs/embeds.xml
