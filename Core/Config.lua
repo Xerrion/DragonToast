@@ -71,6 +71,7 @@ local defaults = {
             qualityGlow = true,
             iconSize = 36,
             borderSize = 1,
+            borderTexture = "None",
             glowWidth = 4,
             statusBarTexture = "Blizzard",
         },
@@ -762,11 +763,24 @@ local function GetOptions()
                             ns.ToastManager.UpdateLayout()
                         end,
                     },
+                    borderTexture = {
+                        name = "Border Texture",
+                        desc = "Border texture style for toasts.",
+                        type = "select",
+                        order = 23,
+                        dialogControl = "LSM30_Border",
+                        values = function() return LSM:HashTable("border") end,
+                        get = function() return db.appearance.borderTexture end,
+                        set = function(_, val)
+                            db.appearance.borderTexture = val
+                            ns.ToastManager.UpdateLayout()
+                        end,
+                    },
                     qualityGlow = {
                         name = "Quality Glow Strip",
                         desc = "Show a subtle glow strip colored by item quality.",
                         type = "toggle",
-                        order = 23,
+                        order = 24,
                         get = function() return db.appearance.qualityGlow end,
                         set = function(_, val) db.appearance.qualityGlow = val end,
                     },
@@ -774,7 +788,7 @@ local function GetOptions()
                         name = "Glow Width",
                         desc = "Quality glow strip width in pixels.",
                         type = "range",
-                        order = 24,
+                        order = 25,
                         min = 0, max = 12, step = 1,
                         get = function() return db.appearance.glowWidth end,
                         set = function(_, val)
@@ -786,7 +800,7 @@ local function GetOptions()
                         name = "Glow Texture",
                         desc = "Texture for quality glow strip.",
                         type = "select",
-                        order = 25,
+                        order = 26,
                         dialogControl = "LSM30_Statusbar",
                         values = function() return LSM:HashTable("statusbar") end,
                         get = function() return db.appearance.statusBarTexture end,

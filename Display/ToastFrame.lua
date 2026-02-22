@@ -237,7 +237,7 @@ local function PopulateToast(frame, lootData)
         local borderSize = db.appearance.borderSize or 1
         frame:SetBackdrop({
             bgFile = "Interface\\Buttons\\WHITE8x8",
-            edgeFile = "Interface\\Buttons\\WHITE8x8",
+            edgeFile = LSM:Fetch("border", db.appearance.borderTexture or "None"),
             edgeSize = borderSize,
         })
 
@@ -369,7 +369,7 @@ local function PopulateToast(frame, lootData)
     local borderSize = db.appearance.borderSize or 1
     frame:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = LSM:Fetch("border", db.appearance.borderTexture or "None"),
         edgeSize = borderSize,
     })
 
