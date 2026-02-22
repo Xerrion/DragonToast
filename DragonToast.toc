@@ -8,7 +8,7 @@
 ## X-Category: Loot
 ## IconTexture: Interface\AddOns\DragonToast\DragonToast_Icon
 ## X-License: MIT
-## X-Curse-Project-ID: PLACEHOLDER
+## X-Curse-Project-ID: 1468628
 ## X-Wago-ID: E6gvQAN1
 
 # Libraries
