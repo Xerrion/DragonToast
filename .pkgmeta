@@ -1,5 +1,8 @@
-package-as: DragonToast
 enable-toc-creation: yes
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
 
 externals:
   Libs/Ace3: https://repos.wowace.com/wow/ace3/trunk
@@ -9,20 +12,17 @@ externals:
   Libs/AceGUI-3.0-SharedMediaWidgets: https://repos.wowace.com/wow/ace-gui-3-0-shared-media-widgets/trunk/AceGUI-3.0-SharedMediaWidgets
   Libs/LibAnimate:
     url: https://github.com/Xerrion/LibAnimate
-    tag: 2.1.0
+    tag: 3.0.0
+
+embedded-libraries:
+  - ace3
+  - libdatabroker-1-1
+  - libdbicon-1-0
+  - libsharedmedia-3-0
+  - ace-gui-3-0-shared-media-widgets
 
 ignore:
-  - README.md
-  - DESCRIPTION.md
-  - .github
-  - .gitignore
-  - .luacheckrc
-  - .release
   - "*.md"
-  - icon.png
-  - "icon_variant_*.png"
-  - "icon_variant_*.tga"
-  - "icon_*_dragon.PNG"
+  - "icon*.*"
   - generate_icon.ps1
   - cliff.toml
-  - AGENTS.md
