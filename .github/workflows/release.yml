@@ -28,11 +28,10 @@ jobs:
 
   package:
     needs: release-please
-    if: ${{ always() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch') }}
+    if: ${{ !failure() && !cancelled() && (needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch') }}
     runs-on: ubuntu-latest
     env:
       CF_API_KEY: ${{ secrets.CF_API_KEY }}
-      WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
       WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
       GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
     steps:
@@ -44,3 +43,5 @@ jobs:
 
       - name: Package and release
         uses: BigWigsMods/packager@v2
+        env:
+          GITHUB_REF: refs/tags/${{ needs.release-please.outputs.tag_name || github.event.inputs.tag_name }}
