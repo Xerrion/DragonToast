@@ -20,7 +20,6 @@ local GetTime = GetTime
 function ns.ToastAnimations.SetupAnimations(frame)
     -- Entrance animation group
     local entrance = frame:CreateAnimationGroup()
-    entrance:SetToFinalAlpha(true)
 
     -- Entrance: Alpha fade in
     local entranceAlpha = entrance:CreateAnimation("Alpha")
@@ -39,11 +38,14 @@ function ns.ToastAnimations.SetupAnimations(frame)
     entranceScale:SetOrigin("LEFT", 0, 0)
     frame._entranceScale = entranceScale
 
+    entrance:SetScript("OnFinished", function()
+        frame:SetAlpha(1)
+    end)
+
     frame.animGroups.entrance = entrance
 
     -- Exit animation group
     local exit = frame:CreateAnimationGroup()
-    exit:SetToFinalAlpha(true)
 
     -- Exit: Alpha fade out
     local exitAlpha = exit:CreateAnimation("Alpha")
@@ -61,17 +63,6 @@ function ns.ToastAnimations.SetupAnimations(frame)
     end)
 
     frame.animGroups.exit = exit
-
-    -- Slide animation group (for repositioning in stack)
-    local slide = frame:CreateAnimationGroup()
-
-    local slideTranslation = slide:CreateAnimation("Translation")
-    slideTranslation:SetDuration(0.2)
-    slideTranslation:SetSmoothing("OUT")
-    slideTranslation:SetOrder(1)
-    frame._slideTranslation = slideTranslation
-
-    frame.animGroups.slide = slide
 end
 
 -------------------------------------------------------------------------------
@@ -217,22 +208,47 @@ end
 -- Play slide animation (reposition in stack)
 -------------------------------------------------------------------------------
 
-function ns.ToastAnimations.PlaySlide(frame, offsetX, offsetY)
+function ns.ToastAnimations.PlaySlide(frame, fromY, toY, point, relativeTo, relativePoint, x)
     local db = ns.Addon.db.profile
-
     if not db.animation.enableAnimations then
-        return -- position is set directly by ToastManager
-    end
-
-    -- Stop any existing slide
-    if frame.animGroups.slide:IsPlaying() then
-        frame.animGroups.slide:Stop()
+        frame:ClearAllPoints()
+        frame:SetPoint(point, relativeTo, relativePoint, x, toY)
+        return
     end
 
     local slideSpeed = db.animation.slideSpeed or 0.2
-    frame._slideTranslation:SetDuration(slideSpeed)
-    frame._slideTranslation:SetOffset(offsetX, offsetY)
-    frame.animGroups.slide:Play()
+
+    frame._isSliding = true
+    frame._slideStartTime = GetTime()
+    frame._slideDuration = slideSpeed
+    frame._slideFromY = fromY
+    frame._slideToY = toY
+    frame._slidePoint = point
+    frame._slideRelativeTo = relativeTo
+    frame._slideRelativePoint = relativePoint
+    frame._slideX = x
+
+    frame:SetScript("OnUpdate", function(self)
+        if not self._isSliding then
+            self:SetScript("OnUpdate", nil)
+            return
+        end
+
+        local elapsed = GetTime() - self._slideStartTime
+        local progress = math.min(elapsed / self._slideDuration, 1.0)
+        local smooth = 1 - (1 - progress) * (1 - progress)
+
+        local currentY = self._slideFromY + (self._slideToY - self._slideFromY) * smooth
+
+        self:ClearAllPoints()
+        self:SetPoint(self._slidePoint, self._slideRelativeTo, self._slideRelativePoint,
+                      self._slideX, currentY)
+
+        if progress >= 1.0 then
+            self._isSliding = false
+            self:SetScript("OnUpdate", nil)
+        end
+    end)
 end
 
 -------------------------------------------------------------------------------
@@ -240,10 +256,9 @@ end
 -------------------------------------------------------------------------------
 
 function ns.ToastAnimations.StopAll(frame)
-    if frame._isEntering then
-        frame._isEntering = false
-        frame:SetScript("OnUpdate", nil)
-    end
+    frame._isEntering = false
+    frame._isSliding = false
+    frame:SetScript("OnUpdate", nil)
 
     for _, group in pairs(frame.animGroups) do
         group:Stop()
