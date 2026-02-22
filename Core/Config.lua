@@ -67,6 +67,7 @@ local defaults = {
             fontOutline = "OUTLINE",
             backgroundAlpha = 0.7,
             backgroundColor = { r = 0.05, g = 0.05, b = 0.05 },
+            backgroundTexture = "Solid",
             qualityBorder = true,
             qualityGlow = true,
             iconSize = 36,
@@ -733,6 +734,20 @@ local function GetOptions()
                         get = function() return db.appearance.backgroundAlpha end,
                         set = function(_, val)
                             db.appearance.backgroundAlpha = val
+                            ns.ToastManager.UpdateLayout()
+                        end,
+                    },
+
+                    backgroundTexture = {
+                        name = "Background Texture",
+                        desc = "Background texture style for toasts.",
+                        type = "select",
+                        order = 13,
+                        dialogControl = "LSM30_Background",
+                        values = function() return LSM:HashTable("background") end,
+                        get = function() return db.appearance.backgroundTexture end,
+                        set = function(_, val)
+                            db.appearance.backgroundTexture = val
                             ns.ToastManager.UpdateLayout()
                         end,
                     },
