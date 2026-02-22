@@ -3,4 +3,4 @@
 	url = https://github.com/WoWUIDev/Ace3.git
 [submodule "Libs/LibAnimate"]
 	path = Libs/LibAnimate
-	url = https://github.com/Xerrion/LibAnimate.git
+	url = https://github.com/Xerrion/LibAnimate

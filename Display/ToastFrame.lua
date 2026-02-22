@@ -35,41 +35,20 @@ local function CreateToastFrame()
     frameCount = frameCount + 1
     local frameName = "DragonToastFrame" .. frameCount
 
-    local frame = CreateFrame("Button", frameName, UIParent)
+    local frame = CreateFrame("Button", frameName, UIParent, "BackdropTemplate")
     frame:SetSize(350, 48)
     frame:SetFrameStrata("MEDIUM")
     frame:SetFrameLevel(100 + frameCount)
     frame:Hide()
 
-    -- Background
-    frame.bg = frame:CreateTexture(nil, "BACKGROUND")
-    frame.bg:SetAllPoints()
-    frame.bg:SetColorTexture(0.05, 0.05, 0.05, 0.7)
-
-    -- Border: top, bottom, left, right (1px lines)
-    frame.borderTop = frame:CreateTexture(nil, "BORDER")
-    frame.borderTop:SetHeight(1)
-    frame.borderTop:SetPoint("TOPLEFT")
-    frame.borderTop:SetPoint("TOPRIGHT")
-    frame.borderTop:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-
-    frame.borderBottom = frame:CreateTexture(nil, "BORDER")
-    frame.borderBottom:SetHeight(1)
-    frame.borderBottom:SetPoint("BOTTOMLEFT")
-    frame.borderBottom:SetPoint("BOTTOMRIGHT")
-    frame.borderBottom:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-
-    frame.borderLeft = frame:CreateTexture(nil, "BORDER")
-    frame.borderLeft:SetWidth(1)
-    frame.borderLeft:SetPoint("TOPLEFT")
-    frame.borderLeft:SetPoint("BOTTOMLEFT")
-    frame.borderLeft:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-
-    frame.borderRight = frame:CreateTexture(nil, "BORDER")
-    frame.borderRight:SetWidth(1)
-    frame.borderRight:SetPoint("TOPRIGHT")
-    frame.borderRight:SetPoint("BOTTOMRIGHT")
-    frame.borderRight:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    -- Background + border via BackdropTemplate
+    frame:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    frame:SetBackdropColor(0.05, 0.05, 0.05, 0.7)
+    frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
 
     -- Quality glow strip (left edge, 4px wide)
     frame.qualityGlow = frame:CreateTexture(nil, "ARTWORK")
@@ -96,7 +75,8 @@ local function CreateToastFrame()
 
     -- Item name (row 1, left)
     frame.itemName = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    frame.itemName:SetPoint("TOPLEFT", frame.icon, "TOPRIGHT", 8, -2)
+    frame.itemName:SetPoint("LEFT", frame.icon, "RIGHT", 8, 0)
+    frame.itemName:SetPoint("TOP", frame, "TOP", 0, -6)
     frame.itemName:SetPoint("RIGHT", frame, "RIGHT", -80, 0)
     frame.itemName:SetJustifyH("LEFT")
     frame.itemName:SetWordWrap(false)
@@ -115,7 +95,8 @@ local function CreateToastFrame()
 
     -- Type/Subtype (row 2, left)
     frame.itemType = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    frame.itemType:SetPoint("BOTTOMLEFT", frame.icon, "BOTTOMRIGHT", 8, 2)
+    frame.itemType:SetPoint("LEFT", frame.icon, "RIGHT", 8, 0)
+    frame.itemType:SetPoint("BOTTOM", frame, "BOTTOM", 0, 6)
     frame.itemType:SetJustifyH("LEFT")
     frame.itemType:SetTextColor(0.5, 0.5, 0.5)
 
@@ -196,18 +177,26 @@ local function PopulateToast(frame, lootData)
         -- Icon display
         frame.itemName:ClearAllPoints()
         frame.itemType:ClearAllPoints()
+        frame.itemLevel:ClearAllPoints()
+        frame.looter:ClearAllPoints()
+        local padV = db.display.textPaddingV or 6
+        local padH = db.display.textPaddingH or 8
         if db.display.showIcon ~= false then
             frame.icon:SetTexture(lootData.itemIcon)
             frame.icon:Show()
             frame.iconBorder:Show()
-            frame.itemName:SetPoint("TOPLEFT", frame.icon, "TOPRIGHT", 8, -2)
-            frame.itemType:SetPoint("BOTTOMLEFT", frame.icon, "BOTTOMRIGHT", 8, 2)
+            frame.itemName:SetPoint("LEFT", frame.icon, "RIGHT", padH, 0)
+            frame.itemName:SetPoint("TOP", frame, "TOP", 0, -padV)
+            frame.itemType:SetPoint("LEFT", frame.icon, "RIGHT", padH, 0)
+            frame.itemType:SetPoint("BOTTOM", frame, "BOTTOM", 0, padV)
         else
             frame.icon:Hide()
             frame.iconBorder:Hide()
-            frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -6)
-            frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, 6)
+            frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -padV)
+            frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, padV)
         end
+        frame.itemLevel:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -padH, -padV)
+        frame.looter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -padH, padV)
 
         -- XP name in gold color
         frame.itemName:SetText(lootData.itemName)
@@ -254,31 +243,24 @@ local function PopulateToast(frame, lootData)
             frame.qualityGlow:Hide()
         end
 
-        -- XP border color: gold
+        -- Border size, background, and border color
+        local borderSize = db.appearance.borderSize or 1
+        frame:SetBackdrop({
+            bgFile = LSM:Fetch("background", db.appearance.backgroundTexture or "Solid"),
+            edgeFile = LSM:Fetch("border", db.appearance.borderTexture or "None"),
+            edgeSize = borderSize,
+        })
+
+        local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
+        frame:SetBackdropColor(bgColor.r, bgColor.g, bgColor.b, db.appearance.backgroundAlpha)
+
         if db.appearance.qualityBorder then
-            frame.borderTop:SetColorTexture(xpR, xpG, xpB, 0.6)
-            frame.borderBottom:SetColorTexture(xpR, xpG, xpB, 0.6)
-            frame.borderLeft:SetColorTexture(xpR, xpG, xpB, 0.6)
-            frame.borderRight:SetColorTexture(xpR, xpG, xpB, 0.6)
+            frame:SetBackdropBorderColor(xpR, xpG, xpB, 0.6)
             frame.iconBorder:SetColorTexture(xpR, xpG, xpB, 0.6)
         else
-            frame.borderTop:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-            frame.borderBottom:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-            frame.borderLeft:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-            frame.borderRight:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+            frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
             frame.iconBorder:SetColorTexture(0.3, 0.3, 0.3, 0.8)
         end
-
-        -- Border size
-        local borderSize = db.appearance.borderSize or 1
-        frame.borderTop:SetHeight(borderSize)
-        frame.borderBottom:SetHeight(borderSize)
-        frame.borderLeft:SetWidth(borderSize)
-        frame.borderRight:SetWidth(borderSize)
-
-        -- Background
-        local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
-        frame.bg:SetColorTexture(bgColor.r, bgColor.g, bgColor.b, db.appearance.backgroundAlpha)
 
         -- Size
         frame:SetSize(db.display.toastWidth, db.display.toastHeight)
@@ -295,20 +277,28 @@ local function PopulateToast(frame, lootData)
     -- Icon display
     frame.itemName:ClearAllPoints()
     frame.itemType:ClearAllPoints()
+    frame.itemLevel:ClearAllPoints()
+    frame.looter:ClearAllPoints()
+    local padV = db.display.textPaddingV or 6
+    local padH = db.display.textPaddingH or 8
     if db.display.showIcon ~= false then
         frame.icon:SetTexture(lootData.itemIcon)
         frame.icon:Show()
         frame.iconBorder:Show()
         -- Position text relative to icon as before
-        frame.itemName:SetPoint("TOPLEFT", frame.icon, "TOPRIGHT", 8, -2)
-        frame.itemType:SetPoint("BOTTOMLEFT", frame.icon, "BOTTOMRIGHT", 8, 2)
+        frame.itemName:SetPoint("LEFT", frame.icon, "RIGHT", padH, 0)
+        frame.itemName:SetPoint("TOP", frame, "TOP", 0, -padV)
+        frame.itemType:SetPoint("LEFT", frame.icon, "RIGHT", padH, 0)
+        frame.itemType:SetPoint("BOTTOM", frame, "BOTTOM", 0, padV)
     else
         frame.icon:Hide()
         frame.iconBorder:Hide()
         -- Position text at left edge when no icon
-        frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -6)
-        frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, 6)
+        frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -padV)
+        frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, padV)
     end
+    frame.itemLevel:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -padH, -padV)
+    frame.looter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -padH, padV)
 
     -- Quality color
     local r, g, b = 1, 1, 1
@@ -393,31 +383,24 @@ local function PopulateToast(frame, lootData)
         frame.qualityGlow:Hide()
     end
 
-    -- Quality border
+    -- Border size, background, and border color
+    local borderSize = db.appearance.borderSize or 1
+    frame:SetBackdrop({
+        bgFile = LSM:Fetch("background", db.appearance.backgroundTexture or "Solid"),
+        edgeFile = LSM:Fetch("border", db.appearance.borderTexture or "None"),
+        edgeSize = borderSize,
+    })
+
+    local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
+    frame:SetBackdropColor(bgColor.r, bgColor.g, bgColor.b, db.appearance.backgroundAlpha)
+
     if db.appearance.qualityBorder then
-        frame.borderTop:SetColorTexture(r, g, b, 0.6)
-        frame.borderBottom:SetColorTexture(r, g, b, 0.6)
-        frame.borderLeft:SetColorTexture(r, g, b, 0.6)
-        frame.borderRight:SetColorTexture(r, g, b, 0.6)
+        frame:SetBackdropBorderColor(r, g, b, 0.6)
         frame.iconBorder:SetColorTexture(r, g, b, 0.6)
     else
-        frame.borderTop:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-        frame.borderBottom:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-        frame.borderLeft:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-        frame.borderRight:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+        frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
         frame.iconBorder:SetColorTexture(0.3, 0.3, 0.3, 0.8)
     end
-
-    -- Apply configurable border size
-    local borderSize = db.appearance.borderSize or 1
-    frame.borderTop:SetHeight(borderSize)
-    frame.borderBottom:SetHeight(borderSize)
-    frame.borderLeft:SetWidth(borderSize)
-    frame.borderRight:SetWidth(borderSize)
-
-    -- Background color and alpha
-    local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
-    frame.bg:SetColorTexture(bgColor.r, bgColor.g, bgColor.b, db.appearance.backgroundAlpha)
 
     -- Size from config
     frame:SetSize(db.display.toastWidth, db.display.toastHeight)

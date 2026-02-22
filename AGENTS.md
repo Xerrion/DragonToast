@@ -53,7 +53,7 @@ Listeners/
 └── XPListener.lua            # CHAT_MSG_COMBAT_XP_GAIN (both versions)
 
 Display/
-├── ToastFrame.lua        # Frame creation, Populate, Acquire/Release pool
+├── ToastFrame.lua        # Frame creation (BackdropTemplate), Populate, Acquire/Release pool
 ├── ToastAnimations.lua   # Entrance, Exit, Slide animations
 ├── ToastManager.lua      # Queue management, positioning, combat deferral
 └── ElvUISkin.lua          # ElvUI detection and font/border matching
@@ -120,15 +120,19 @@ Frames are recycled via `Acquire()` / `Release()`. Key safety measures:
 - `Release()` cancels any pending AceTimer before nullifying
 - `Release()` clears all stale timer fields (`fadeTimerStart`, `fadeTimerRemaining`)
 - `Release()` has a pool duplication guard
-- `StopAll()` unconditionally stops all animation groups (not just playing ones) to clear `SetToFinalAlpha` state
-- `PlayEntrance()` defensively calls `StopAll()` before starting
+- `StopAll()` unconditionally stops all active animations to ensure clean state for reuse
+- `PlayEntrance()` defensively calls `StopAll()` before starting new animations
 
 ### Animation System
 
-Three animation types (no pop — removed):
-- **Entrance**: OnUpdate-based position interpolation + AnimationGroup alpha/scale
-- **Exit**: AnimationGroup alpha fade-out (1→0), `SetToFinalAlpha(true)`
-- **Slide**: Translation animation for repositioning when toasts above are dismissed
+Three animation types managed by LibAnimate-1.0:
+- **Entrance**: Position interpolation + alpha/scale easing
+- **Exit**: Alpha fade-out (1→0)
+- **Slide**: Translation for repositioning when toasts above are dismissed
+
+### Test Mode
+
+`/dt testmode` or the General → Actions config toggle starts a repeating AceTimer (2.5s interval) that calls `ShowTestToast()` continuously. Useful for previewing settings changes in real-time. Runtime-only state — not persisted in SavedVariables. Auto-stops on `/dt clear`.
 
 ---
 
@@ -154,7 +158,7 @@ When "Match ElvUI Style" is enabled:
 | Filters | Item Quality → Loot Sources → Rewards |
 | Display | Layout → Toast Size → Toast Content → Position |
 | Animation | General → Timing → Entrance |
-| Appearance | Font → Background → Border & Glow → Icon → ElvUI |
+| Appearance | Font → Background (color, texture, opacity) → Border & Glow (quality, thickness, texture) → Icon → ElvUI |
 | Sound | Notification Sound |
 
 Config uses `type = "header"` separators and `type = "description"` intro text on every tab. LSM widget controls (`LSM30_Font`, `LSM30_Statusbar`, `LSM30_Sound`) for media selection.
@@ -207,9 +211,10 @@ No automated tests. Test manually in-game:
 1. `/dt test` — Show a test toast
 2. `/dt` — Open config window
 3. `/dt clear` — Dismiss all toasts
-4. Rapid-fire `/dt test` (10+ times) to stress frame pool recycling
-5. Hover/unhover during fade to test timer pause/resume
-6. `/console scriptErrors 1` to catch Lua errors
+4. `/dt testmode` — Toggle continuous test toasts for live config preview
+5. Rapid-fire `/dt test` (10+ times) to stress frame pool recycling
+6. Hover/unhover during fade to test timer pause/resume
+7. `/console scriptErrors 1` to catch Lua errors
 
 ---
 
@@ -217,8 +222,7 @@ No automated tests. Test manually in-game:
 
 1. **GetItemInfo may return nil** on first call if item not cached — handled with AceTimer retry (up to 5 retries, 0.2s each)
 2. **CHAT_MSG_LOOT patterns are localized** — parsing uses Lua pattern matching on the localized chat string
-3. **SetToFinalAlpha persistence** — Animation groups retain final alpha state even after finishing. Must call `Stop()` unconditionally (not just when `IsPlaying()`), or reused frames may be invisible
-4. **AceTimer cancellation** — Always cancel timers before nullifying references, or the closure fires on a recycled frame
-5. **ElvUI skin ordering** — `SkinToast()` runs after `PopulateToast()`. It must respect user's Appearance settings, not override them
-6. **TOC conditional loading** — Mid-file `## Interface:` directives don't work. Use BigWigsMods packager comment directives (`#@retail@`, `#@non-retail@`)
-7. **pull_request vs pull_request_target** — GitHub doesn't trigger `pull_request` workflows for PRs created by GITHUB_TOKEN (release-please). Use `pull_request_target` for lint workflows
+3. **AceTimer cancellation** — Always cancel timers before nullifying references, or the closure fires on a recycled frame
+4. **ElvUI skin ordering** — `SkinToast()` runs after `PopulateToast()`. It must respect user's Appearance settings, not override them
+5. **TOC conditional loading** — Mid-file `## Interface:` directives don't work. Use BigWigsMods packager comment directives (`#@retail@`, `#@non-retail@`)
+6. **pull_request vs pull_request_target** — GitHub doesn't trigger `pull_request` workflows for PRs created by GITHUB_TOKEN (release-please). Use `pull_request_target` for lint workflows

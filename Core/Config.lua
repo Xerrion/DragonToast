@@ -45,6 +45,8 @@ local defaults = {
             showLooter = true,
             showQuantity = true,
             showIcon = true,
+            textPaddingV = 6,
+            textPaddingH = 8,
         },
 
         animation = {
@@ -67,10 +69,12 @@ local defaults = {
             fontOutline = "OUTLINE",
             backgroundAlpha = 0.7,
             backgroundColor = { r = 0.05, g = 0.05, b = 0.05 },
+            backgroundTexture = "Solid",
             qualityBorder = true,
             qualityGlow = true,
             iconSize = 36,
             borderSize = 1,
+            borderTexture = "None",
             glowWidth = 4,
             statusBarTexture = "Blizzard",
         },
@@ -189,6 +193,21 @@ local function GetOptions()
                         order = 12,
                         func = function()
                             ns.ToastManager.ClearAll()
+                        end,
+                    },
+                    testMode = {
+                        name = "Test Mode",
+                        desc = "Continuously generate test toasts for previewing your settings. Toggles on/off.",
+                        type = "toggle",
+                        order = 13,
+                        width = "full",
+                        get = function() return ns.ToastManager.IsTestModeActive() end,
+                        set = function(_, val)
+                            if val then
+                                ns.ToastManager.StartTestMode()
+                            else
+                                ns.ToastManager.StopTestMode()
+                            end
                         end,
                     },
                 },
@@ -426,6 +445,30 @@ local function GetOptions()
                         order = 25,
                         get = function() return db.display.showLooter end,
                         set = function(_, val) db.display.showLooter = val end,
+                    },
+                    textPaddingV = {
+                        name = "Text Vertical Padding",
+                        desc = "Vertical distance from toast edges to text.",
+                        type = "range",
+                        order = 26,
+                        min = 0, max = 20, step = 1,
+                        get = function() return db.display.textPaddingV end,
+                        set = function(_, val)
+                            db.display.textPaddingV = val
+                            ns.ToastManager.UpdateLayout()
+                        end,
+                    },
+                    textPaddingH = {
+                        name = "Text Horizontal Padding",
+                        desc = "Horizontal distance from icon to text.",
+                        type = "range",
+                        order = 27,
+                        min = 0, max = 20, step = 1,
+                        get = function() return db.display.textPaddingH end,
+                        set = function(_, val)
+                            db.display.textPaddingH = val
+                            ns.ToastManager.UpdateLayout()
+                        end,
                     },
 
                     -- Position
@@ -721,6 +764,20 @@ local function GetOptions()
                         end,
                     },
 
+                    backgroundTexture = {
+                        name = "Background Texture",
+                        desc = "Background texture style for toasts.",
+                        type = "select",
+                        order = 13,
+                        dialogControl = "LSM30_Background",
+                        values = function() return LSM:HashTable("background") end,
+                        get = function() return db.appearance.backgroundTexture end,
+                        set = function(_, val)
+                            db.appearance.backgroundTexture = val
+                            ns.ToastManager.UpdateLayout()
+                        end,
+                    },
+
                     -- Border & Glow
                     headerBorder = {
                         name = "Border & Glow",
@@ -747,11 +804,24 @@ local function GetOptions()
                             ns.ToastManager.UpdateLayout()
                         end,
                     },
+                    borderTexture = {
+                        name = "Border Texture",
+                        desc = "Border texture style for toasts.",
+                        type = "select",
+                        order = 23,
+                        dialogControl = "LSM30_Border",
+                        values = function() return LSM:HashTable("border") end,
+                        get = function() return db.appearance.borderTexture end,
+                        set = function(_, val)
+                            db.appearance.borderTexture = val
+                            ns.ToastManager.UpdateLayout()
+                        end,
+                    },
                     qualityGlow = {
                         name = "Quality Glow Strip",
                         desc = "Show a subtle glow strip colored by item quality.",
                         type = "toggle",
-                        order = 23,
+                        order = 24,
                         get = function() return db.appearance.qualityGlow end,
                         set = function(_, val) db.appearance.qualityGlow = val end,
                     },
@@ -759,7 +829,7 @@ local function GetOptions()
                         name = "Glow Width",
                         desc = "Quality glow strip width in pixels.",
                         type = "range",
-                        order = 24,
+                        order = 25,
                         min = 0, max = 12, step = 1,
                         get = function() return db.appearance.glowWidth end,
                         set = function(_, val)
@@ -771,7 +841,7 @@ local function GetOptions()
                         name = "Glow Texture",
                         desc = "Texture for quality glow strip.",
                         type = "select",
-                        order = 25,
+                        order = 26,
                         dialogControl = "LSM30_Statusbar",
                         values = function() return LSM:HashTable("statusbar") end,
                         get = function() return db.appearance.statusBarTexture end,

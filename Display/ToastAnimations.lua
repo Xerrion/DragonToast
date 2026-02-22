@@ -92,6 +92,9 @@ end
 -------------------------------------------------------------------------------
 
 function ns.ToastAnimations.PlaySlide(frame, fromY, toY, point, relativeTo, relativePoint, x)
+    -- Don't slide a toast that's mid-exit; let it finish disappearing
+    if frame._isExiting then return end
+
     local db = ns.Addon.db.profile
     if not db.animation.enableAnimations then
         frame:ClearAllPoints()
