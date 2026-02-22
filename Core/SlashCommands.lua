@@ -52,7 +52,9 @@ local function PrintStatus()
     print("  Minimap Icon: " .. (not db.minimap.hide and "Yes" or "No"))
     print("  Anchor: " .. db.display.anchorPoint
         .. " (" .. math.floor(db.display.anchorX) .. ", " .. math.floor(db.display.anchorY) .. ")")
-    print("  Test Mode: " .. (ns.ToastManager.IsTestModeActive() and ns.COLOR_GREEN .. "Active" or "Inactive") .. ns.COLOR_RESET)
+    local tmStatus = ns.ToastManager.IsTestModeActive()
+        and ns.COLOR_GREEN .. "Active" or "Inactive"
+    print("  Test Mode: " .. tmStatus .. ns.COLOR_RESET)
 end
 
 -------------------------------------------------------------------------------
