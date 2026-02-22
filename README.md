@@ -4,7 +4,7 @@
 
 # DragonToast
 
-*Animated loot feed with ElvUI skin matching*
+*Every drop deserves a toast — a dragon-forged loot feed for your adventures*
 
 [![Latest Release](https://img.shields.io/github/v/release/Xerrion/DragonToast?style=for-the-badge)](https://github.com/Xerrion/DragonToast/releases/latest)
 [![License](https://img.shields.io/github/license/Xerrion/DragonToast?style=for-the-badge)](LICENSE)

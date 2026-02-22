@@ -1,7 +1,7 @@
 ## Interface: 110207
 ## Interface-BCC: 20505
 ## Title: DragonToast
-## Notes: Animated loot feed with ElvUI skin matching
+## Notes: Every drop deserves a toast — a dragon-forged loot feed for your adventures
 ## Author: @project-author@
 ## Version: @project-version@
 ## SavedVariables: DragonToastDB
