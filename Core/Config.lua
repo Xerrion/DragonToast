@@ -191,6 +191,21 @@ local function GetOptions()
                             ns.ToastManager.ClearAll()
                         end,
                     },
+                    testMode = {
+                        name = "Test Mode",
+                        desc = "Continuously generate test toasts for previewing your settings. Toggles on/off.",
+                        type = "toggle",
+                        order = 13,
+                        width = "full",
+                        get = function() return ns.ToastManager.IsTestModeActive() end,
+                        set = function(_, val)
+                            if val then
+                                ns.ToastManager.StartTestMode()
+                            else
+                                ns.ToastManager.StopTestMode()
+                            end
+                        end,
+                    },
                 },
             },
 

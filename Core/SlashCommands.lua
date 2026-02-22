@@ -52,6 +52,7 @@ local function PrintStatus()
     print("  Minimap Icon: " .. (not db.minimap.hide and "Yes" or "No"))
     print("  Anchor: " .. db.display.anchorPoint
         .. " (" .. math.floor(db.display.anchorX) .. ", " .. math.floor(db.display.anchorY) .. ")")
+    print("  Test Mode: " .. (ns.ToastManager.IsTestModeActive() and ns.COLOR_GREEN .. "Active" or "Inactive") .. ns.COLOR_RESET)
 end
 
 -------------------------------------------------------------------------------
@@ -64,6 +65,7 @@ local function PrintHelp()
     print("  " .. ns.COLOR_WHITE .. "/dt config" .. ns.COLOR_RESET .. " — Open settings panel")
     print("  " .. ns.COLOR_WHITE .. "/dt lock" .. ns.COLOR_RESET .. " — Toggle anchor lock (drag to move)")
     print("  " .. ns.COLOR_WHITE .. "/dt test" .. ns.COLOR_RESET .. " — Show a test toast")
+    print("  " .. ns.COLOR_WHITE .. "/dt testmode" .. ns.COLOR_RESET .. " — Toggle continuous test toast generation")
     print("  " .. ns.COLOR_WHITE .. "/dt clear" .. ns.COLOR_RESET .. " — Dismiss all toasts")
     print("  " .. ns.COLOR_WHITE .. "/dt reset" .. ns.COLOR_RESET .. " — Reset anchor position to default")
     print("  " .. ns.COLOR_WHITE .. "/dt status" .. ns.COLOR_RESET .. " — Show current settings")
@@ -102,6 +104,9 @@ function ns.HandleSlashCommand(input)
         if ns.ToastManager.ShowTestToast then
             ns.ToastManager.ShowTestToast()
         end
+
+    elseif cmd == "testmode" then
+        ns.ToastManager.ToggleTestMode()
 
     elseif cmd == "clear" then
         ns.ToastManager.ClearAll()

@@ -357,6 +357,7 @@ function ns.ToastManager.OnToastFinished(toast)
 end
 
 function ns.ToastManager.ClearAll()
+    ns.ToastManager.StopTestMode()
     -- Cancel all fade timers and hide all toasts
     for _, toast in ipairs(activeToasts) do
         ns.Addon:CancelTimer(toast.fadeTimer)
@@ -432,6 +433,47 @@ function ns.ToastManager.ShowTestToast()
     end
 
     ShowToast(lootData)
+end
+
+-------------------------------------------------------------------------------
+-- Test Mode (continuous toast generation)
+-------------------------------------------------------------------------------
+
+local testModeTimer = nil
+
+function ns.ToastManager.IsTestModeActive()
+    return testModeTimer ~= nil
+end
+
+function ns.ToastManager.StartTestMode()
+    if testModeTimer then return end -- already running
+
+    -- Fire one immediately
+    ns.ToastManager.ShowTestToast()
+
+    -- Schedule repeating timer
+    testModeTimer = ns.Addon:ScheduleRepeatingTimer(function()
+        ns.ToastManager.ShowTestToast()
+    end, 2.5)
+
+    ns.Print("Test mode " .. ns.COLOR_GREEN .. "started" .. ns.COLOR_RESET .. " — toasts will keep appearing.")
+end
+
+function ns.ToastManager.StopTestMode()
+    if not testModeTimer then return end
+
+    ns.Addon:CancelTimer(testModeTimer)
+    testModeTimer = nil
+
+    ns.Print("Test mode " .. ns.COLOR_RED .. "stopped" .. ns.COLOR_RESET)
+end
+
+function ns.ToastManager.ToggleTestMode()
+    if testModeTimer then
+        ns.ToastManager.StopTestMode()
+    else
+        ns.ToastManager.StartTestMode()
+    end
 end
 
 -------------------------------------------------------------------------------
