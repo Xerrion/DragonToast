@@ -99,14 +99,16 @@ end
 function ns.ToastManager.UpdatePositions()
     if not isInitialized then return end
 
+    local lib = ns.LibAnimate
+
     for i, toast in ipairs(activeToasts) do
         local point, relativeTo, relativePoint, x, y = GetToastPosition(i)
 
         if toast._isEntering then
-            -- Toast is mid-entrance animation; update its final target coordinates
-            -- The OnUpdate in PlayEntrance reads these each frame
-            toast._entranceFinalX = x
-            toast._entranceFinalY = y
+            -- Toast is mid-entrance animation; update its anchor via LibAnimate
+            if lib then
+                lib:UpdateAnchor(toast, x, y)
+            end
         else
             local _, _, _, _, prevY = toast:GetPoint()
 
