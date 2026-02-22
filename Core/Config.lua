@@ -53,8 +53,10 @@ local defaults = {
             exitDuration = 0.5,
             holdDuration = 4.0,
 
-            entranceDirection = "RIGHT",
+            entranceAnimation = "slideInRight",
             entranceDistance = 300,
+            exitAnimation = "fadeOut",
+            exitDistance = 300,
             slideSpeed = 0.2,
         },
 
@@ -529,29 +531,77 @@ local function GetOptions()
                         type = "header",
                         order = 20,
                     },
-                    entranceDirection = {
-                        name = "Slide Direction",
-                        desc = "Direction toasts slide in from.",
+                    entranceAnimation = {
+                        name = "Entrance Animation",
+                        desc = "Animation to play when a toast appears.",
                         type = "select",
                         order = 21,
-                        values = { LEFT = "Left", RIGHT = "Right", TOP = "Top", BOTTOM = "Bottom" },
-                        get = function() return db.animation.entranceDirection end,
-                        set = function(_, val) db.animation.entranceDirection = val end,
+                        values = function()
+                            local lib = ns.LibAnimate
+                            if not lib then return {} end
+                            local vals = {}
+                            for _, name in ipairs(lib:GetEntranceAnimations()) do
+                                vals[name] = name:gsub("(%u)", " %1"):gsub("^%l", string.upper)
+                            end
+                            return vals
+                        end,
+                        get = function() return db.animation.entranceAnimation end,
+                        set = function(_, val) db.animation.entranceAnimation = val end,
                     },
                     entranceDistance = {
-                        name = "Slide Distance",
-                        desc = "How far toasts slide in (pixels).",
+                        name = "Entrance Distance",
+                        desc = "How far toasts travel during entrance (pixels). Only affects directional animations.",
                         type = "range",
                         order = 22,
                         min = 50, max = 600, step = 10,
                         get = function() return db.animation.entranceDistance end,
                         set = function(_, val) db.animation.entranceDistance = val end,
                     },
+
+                    -- Exit
+                    headerExit = {
+                        name = "Exit",
+                        type = "header",
+                        order = 24,
+                    },
+                    exitAnimation = {
+                        name = "Exit Animation",
+                        desc = "Animation to play when a toast is dismissed.",
+                        type = "select",
+                        order = 25,
+                        values = function()
+                            local lib = ns.LibAnimate
+                            if not lib then return {} end
+                            local vals = {}
+                            for _, name in ipairs(lib:GetExitAnimations()) do
+                                vals[name] = name:gsub("(%u)", " %1"):gsub("^%l", string.upper)
+                            end
+                            return vals
+                        end,
+                        get = function() return db.animation.exitAnimation end,
+                        set = function(_, val) db.animation.exitAnimation = val end,
+                    },
+                    exitDistance = {
+                        name = "Exit Distance",
+                        desc = "How far toasts travel during exit (pixels). Only affects directional animations.",
+                        type = "range",
+                        order = 26,
+                        min = 50, max = 600, step = 10,
+                        get = function() return db.animation.exitDistance end,
+                        set = function(_, val) db.animation.exitDistance = val end,
+                    },
+
+                    -- Repositioning
+                    headerReposition = {
+                        name = "Repositioning",
+                        type = "header",
+                        order = 30,
+                    },
                     slideSpeed = {
                         name = "Reposition Speed",
                         desc = "Speed of toast repositioning when a toast above is dismissed (seconds).",
                         type = "range",
-                        order = 23,
+                        order = 31,
                         min = 0.05, max = 0.5, step = 0.05,
                         get = function() return db.animation.slideSpeed end,
                         set = function(_, val) db.animation.slideSpeed = val end,
@@ -828,11 +878,57 @@ local function GetOptions()
 end
 
 -------------------------------------------------------------------------------
+-- Profile Migration
+-------------------------------------------------------------------------------
+
+local CURRENT_SCHEMA = 1
+
+local DIRECTION_TO_ANIMATION = {
+    RIGHT  = "slideInRight",
+    LEFT   = "slideInLeft",
+    TOP    = "slideInDown",
+    BOTTOM = "slideInUp",
+}
+
+local function MigrateProfile(db)
+    local profile = db.profile
+
+    local version = profile.schemaVersion or 0
+
+    if version < 1 then
+        -- v0 → v1: entranceDirection → entranceAnimation (LibAnimate-1.0 integration)
+        if profile.animation.entranceDirection then
+            profile.animation.entranceAnimation = DIRECTION_TO_ANIMATION[profile.animation.entranceDirection]
+                or "slideInRight"
+            profile.animation.entranceDirection = nil
+        end
+
+        -- Set defaults for new keys
+        if not profile.animation.exitAnimation then
+            profile.animation.exitAnimation = "fadeOut"
+        end
+        if not profile.animation.exitDistance then
+            profile.animation.exitDistance = 300
+        end
+
+        profile.schemaVersion = CURRENT_SCHEMA
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Initialization (called from Init.lua OnInitialize)
 -------------------------------------------------------------------------------
 
 function ns.InitializeDB(addon)
     addon.db = LibStub("AceDB-3.0"):New("DragonToastDB", defaults, true)
+
+    -- Migrate active profile
+    MigrateProfile(addon.db)
+
+    -- Re-migrate on profile changes
+    addon.db.RegisterCallback(addon, "OnProfileChanged", function() MigrateProfile(addon.db) end)
+    addon.db.RegisterCallback(addon, "OnProfileCopied", function() MigrateProfile(addon.db) end)
+    addon.db.RegisterCallback(addon, "OnProfileReset", function() MigrateProfile(addon.db) end)
 
     -- Register options
     AceConfig:RegisterOptionsTable(ADDON_NAME, GetOptions)
