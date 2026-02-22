@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/Xerrion/DragonToast/compare/1.1.0...1.2.0) (2026-02-22)
+
+
+### Features
+
+* add /dt reset command to restore default anchor position ([#17](https://github.com/Xerrion/DragonToast/issues/17)) ([03ae8fb](https://github.com/Xerrion/DragonToast/commit/03ae8fbe8efc8f7b44cf9c15aa12bc63ae213bed))
+
 ## [1.1.0](https://github.com/Xerrion/DragonToast/compare/1.0.0...1.1.0) (2026-02-22)
 
 
