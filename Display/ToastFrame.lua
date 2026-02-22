@@ -168,9 +168,6 @@ local function CreateToastFrame()
         end
     end)
 
-    -- Store reference for animations (created by ToastAnimations.lua)
-    frame.animGroups = {}
-
     return frame
 end
 
@@ -440,10 +437,6 @@ function ns.ToastFrame.Acquire()
     local frame = table.remove(framePool)
     if not frame then
         frame = CreateToastFrame()
-        -- Create animation groups
-        if ns.ToastAnimations and ns.ToastAnimations.SetupAnimations then
-            ns.ToastAnimations.SetupAnimations(frame)
-        end
     end
     return frame
 end
@@ -461,25 +454,19 @@ function ns.ToastFrame.Release(frame)
     frame.fadeTimer = nil
     frame.fadeTimerStart = nil
     frame.fadeTimerRemaining = nil
+
+    -- Clean up LibAnimate animation state
+    if ns.LibAnimate then
+        ns.LibAnimate:Stop(frame)
+    end
     frame._isEntering = false
-    frame._entranceStartTime = nil
-    frame._entranceDuration = nil
-    frame._entranceSlideX = nil
-    frame._entranceSlideY = nil
-    frame._entranceFinalX = nil
-    frame._entranceFinalY = nil
+    frame._isExiting = false
     frame._isSliding = false
-    frame._slideStartTime = nil
-    frame._slideDuration = nil
-    frame._slideFromY = nil
     frame._slideToY = nil
-    frame._slidePoint = nil
-    frame._slideRelativeTo = nil
-    frame._slideRelativePoint = nil
-    frame._slideX = nil
-    frame:SetScript("OnUpdate", nil)
+
     frame:SetAlpha(1)
     frame:SetScale(1)
+
     -- Pool duplication guard
     for _, pooled in ipairs(framePool) do
         if pooled == frame then return end

@@ -28,7 +28,7 @@ read_globals = {
     "GameTooltip", "UIParent", "PlaySound", "PlaySoundFile",
     "ChatFrame_OpenChat", "IsShiftKeyDown",
     "InCombatLockdown", "hooksecurefunc",
-    "InterfaceOptionsFrame_OpenToCategory", "Settings",
+    "InterfaceOptionsFrame_OpenToCategory", "Settings","GetTime",
 
     -- WoW Globals
     "Enum", "RAID_CLASS_COLORS", "ITEM_QUALITY_COLORS", "STANDARD_TEXT_FONT",
