@@ -1,3 +1,12 @@
+## [1.4.0] - 2026-02-22
+
+### 🚀 Features
+
+- Backdrop template, border/background textures, and test mode (#35)
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix release workflow (#32)
 ## [1.3.0] - 2026-02-22
 
 ### 🚀 Features
@@ -16,6 +25,7 @@
 
 - Update release workflow (#28)
 - Add release-please-style auto-release workflow (#29)
+- Release 1.3.0 (#30)
 ## [1.2.1] - 2026-02-22
 
 ### 🐛 Bug Fixes
