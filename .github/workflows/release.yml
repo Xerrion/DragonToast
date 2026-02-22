@@ -2,12 +2,12 @@ name: Release
 
 on:
   push:
-    branches:
-      - master
     tags:
       - "*"
-    paths-ignore:
-      - CHANGELOG.md
+  pull_request:
+    types: [closed]
+    branches:
+      - master
   workflow_dispatch:
     inputs:
       tag_name:
@@ -17,10 +17,47 @@ on:
 
 permissions:
   contents: write
+  pull-requests: read
 
 jobs:
+  create-tag:
+    name: Create tag from release PR
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'autorelease')
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Extract version and create tag
+        id: tag
+        shell: bash
+        run: |
+          TITLE="${{ github.event.pull_request.title }}"
+          TAG=$(echo "$TITLE" | grep -oP '\d+\.\d+\.\d+')
+          if [ -z "$TAG" ]; then
+            echo "::error::Could not extract version from PR title: $TITLE"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
   changelog:
     name: Generate changelog
+    needs: [create-tag]
+    if: >-
+      always() &&
+      github.event_name != 'pull_request' &&
+      (github.ref_type == 'tag' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.vars.outputs.tag }}
@@ -69,21 +106,36 @@ jobs:
 
   package:
     name: Package
-    needs: changelog
-    if: ${{ github.ref_type == 'tag' || github.event_name == 'workflow_dispatch' }}
+    needs: [create-tag, changelog]
+    if: >-
+      always() && (
+        needs.create-tag.result == 'success' ||
+        github.ref_type == 'tag' ||
+        github.event_name == 'workflow_dispatch'
+      )
     runs-on: ubuntu-latest
     env:
       CF_API_KEY: ${{ secrets.CF_API_KEY }}
       WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
       GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
-      TAG_NAME: ${{ needs.changelog.outputs.tag }}
     steps:
-      - name: Resolve tag fallback
+      - name: Resolve tag
+        id: resolve
         shell: bash
         run: |
-          if [ -z "$TAG_NAME" ]; then
-            echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> "$GITHUB_ENV"
+          TAG=""
+          if [ -n "${{ needs.create-tag.outputs.tag }}" ]; then
+            TAG="${{ needs.create-tag.outputs.tag }}"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG="${{ github.ref_name }}"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag_name }}"
           fi
+          if [ -z "$TAG" ]; then
+            echo "::error::No tag could be resolved"
+            exit 1
+          fi
+          echo "TAG_NAME=$TAG" >> "$GITHUB_ENV"
 
       - name: Checkout tag
         uses: actions/checkout@v5
