@@ -468,6 +468,15 @@ function ns.ToastFrame.Release(frame)
     frame._entranceSlideY = nil
     frame._entranceFinalX = nil
     frame._entranceFinalY = nil
+    frame._isSliding = false
+    frame._slideStartTime = nil
+    frame._slideDuration = nil
+    frame._slideFromY = nil
+    frame._slideToY = nil
+    frame._slidePoint = nil
+    frame._slideRelativeTo = nil
+    frame._slideRelativePoint = nil
+    frame._slideX = nil
     frame:SetScript("OnUpdate", nil)
     frame:SetAlpha(1)
     frame:SetScale(1)
