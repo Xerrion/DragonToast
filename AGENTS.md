@@ -108,27 +108,28 @@ DragonToast uses Ace3 extensively. **All** of these must be used — no raw alte
 
 1. **Loot event** → `LootListener` / `XPListener` parses and calls `ToastManager.QueueToast(lootData)`
 2. **QueueToast** → Checks combat deferral, duplicate stacking, then calls `ShowToast()`
-3. **ShowToast** → `ToastFrame.Acquire()` gets frame from pool, `Populate()` fills it, `PlayEntrance()` animates in
-4. **Fade timer** → AceTimer fires after `holdDuration`, calls `PlayExit()`
-5. **Exit finishes** → `OnToastFinished()` → `StopAll()` → `Release()` returns frame to pool
-6. **Hover** → Pauses fade timer, shows tooltip. Unhover → `ResumeFadeTimer()`
-7. **Click** → Dismiss. **Shift-click** → Link item in chat.
+3. **ShowToast** → `ToastFrame.Acquire()` gets frame from pool, `Populate()` fills it, `PlayLifecycle()` starts the animation queue
+4. **PlayLifecycle** → Builds a `lib:Queue()` with chained entries: entrance → attention (optional, quality-gated) → exit (with hold delay)
+5. **Queue completes** → `OnToastFinished()` → `StopAll()` → `Release()` returns frame to pool
+6. **Hover** → `PauseQueue()` freezes animation + hold timer. Unhover → `ResumeQueue()` continues from exact pause point
+7. **Click** → `Dismiss()` skips to exit animation via `SkipToEntry()`. **Shift-click** → Link item in chat.
 
 ### Frame Pool
 
 Frames are recycled via `Acquire()` / `Release()`. Key safety measures:
-- `Release()` cancels any pending AceTimer before nullifying
-- `Release()` clears all stale timer fields (`fadeTimerStart`, `fadeTimerRemaining`)
+- `Release()` calls `ClearQueue()` to stop animations and clear queue
+- `Release()` clears `_exitEntryIndex` and `_noAnimTimer` fields
 - `Release()` has a pool duplication guard
-- `StopAll()` unconditionally stops all active animations to ensure clean state for reuse
-- `PlayEntrance()` defensively calls `StopAll()` before starting new animations
+- `StopAll()` calls `lib:ClearQueue()` which stops animation + restores frame state
+- `PlayLifecycle()` defensively calls `StopAll()` before starting new queue
 
 ### Animation System
 
-Three animation types managed by LibAnimate-1.0:
-- **Entrance**: Position interpolation + alpha/scale easing
-- **Exit**: Alpha fade-out (1→0)
-- **Slide**: Translation for repositioning when toasts above are dismissed
+Three animation phases managed by LibAnimate Queue:
+- **Entrance**: Configurable entrance animation (slideInRight, fadeIn, etc.)
+- **Attention** (optional): Quality-gated attention animation (pulse, bounce, heartBeat, etc.) — only plays for items meeting minimum quality threshold
+- **Exit**: Configurable exit animation with hold delay (the delay IS the display duration)
+- **Slide**: `SlideAnchor()` for smooth repositioning without interrupting the lifecycle queue
 
 ### Test Mode
 

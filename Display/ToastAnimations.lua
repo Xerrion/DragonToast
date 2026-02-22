@@ -15,74 +15,61 @@ local lib = LibStub("LibAnimate")
 ns.LibAnimate = lib
 
 -------------------------------------------------------------------------------
--- Cached WoW API
+-- Play full toast lifecycle (entrance -> [attention] -> hold -> exit)
 -------------------------------------------------------------------------------
 
-local math_abs = math.abs
-
--------------------------------------------------------------------------------
--- Play entrance animation
--------------------------------------------------------------------------------
-
-function ns.ToastAnimations.PlayEntrance(frame)
+function ns.ToastAnimations.PlayLifecycle(frame, lootData)
     -- Defensive: clear any stale animation state from previous use
     ns.ToastAnimations.StopAll(frame)
 
     local db = ns.Addon.db.profile
 
-    if not db.animation.enableAnimations then
-        frame:SetAlpha(1)
-        frame:Show()
-        return
-    end
-
-    frame._isEntering = true
     frame:Show()
 
-    lib:Animate(frame, db.animation.entranceAnimation, {
+    if not db.animation.enableAnimations then
+        frame:SetAlpha(1)
+        frame._noAnimTimer = ns.Addon:ScheduleTimer(function()
+            frame._noAnimTimer = nil
+            ns.ToastManager.OnToastFinished(frame)
+        end, db.animation.holdDuration)
+        return
+    end
+
+    local entries = {}
+
+    -- 1. Entrance
+    entries[#entries + 1] = {
+        name = db.animation.entranceAnimation,
         duration = db.animation.entranceDuration,
         distance = db.animation.entranceDistance,
-        onFinished = function()
-            frame._isEntering = false
-        end,
-    })
-end
+    }
 
--------------------------------------------------------------------------------
--- Play exit animation
--------------------------------------------------------------------------------
-
-function ns.ToastAnimations.PlayExit(frame)
-    -- Guard against double-play
-    if frame._isExiting and lib:IsAnimating(frame) then
-        return
+    -- 2. Attention (conditional)
+    if db.animation.attentionAnimation ~= "none"
+        and lootData
+        and lootData.itemQuality
+        and lootData.itemQuality >= db.animation.attentionMinQuality
+    then
+        entries[#entries + 1] = {
+            name = db.animation.attentionAnimation,
+            delay = db.animation.attentionDelay or 0,
+            repeatCount = db.animation.attentionRepeatCount or 2,
+        }
     end
 
-    -- Clean up entrance if still running
-    if frame._isEntering then
-        frame._isEntering = false
-        lib:Stop(frame)
-    end
-
-    local db = ns.Addon.db.profile
-
-    if not db.animation.enableAnimations then
-        if ns.ToastManager.OnToastFinished then
-            ns.ToastManager.OnToastFinished(frame)
-        end
-        return
-    end
-
-    frame._isExiting = true
-
-    lib:Animate(frame, db.animation.exitAnimation, {
+    -- 3. Exit (delay = hold period)
+    entries[#entries + 1] = {
+        name = db.animation.exitAnimation,
         duration = db.animation.exitDuration,
         distance = db.animation.exitDistance,
+        delay = db.animation.holdDuration,
+    }
+
+    frame._exitEntryIndex = #entries
+
+    lib:Queue(frame, entries, {
         onFinished = function()
-            frame._isExiting = false
-            if ns.ToastManager.OnToastFinished then
-                ns.ToastManager.OnToastFinished(frame)
-            end
+            ns.ToastManager.OnToastFinished(frame)
         end,
     })
 end
@@ -91,47 +78,47 @@ end
 -- Play slide animation (reposition in stack)
 -------------------------------------------------------------------------------
 
-function ns.ToastAnimations.PlaySlide(frame, fromY, toY, point, relativeTo, relativePoint, x)
+function ns.ToastAnimations.PlaySlide(frame, _, toY, point, relativeTo,
+                                      relativePoint, x)
     -- Don't slide a toast that's mid-exit; let it finish disappearing
     if frame._isExiting then return end
 
     local db = ns.Addon.db.profile
+
     if not db.animation.enableAnimations then
         frame:ClearAllPoints()
         frame:SetPoint(point, relativeTo, relativePoint, x, toY)
         return
     end
 
-    -- If currently animating a slide, capture visual position before stopping
-    local actualFromY = fromY
-    if lib:IsAnimating(frame) and frame._isSliding then
-        local _, _, _, _, currentY = frame:GetPoint()
-        if currentY then
-            actualFromY = currentY
-        end
-        lib:Stop(frame)
+    lib:SlideAnchor(frame, x, toY, db.animation.slideSpeed or 0.2)
+end
+
+-------------------------------------------------------------------------------
+-- Dismiss (user click)
+-------------------------------------------------------------------------------
+
+function ns.ToastAnimations.Dismiss(frame)
+    if frame._exitEntryIndex and lib:IsQueued(frame) then
+        lib:SkipToEntry(frame, frame._exitEntryIndex)
+    elseif lib:IsAnimating(frame) or lib:IsPaused(frame) then
+        ns.ToastAnimations.StopAll(frame)
+        ns.ToastManager.OnToastFinished(frame)
+    else
+        ns.ToastManager.OnToastFinished(frame)
     end
+end
 
-    -- Set anchor to TARGET position
-    frame:ClearAllPoints()
-    frame:SetPoint(point, relativeTo, relativePoint, x, toY)
+-------------------------------------------------------------------------------
+-- Pause / Resume (hover)
+-------------------------------------------------------------------------------
 
-    local deltaY = toY - actualFromY
-    local distance = math_abs(deltaY)
-    if distance < 0.5 then return end
+function ns.ToastAnimations.Pause(frame)
+    lib:PauseQueue(frame)
+end
 
-    local animName = deltaY > 0 and "moveUp" or "moveDown"
-
-    frame._isSliding = true
-    frame._slideToY = toY
-
-    lib:Animate(frame, animName, {
-        duration = db.animation.slideSpeed or 0.2,
-        distance = distance,
-        onFinished = function()
-            frame._isSliding = false
-        end,
-    })
+function ns.ToastAnimations.Resume(frame)
+    lib:ResumeQueue(frame)
 end
 
 -------------------------------------------------------------------------------
@@ -139,9 +126,13 @@ end
 -------------------------------------------------------------------------------
 
 function ns.ToastAnimations.StopAll(frame)
-    frame._isEntering = false
     frame._isExiting = false
-    frame._isSliding = false
+    frame._exitEntryIndex = nil
 
-    lib:Stop(frame)
+    if frame._noAnimTimer then
+        ns.Addon:CancelTimer(frame._noAnimTimer)
+        frame._noAnimTimer = nil
+    end
+
+    lib:ClearQueue(frame)
 end

@@ -99,27 +99,17 @@ end
 function ns.ToastManager.UpdatePositions()
     if not isInitialized then return end
 
-    local lib = ns.LibAnimate
-
     for i, toast in ipairs(activeToasts) do
         local point, relativeTo, relativePoint, x, y = GetToastPosition(i)
+        local _, _, _, _, currentY = toast:GetPoint()
 
-        if toast._isEntering then
-            -- Toast is mid-entrance animation; update its anchor via LibAnimate
-            if lib then
-                lib:UpdateAnchor(toast, x, y)
-            end
-        else
-            local _, _, _, _, prevY = toast:GetPoint()
-
-            local alreadySlidingToTarget = toast._isSliding and toast._slideToY == y
-
-            if not alreadySlidingToTarget and toast:IsShown() and prevY and math.abs(prevY - y) > 0.5 then
-                ns.ToastAnimations.PlaySlide(toast, prevY, y, point, relativeTo, relativePoint, x)
-            elseif not alreadySlidingToTarget and not toast._isSliding then
-                toast:ClearAllPoints()
-                toast:SetPoint(point, relativeTo, relativePoint, x, y)
-            end
+        if currentY and math.abs(currentY - y) > 0.5 then
+            ns.ToastAnimations.PlaySlide(
+                toast, currentY, y, point, relativeTo, relativePoint, x
+            )
+        elseif not currentY then
+            toast:ClearAllPoints()
+            toast:SetPoint(point, relativeTo, relativePoint, x, y)
         end
     end
 end
@@ -168,52 +158,6 @@ local function FindDuplicate(lootData)
 end
 
 -------------------------------------------------------------------------------
--- Fade Timer
--------------------------------------------------------------------------------
-
-local function StartFadeTimer(toast)
-    local db = ns.Addon.db.profile
-    local holdDuration = db.animation.holdDuration
-
-    -- Cancel existing timer (CancelTimer is a no-op if handle is nil)
-    ns.Addon:CancelTimer(toast.fadeTimer)
-    toast.fadeTimer = nil
-
-    toast.fadeTimerStart = GetTime()
-    toast.fadeTimerRemaining = holdDuration
-
-    toast.fadeTimer = ns.Addon:ScheduleTimer(function()
-        if toast.isHovered then
-            -- Don't fade while hovered; ResumeFadeTimer will handle it
-            return
-        end
-        ns.ToastAnimations.PlayExit(toast)
-    end, holdDuration)
-end
-
-function ns.ToastManager.ResumeFadeTimer(toast)
-    if not toast.fadeTimerStart then return end
-
-    -- Calculate remaining time
-    local elapsed = GetTime() - toast.fadeTimerStart
-    local remaining = (toast.fadeTimerRemaining or ns.Addon.db.profile.animation.holdDuration) - elapsed
-
-    if remaining <= 0 then
-        -- Time already expired, start exit now
-        ns.ToastAnimations.PlayExit(toast)
-        return
-    end
-
-    -- Cancel old timer and start new one with remaining time
-    ns.Addon:CancelTimer(toast.fadeTimer)
-
-    toast.fadeTimer = ns.Addon:ScheduleTimer(function()
-        if toast.isHovered then return end
-        ns.ToastAnimations.PlayExit(toast)
-    end, remaining)
-end
-
--------------------------------------------------------------------------------
 -- Utilities
 -------------------------------------------------------------------------------
 
@@ -246,8 +190,8 @@ local function ShowToast(lootData)
             existing.lootData.quantity = (existing.lootData.quantity or 1) + (lootData.quantity or 1)
         end
         ns.ToastFrame.Populate(existing, existing.lootData)
-        -- Reset fade timer
-        StartFadeTimer(existing)
+        -- Restart full lifecycle (StopAll is called defensively inside)
+        ns.ToastAnimations.PlayLifecycle(existing, existing.lootData)
         return
     end
 
@@ -268,11 +212,8 @@ local function ShowToast(lootData)
     -- Position all toasts
     ns.ToastManager.UpdatePositions()
 
-    -- Play entrance animation
-    ns.ToastAnimations.PlayEntrance(toast)
-
-    -- Start fade timer
-    StartFadeTimer(toast)
+    -- Play full toast lifecycle (entrance -> hold -> exit)
+    ns.ToastAnimations.PlayLifecycle(toast, lootData)
 
     -- Play sound if enabled
     if db.sound.enabled and db.sound.soundFile and db.sound.soundFile ~= "None" then
@@ -322,12 +263,7 @@ end
 -------------------------------------------------------------------------------
 
 function ns.ToastManager.DismissToast(toast)
-    -- Cancel fade timer
-    ns.Addon:CancelTimer(toast.fadeTimer)
-    toast.fadeTimer = nil
-
-    -- Play exit animation (which calls OnToastFinished when done)
-    ns.ToastAnimations.PlayExit(toast)
+    ns.ToastAnimations.Dismiss(toast)
 end
 
 function ns.ToastManager.OnToastFinished(toast)
@@ -337,12 +273,6 @@ function ns.ToastManager.OnToastFinished(toast)
             table.remove(activeToasts, i)
             break
         end
-    end
-
-    -- Safety: cancel any pending fade timer before releasing
-    if toast.fadeTimer then
-        ns.Addon:CancelTimer(toast.fadeTimer)
-        toast.fadeTimer = nil
     end
 
     -- Release frame back to pool
@@ -358,10 +288,8 @@ end
 
 function ns.ToastManager.ClearAll()
     ns.ToastManager.StopTestMode()
-    -- Cancel all fade timers and hide all toasts
+    -- Cancel all animations and hide all toasts
     for _, toast in ipairs(activeToasts) do
-        ns.Addon:CancelTimer(toast.fadeTimer)
-        toast.fadeTimer = nil
         ns.ToastAnimations.StopAll(toast)
         ns.ToastFrame.Release(toast)
     end

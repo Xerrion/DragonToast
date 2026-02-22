@@ -60,6 +60,11 @@ local defaults = {
             exitAnimation = "fadeOut",
             exitDistance = 300,
             slideSpeed = 0.2,
+
+            attentionAnimation = "none",
+            attentionMinQuality = 4,
+            attentionRepeatCount = 2,
+            attentionDelay = 0.1,
         },
 
         appearance = {
@@ -593,12 +598,111 @@ local function GetOptions()
                     },
                     entranceDistance = {
                         name = "Entrance Distance",
-                        desc = "How far toasts travel during entrance (pixels). Only affects directional animations.",
+                        desc = "How far toasts travel during entrance (pixels)."
+                            .. " Only affects directional animations.",
                         type = "range",
                         order = 22,
                         min = 50, max = 600, step = 10,
                         get = function() return db.animation.entranceDistance end,
-                        set = function(_, val) db.animation.entranceDistance = val end,
+                        set = function(_, val)
+                            db.animation.entranceDistance = val
+                        end,
+                    },
+
+                    -- Attention
+                    headerAttention = {
+                        name = "Attention",
+                        type = "header",
+                        order = 23,
+                    },
+                    attentionAnimation = {
+                        name = "Attention Animation",
+                        desc = "Animation to play after entrance"
+                            .. " (e.g., pulse for epic items).",
+                        type = "select",
+                        order = 23.1,
+                        values = function()
+                            local animLib = ns.LibAnimate
+                            if not animLib then return { none = "None" } end
+                            local values = { none = "None" }
+                            for _, name in
+                                ipairs(animLib:GetAttentionAnimations())
+                            do
+                                values[name] = name
+                            end
+                            return values
+                        end,
+                        get = function()
+                            return db.animation.attentionAnimation
+                        end,
+                        set = function(_, val)
+                            db.animation.attentionAnimation = val
+                        end,
+                        width = "double",
+                        disabled = function()
+                            return not db.animation.enableAnimations
+                        end,
+                    },
+                    attentionMinQuality = {
+                        name = "Minimum Quality",
+                        desc = "Only play attention animation for items"
+                            .. " of this quality or higher.",
+                        type = "select",
+                        order = 23.2,
+                        values = {
+                            [0] = "|cff9d9d9dPoor|r",
+                            [1] = "|cffffffffCommon|r",
+                            [2] = "|cff1eff00Uncommon|r",
+                            [3] = "|cff0070ddRare|r",
+                            [4] = "|cffa335eeEpic|r",
+                            [5] = "|cffff8000Legendary|r",
+                        },
+                        get = function()
+                            return db.animation.attentionMinQuality
+                        end,
+                        set = function(_, val)
+                            db.animation.attentionMinQuality = val
+                        end,
+                        disabled = function()
+                            return not db.animation.enableAnimations
+                                or db.animation.attentionAnimation == "none"
+                        end,
+                    },
+                    attentionRepeatCount = {
+                        name = "Repeat Count",
+                        desc = "Number of times to repeat the"
+                            .. " attention animation.",
+                        type = "range",
+                        order = 23.3,
+                        min = 1, max = 5, step = 1,
+                        get = function()
+                            return db.animation.attentionRepeatCount
+                        end,
+                        set = function(_, val)
+                            db.animation.attentionRepeatCount = val
+                        end,
+                        disabled = function()
+                            return not db.animation.enableAnimations
+                                or db.animation.attentionAnimation == "none"
+                        end,
+                    },
+                    attentionDelay = {
+                        name = "Delay Before Attention",
+                        desc = "Delay in seconds before the"
+                            .. " attention animation starts.",
+                        type = "range",
+                        order = 23.4,
+                        min = 0, max = 1.0, step = 0.05,
+                        get = function()
+                            return db.animation.attentionDelay
+                        end,
+                        set = function(_, val)
+                            db.animation.attentionDelay = val
+                        end,
+                        disabled = function()
+                            return not db.animation.enableAnimations
+                                or db.animation.attentionAnimation == "none"
+                        end,
                     },
 
                     -- Exit
@@ -951,7 +1055,7 @@ end
 -- Profile Migration
 -------------------------------------------------------------------------------
 
-local CURRENT_SCHEMA = 1
+local CURRENT_SCHEMA = 2
 
 local DIRECTION_TO_ANIMATION = {
     RIGHT  = "slideInRight",
@@ -962,13 +1066,15 @@ local DIRECTION_TO_ANIMATION = {
 
 local function MigrateProfile(db)
     local profile = db.profile
+    local animDefaults = defaults.profile.animation
 
     local version = profile.schemaVersion or 0
 
     if version < 1 then
-        -- v0 → v1: entranceDirection → entranceAnimation (LibAnimate integration)
+        -- v0 → v1: entranceDirection → entranceAnimation (LibAnimate)
         if profile.animation.entranceDirection then
-            profile.animation.entranceAnimation = DIRECTION_TO_ANIMATION[profile.animation.entranceDirection]
+            profile.animation.entranceAnimation =
+                DIRECTION_TO_ANIMATION[profile.animation.entranceDirection]
                 or "slideInRight"
             profile.animation.entranceDirection = nil
         end
@@ -979,6 +1085,29 @@ local function MigrateProfile(db)
         end
         if not profile.animation.exitDistance then
             profile.animation.exitDistance = 300
+        end
+
+        profile.schemaVersion = 1
+    end
+
+    if (profile.schemaVersion or 0) < 2 then
+        -- v1 → v2: attention animation defaults
+        profile.animation = profile.animation or {}
+        if profile.animation.attentionAnimation == nil then
+            profile.animation.attentionAnimation =
+                animDefaults.attentionAnimation
+        end
+        if profile.animation.attentionMinQuality == nil then
+            profile.animation.attentionMinQuality =
+                animDefaults.attentionMinQuality
+        end
+        if profile.animation.attentionRepeatCount == nil then
+            profile.animation.attentionRepeatCount =
+                animDefaults.attentionRepeatCount
+        end
+        if profile.animation.attentionDelay == nil then
+            profile.animation.attentionDelay =
+                animDefaults.attentionDelay
         end
 
         profile.schemaVersion = CURRENT_SCHEMA
