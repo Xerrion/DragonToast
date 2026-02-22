@@ -52,7 +52,7 @@ local defaults = {
             entranceDuration = 0.3,
             exitDuration = 0.5,
             holdDuration = 4.0,
-            enablePopEffect = true,
+
             entranceDirection = "RIGHT",
             entranceDistance = 300,
             slideSpeed = 0.2,
@@ -406,14 +406,6 @@ local function GetOptions()
                         min = 0.1, max = 2.0, step = 0.1,
                         get = function() return db.animation.exitDuration end,
                         set = function(_, val) db.animation.exitDuration = val end,
-                    },
-                    enablePopEffect = {
-                        name = "Pop Effect",
-                        desc = "Subtle scale bounce when a toast appears.",
-                        type = "toggle",
-                        order = 5,
-                        get = function() return db.animation.enablePopEffect end,
-                        set = function(_, val) db.animation.enablePopEffect = val end,
                     },
                     entranceDirection = {
                         name = "Entrance Direction",
