@@ -177,20 +177,26 @@ local function PopulateToast(frame, lootData)
         -- Icon display
         frame.itemName:ClearAllPoints()
         frame.itemType:ClearAllPoints()
+        frame.itemLevel:ClearAllPoints()
+        frame.looter:ClearAllPoints()
+        local padV = db.display.textPaddingV or 6
+        local padH = db.display.textPaddingH or 8
         if db.display.showIcon ~= false then
             frame.icon:SetTexture(lootData.itemIcon)
             frame.icon:Show()
             frame.iconBorder:Show()
-            frame.itemName:SetPoint("LEFT", frame.icon, "RIGHT", 8, 0)
-            frame.itemName:SetPoint("TOP", frame, "TOP", 0, -6)
-            frame.itemType:SetPoint("LEFT", frame.icon, "RIGHT", 8, 0)
-            frame.itemType:SetPoint("BOTTOM", frame, "BOTTOM", 0, 6)
+            frame.itemName:SetPoint("LEFT", frame.icon, "RIGHT", padH, 0)
+            frame.itemName:SetPoint("TOP", frame, "TOP", 0, -padV)
+            frame.itemType:SetPoint("LEFT", frame.icon, "RIGHT", padH, 0)
+            frame.itemType:SetPoint("BOTTOM", frame, "BOTTOM", 0, padV)
         else
             frame.icon:Hide()
             frame.iconBorder:Hide()
-            frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -6)
-            frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, 6)
+            frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -padV)
+            frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, padV)
         end
+        frame.itemLevel:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -padH, -padV)
+        frame.looter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -padH, padV)
 
         -- XP name in gold color
         frame.itemName:SetText(lootData.itemName)
@@ -271,22 +277,28 @@ local function PopulateToast(frame, lootData)
     -- Icon display
     frame.itemName:ClearAllPoints()
     frame.itemType:ClearAllPoints()
+    frame.itemLevel:ClearAllPoints()
+    frame.looter:ClearAllPoints()
+    local padV = db.display.textPaddingV or 6
+    local padH = db.display.textPaddingH or 8
     if db.display.showIcon ~= false then
         frame.icon:SetTexture(lootData.itemIcon)
         frame.icon:Show()
         frame.iconBorder:Show()
         -- Position text relative to icon as before
-        frame.itemName:SetPoint("LEFT", frame.icon, "RIGHT", 8, 0)
-        frame.itemName:SetPoint("TOP", frame, "TOP", 0, -6)
-        frame.itemType:SetPoint("LEFT", frame.icon, "RIGHT", 8, 0)
-        frame.itemType:SetPoint("BOTTOM", frame, "BOTTOM", 0, 6)
+        frame.itemName:SetPoint("LEFT", frame.icon, "RIGHT", padH, 0)
+        frame.itemName:SetPoint("TOP", frame, "TOP", 0, -padV)
+        frame.itemType:SetPoint("LEFT", frame.icon, "RIGHT", padH, 0)
+        frame.itemType:SetPoint("BOTTOM", frame, "BOTTOM", 0, padV)
     else
         frame.icon:Hide()
         frame.iconBorder:Hide()
         -- Position text at left edge when no icon
-        frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -6)
-        frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, 6)
+        frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -padV)
+        frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, padV)
     end
+    frame.itemLevel:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -padH, -padV)
+    frame.looter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -padH, padV)
 
     -- Quality color
     local r, g, b = 1, 1, 1

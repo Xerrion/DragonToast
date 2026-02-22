@@ -45,6 +45,8 @@ local defaults = {
             showLooter = true,
             showQuantity = true,
             showIcon = true,
+            textPaddingV = 6,
+            textPaddingH = 8,
         },
 
         animation = {
@@ -443,6 +445,30 @@ local function GetOptions()
                         order = 25,
                         get = function() return db.display.showLooter end,
                         set = function(_, val) db.display.showLooter = val end,
+                    },
+                    textPaddingV = {
+                        name = "Text Vertical Padding",
+                        desc = "Vertical distance from toast edges to text.",
+                        type = "range",
+                        order = 26,
+                        min = 0, max = 20, step = 1,
+                        get = function() return db.display.textPaddingV end,
+                        set = function(_, val)
+                            db.display.textPaddingV = val
+                            ns.ToastManager.UpdateLayout()
+                        end,
+                    },
+                    textPaddingH = {
+                        name = "Text Horizontal Padding",
+                        desc = "Horizontal distance from icon to text.",
+                        type = "range",
+                        order = 27,
+                        min = 0, max = 20, step = 1,
+                        get = function() return db.display.textPaddingH end,
+                        set = function(_, val)
+                            db.display.textPaddingH = val
+                            ns.ToastManager.UpdateLayout()
+                        end,
                     },
 
                     -- Position
