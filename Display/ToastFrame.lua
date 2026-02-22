@@ -126,10 +126,9 @@ local function CreateToastFrame()
     end)
 
     frame:SetScript("OnEnter", function(self)
-        -- Pause fade timer
+        -- Pause queue animations
         self.isHovered = true
-        ns.Addon:CancelTimer(self.fadeTimer)
-        self.fadeTimer = nil
+        ns.ToastAnimations.Pause(self)
 
         -- Show tooltip (not for XP toasts)
         if self.lootData and self.lootData.itemLink and not self.lootData.isXP then
@@ -143,10 +142,8 @@ local function CreateToastFrame()
         self.isHovered = false
         GameTooltip:Hide()
 
-        -- Resume fade timer
-        if ns.ToastManager.ResumeFadeTimer then
-            ns.ToastManager.ResumeFadeTimer(self)
-        end
+        -- Resume queue animations
+        ns.ToastAnimations.Resume(self)
     end)
 
     return frame
@@ -425,27 +422,23 @@ function ns.ToastFrame.Acquire()
 end
 
 function ns.ToastFrame.Release(frame)
-    -- Cancel any pending fade timer before releasing
-    if frame.fadeTimer then
-        ns.Addon:CancelTimer(frame.fadeTimer)
+    -- Cancel any pending no-anim timer before releasing
+    if frame._noAnimTimer then
+        ns.Addon:CancelTimer(frame._noAnimTimer)
     end
 
     frame:Hide()
     frame:ClearAllPoints()
     frame.lootData = nil
     frame.isHovered = false
-    frame.fadeTimer = nil
-    frame.fadeTimerStart = nil
-    frame.fadeTimerRemaining = nil
+    frame._noAnimTimer = nil
+    frame._exitEntryIndex = nil
+    frame._isExiting = false
 
     -- Clean up LibAnimate animation state
     if ns.LibAnimate then
-        ns.LibAnimate:Stop(frame)
+        ns.LibAnimate:ClearQueue(frame)
     end
-    frame._isEntering = false
-    frame._isExiting = false
-    frame._isSliding = false
-    frame._slideToY = nil
 
     frame:SetAlpha(1)
     frame:SetScale(1)
