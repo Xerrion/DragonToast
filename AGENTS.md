@@ -175,11 +175,25 @@ Config uses `type = "header"` separators and `type = "description"` intro text o
 | `lint.yml` | `pull_request_target` to master | Luacheck (uses `pull_request_target` so it runs on release-please bot PRs) |
 | `release.yml` | `push` to master | release-please creates/updates release PR; on tag push, BigWigsMods packager publishes |
 
-### Branch Protection
+### Branch Protection (Ruleset for `master`)
 
-- **Required check**: Luacheck (strict mode)
-- **Merge method**: Squash only (merge commit and rebase disabled)
-- **Auto-delete branches** on merge
+| Setting | State |
+|---------|-------|
+| Require pull request before merging | ON |
+| Require approvals | OFF |
+| Require status checks to pass | ON (Luacheck - strict mode) |
+| Require branches to be up to date | ON |
+| Allow force pushes | OFF |
+| Allow deletions | OFF |
+
+### Repository Merge Settings
+
+| Setting | State |
+|---------|-------|
+| Squash merging | ON |
+| Merge commits | OFF |
+| Rebase merging | OFF |
+| Auto-delete head branches | ON |
 
 ### Secrets
 
