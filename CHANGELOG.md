@@ -3,6 +3,18 @@
 ### 🐛 Bug Fixes
 
 - Again (#42)
+## [1.6.0](https://github.com/Xerrion/DragonToast/compare/1.5.0...1.6.0) (2026-02-23)
+
+
+### 🚀 Features
+
+* add configurable gold display format ([#49](https://github.com/Xerrion/DragonToast/issues/49)) ([485cffc](https://github.com/Xerrion/DragonToast/commit/485cffcdc759c613ba7f15d876a4dc8eecc56ea6))
+
+
+### ⚙️ Miscellaneous Tasks
+
+* simplify .pkgmeta ignore list with *.png and *.md globs ([f7b3ba8](https://github.com/Xerrion/DragonToast/commit/f7b3ba8df74b57c1173d6a44ab16cb7cf9e6aa37))
+
 ## [1.5.0](https://github.com/Xerrion/DragonToast/compare/1.4.3...1.5.0) (2026-02-23)
 
 
