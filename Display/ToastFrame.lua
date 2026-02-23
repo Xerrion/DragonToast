@@ -15,6 +15,7 @@ local CreateFrame = CreateFrame
 local GameTooltip = GameTooltip
 local IsShiftKeyDown = IsShiftKeyDown
 local ChatFrame_OpenChat = ChatFrame_OpenChat
+local GetCoinTextureString = GetCoinTextureString
 local UIParent = UIParent
 local STANDARD_TEXT_FONT = STANDARD_TEXT_FONT
 
@@ -139,6 +140,33 @@ local function CreateToastFrame()
     end)
 
     return frame
+end
+
+-------------------------------------------------------------------------------
+-- Format a copper amount into a human-readable money string
+-------------------------------------------------------------------------------
+
+local function FormatMoney(copperAmount, format)
+    local gold = math.floor(copperAmount / 10000)
+    local silver = math.floor((copperAmount % 10000) / 100)
+    local copper = copperAmount % 100
+
+    if format == "short" then
+        local parts = {}
+        if gold > 0 then parts[#parts + 1] = gold .. "g" end
+        if silver > 0 then parts[#parts + 1] = silver .. "s" end
+        if copper > 0 then parts[#parts + 1] = copper .. "c" end
+        return table.concat(parts, " ")
+    elseif format == "long" then
+        local parts = {}
+        if gold > 0 then parts[#parts + 1] = GOLD_AMOUNT:format(gold) end
+        if silver > 0 then parts[#parts + 1] = SILVER_AMOUNT:format(silver) end
+        if copper > 0 then parts[#parts + 1] = COPPER_AMOUNT:format(copper) end
+        return table.concat(parts, " ")
+    else
+        -- "icons" format (default) - use Blizzard's coin texture string
+        return GetCoinTextureString(copperAmount)
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -306,7 +334,11 @@ local function PopulateToast(frame, lootData)
     frame.looter:SetFont(fontPath, secondaryFontSize, fontOutline)
 
     -- Item name (colored by quality)
-    frame.itemName:SetText(lootData.itemName)
+    if lootData.copperAmount and lootData.itemSubType == "Gold" then
+        frame.itemName:SetText(FormatMoney(lootData.copperAmount, db.display.goldFormat))
+    else
+        frame.itemName:SetText(lootData.itemName)
+    end
     if lootData.isCurrency then
         frame.itemName:SetTextColor(1, 0.82, 0) -- gold color for currency
     else

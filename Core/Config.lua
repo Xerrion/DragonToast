@@ -44,6 +44,7 @@ local defaults = {
             showItemType = true,
             showLooter = true,
             showQuantity = true,
+            goldFormat = "icons",
             showIcon = true,
             textPaddingV = 6,
             textPaddingH = 8,
@@ -450,6 +451,19 @@ local function GetOptions()
                         order = 25,
                         get = function() return db.display.showLooter end,
                         set = function(_, val) db.display.showLooter = val end,
+                    },
+                    goldFormat = {
+                        name = "Gold Format",
+                        desc = "How looted gold amounts are displayed on toasts.",
+                        type = "select",
+                        order = 25.5,
+                        values = {
+                            icons = "Coin Icons",
+                            short = "Short (1g 2s 3c)",
+                            long = "Long (1 Gold 2 Silver 3 Copper)",
+                        },
+                        get = function() return db.display.goldFormat end,
+                        set = function(_, val) db.display.goldFormat = val end,
                     },
                     textPaddingV = {
                         name = "Text Vertical Padding",
@@ -1055,7 +1069,7 @@ end
 -- Profile Migration
 -------------------------------------------------------------------------------
 
-local CURRENT_SCHEMA = 2
+local CURRENT_SCHEMA = 3
 
 local DIRECTION_TO_ANIMATION = {
     RIGHT  = "slideInRight",
@@ -1108,6 +1122,16 @@ local function MigrateProfile(db)
         if profile.animation.attentionDelay == nil then
             profile.animation.attentionDelay =
                 animDefaults.attentionDelay
+        end
+
+        profile.schemaVersion = 2
+    end
+
+    if (profile.schemaVersion or 0) < 3 then
+        -- v2 → v3: gold display format default
+        profile.display = profile.display or {}
+        if profile.display.goldFormat == nil then
+            profile.display.goldFormat = defaults.profile.display.goldFormat
         end
 
         profile.schemaVersion = CURRENT_SCHEMA
