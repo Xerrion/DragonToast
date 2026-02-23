@@ -44,6 +44,43 @@ local PATTERN_LOOT_OTHER_MULTI = BuildPattern(LOOT_ITEM_MULTIPLE or "%s receives
 local PATTERN_MONEY_SELF = BuildPattern(YOU_LOOT_MONEY or "You loot %s")
 local PATTERN_MONEY_OTHER = BuildPattern(LOOT_MONEY or "%s loots %s")
 
+-- Money amount patterns (text and texture variants)
+local PATTERN_GOLD = BuildPattern(GOLD_AMOUNT)
+local PATTERN_SILVER = BuildPattern(SILVER_AMOUNT)
+local PATTERN_COPPER = BuildPattern(COPPER_AMOUNT)
+local PATTERN_GOLD_TEXTURE = BuildPattern(GOLD_AMOUNT_TEXTURE)
+local PATTERN_SILVER_TEXTURE = BuildPattern(SILVER_AMOUNT_TEXTURE)
+local PATTERN_COPPER_TEXTURE = BuildPattern(COPPER_AMOUNT_TEXTURE)
+
+local function ParseMoneyString(moneyString)
+    local gold, silver, copper = 0, 0, 0
+
+    -- Try text-based patterns first
+    local g = moneyString:match(PATTERN_GOLD)
+    if g then gold = tonumber(g) or 0 end
+
+    local s = moneyString:match(PATTERN_SILVER)
+    if s then silver = tonumber(s) or 0 end
+
+    local c = moneyString:match(PATTERN_COPPER)
+    if c then copper = tonumber(c) or 0 end
+
+    -- Fall back to texture-based patterns if text patterns found nothing
+    if gold == 0 and silver == 0 and copper == 0 then
+        g = moneyString:match(PATTERN_GOLD_TEXTURE)
+        if g then gold = tonumber(g) or 0 end
+
+        s = moneyString:match(PATTERN_SILVER_TEXTURE)
+        if s then silver = tonumber(s) or 0 end
+
+        c = moneyString:match(PATTERN_COPPER_TEXTURE)
+        if c then copper = tonumber(c) or 0 end
+    end
+
+    local total = gold * 10000 + silver * 100 + copper
+    return total > 0 and total or nil
+end
+
 local MAX_RETRIES = 5
 
 -------------------------------------------------------------------------------
@@ -78,7 +115,7 @@ local function BuildLootData(itemLink, quantity, looter, isSelf)
     }
 end
 
-local function BuildMoneyData(amount, looter, isSelf)
+local function BuildMoneyData(amount, copperAmount, looter, isSelf)
     return {
         itemLink = nil,
         itemID = nil,
@@ -89,6 +126,7 @@ local function BuildMoneyData(amount, looter, isSelf)
         itemSubType = "Gold",
         itemIcon = 133784, -- gold coin icon
         quantity = 1,
+        copperAmount = copperAmount,
         looter = looter,
         isSelf = isSelf,
         isCurrency = true,
@@ -207,7 +245,8 @@ local function OnChatMsgMoney(_, msg)
     -- Self money loot
     amount = msg:match(PATTERN_MONEY_SELF)
     if amount then
-        local lootData = BuildMoneyData(amount, playerName, true)
+        local copperAmount = ParseMoneyString(amount)
+        local lootData = BuildMoneyData(amount, copperAmount, playerName, true)
         if PassesFilter(lootData) then
             ns.ToastManager.QueueToast(lootData)
         end
@@ -218,7 +257,8 @@ local function OnChatMsgMoney(_, msg)
     local looter
     looter, amount = msg:match(PATTERN_MONEY_OTHER)
     if amount and looter then
-        local lootData = BuildMoneyData(amount, looter, false)
+        local copperAmount = ParseMoneyString(amount)
+        local lootData = BuildMoneyData(amount, copperAmount, looter, false)
         if PassesFilter(lootData) then
             ns.ToastManager.QueueToast(lootData)
         end

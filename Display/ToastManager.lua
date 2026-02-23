@@ -380,6 +380,8 @@ function ns.ToastManager.ShowTestToast()
           icon = 133772, id = 32331 },
         { name = "Pattern: Sunfire Robe", quality = 4, level = 75, type = "Recipe", subType = "Tailoring",
           icon = 132744, id = 32754 },
+        { name = "Gold Loot", quality = 1, level = 0, type = "Currency", subType = "Gold",
+          icon = 133784, id = 99998, isMoney = true, copperAmount = 12345 },
         { name = "+1,234 XP", quality = 1, level = 0, type = nil, subType = nil,
           icon = 894556, id = 99999, isXP = true, xpAmount = 1234 },
     }
@@ -400,6 +402,23 @@ function ns.ToastManager.ShowTestToast()
             looter = UnitName("player") or "TestPlayer",
             isSelf = true,
             isCurrency = false,
+            timestamp = GetTime(),
+        }
+    elseif test.isMoney then
+        lootData = {
+            itemLink = nil,
+            itemID = nil,
+            copperAmount = test.copperAmount,
+            itemName = GetCoinTextureString(test.copperAmount),
+            itemQuality = test.quality,
+            itemLevel = test.level,
+            itemType = test.type,
+            itemSubType = test.subType,
+            itemIcon = test.icon,
+            quantity = 1,
+            looter = UnitName("player") or "TestPlayer",
+            isSelf = true,
+            isCurrency = true,
             timestamp = GetTime(),
         }
     else
