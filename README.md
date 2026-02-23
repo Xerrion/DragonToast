@@ -1,6 +1,6 @@
 <div align="center">
-
-<img src="icon.png" width="128" />
+<img src="icon.png" width="400" />
+</div>
 
 # DragonToast
 
