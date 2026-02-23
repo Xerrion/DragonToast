@@ -22,5 +22,6 @@ ignore:
   - "icon_variant_*.tga"
   - "icon_*_dragon.PNG"
   - generate_icon.ps1
-  - cliff.toml
   - AGENTS.md
+  - release-please-config.json
+  - .release-please-manifest.json

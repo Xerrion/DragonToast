@@ -173,7 +173,8 @@ Config uses `type = "header"` separators and `type = "description"` intro text o
 | File | Trigger | Purpose |
 |------|---------|---------|
 | `lint.yml` | `pull_request_target` to master | Luacheck (uses `pull_request_target` so it runs on release-please bot PRs) |
-| `release.yml` | `push` to master | release-please creates/updates release PR; on tag push, BigWigsMods packager publishes |
+| `release-pr.yml` | `push` to master | release-please creates/updates a Release PR with version bump and changelog |
+| `release.yml` | tag push or `workflow_dispatch` | BigWigsMods packager builds and uploads to CurseForge, Wago, and GitHub Releases |
 
 ### Branch Protection (Ruleset for `master`)
 
