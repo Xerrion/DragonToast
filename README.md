@@ -1,4 +1,7 @@
+<div align="center">
+
 ![Dragon Toast Logo](https://raw.githubusercontent.com/Xerrion/DragonToast/refs/heads/master/icon-dragon-toast-400x400.png)
+
 
 # Dragon Toast
 
@@ -8,6 +11,8 @@
 [![License](https://img.shields.io/github/license/Xerrion/DragonToast?style=for-the-badge)](LICENSE)
 [![WoW Versions](https://img.shields.io/badge/WoW-TBC%20Anniversary%20%C2%B7%20Retail-blue?style=for-the-badge&logo=battledotnet)](https://worldofwarcraft.blizzard.com/)
 [![Lint](https://img.shields.io/github/actions/workflow/status/Xerrion/DragonToast/lint.yml?style=for-the-badge&label=lint)](https://github.com/Xerrion/DragonToast/actions)
+
+</div>
 
 ## 🐉 Featuresa
 
