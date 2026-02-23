@@ -300,24 +300,12 @@ function ns.ToastAnimations.Dismiss(frame)
     if exitIndex and lib:IsQueued(frame) then
         frame._isExiting = true
         lib:SkipToEntry(frame, exitIndex)
-    elseif lib:IsAnimating(frame) or lib:IsPaused(frame) then
+    elseif lib:IsAnimating(frame) then
         ns.ToastAnimations.StopAll(frame)
         ns.ToastManager.OnToastFinished(frame)
     else
         ns.ToastManager.OnToastFinished(frame)
     end
-end
-
--------------------------------------------------------------------------------
--- Pause / Resume (hover)
--------------------------------------------------------------------------------
-
-function ns.ToastAnimations.Pause(frame)
-    lib:PauseQueue(frame)
-end
-
-function ns.ToastAnimations.Resume(frame)
-    lib:ResumeQueue(frame)
 end
 
 -------------------------------------------------------------------------------

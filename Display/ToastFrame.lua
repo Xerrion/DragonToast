@@ -126,10 +126,6 @@ local function CreateToastFrame()
     end)
 
     frame:SetScript("OnEnter", function(self)
-        -- Pause queue animations
-        self.isHovered = true
-        ns.ToastAnimations.Pause(self)
-
         -- Show tooltip (not for XP toasts)
         if self.lootData and self.lootData.itemLink and not self.lootData.isXP then
             GameTooltip:SetOwner(self, "ANCHOR_LEFT")
@@ -139,11 +135,7 @@ local function CreateToastFrame()
     end)
 
     frame:SetScript("OnLeave", function(self)
-        self.isHovered = false
         GameTooltip:Hide()
-
-        -- Resume queue animations
-        ns.ToastAnimations.Resume(self)
     end)
 
     return frame
@@ -430,7 +422,6 @@ function ns.ToastFrame.Release(frame)
     frame:Hide()
     frame:ClearAllPoints()
     frame.lootData = nil
-    frame.isHovered = false
     frame._noAnimTimer = nil
     frame._isExiting = false
     frame._queueRoles = nil
