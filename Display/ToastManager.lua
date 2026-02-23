@@ -23,9 +23,9 @@ local LSM = LibStub("LibSharedMedia-3.0")
 -- State
 -------------------------------------------------------------------------------
 
-local activeToasts = {}    -- currently visible toast frames (ordered, [1] = newest)
-local toastQueue = {}      -- overflow queue (FIFO)
-local combatQueue = {}     -- deferred-during-combat queue
+local activeToasts = {}                        -- currently visible toast frames (ordered, [1] = newest)
+local toastQueue = { first = 1, last = 0 }     -- overflow queue (FIFO, O(1) push/pop)
+local combatQueue = { first = 1, last = 0 }    -- deferred-during-combat queue (FIFO, O(1) push/pop)
 local anchorFrame = nil    -- invisible anchor frame for positioning
 local isInitialized = false
 
@@ -35,6 +35,35 @@ local isInitialized = false
 
 local TOAST_SPACING = 4    -- pixels between toasts
 local DUPLICATE_WINDOW = 2 -- seconds to consider same item a duplicate
+
+-------------------------------------------------------------------------------
+-- Queue Helpers (O(1) push / pop / size)
+-------------------------------------------------------------------------------
+
+local function QueuePush(queue, item)
+    queue.last = queue.last + 1
+    queue[queue.last] = item
+end
+
+local function QueuePop(queue)
+    if queue.first > queue.last then return nil end
+    local item = queue[queue.first]
+    queue[queue.first] = nil
+    queue.first = queue.first + 1
+    return item
+end
+
+local function QueueSize(queue)
+    return queue.last - queue.first + 1
+end
+
+local function QueueReset(queue)
+    for i = queue.first, queue.last do
+        queue[i] = nil
+    end
+    queue.first = 1
+    queue.last = 0
+end
 
 -------------------------------------------------------------------------------
 -- Anchor Frame
@@ -99,27 +128,17 @@ end
 function ns.ToastManager.UpdatePositions()
     if not isInitialized then return end
 
-    local lib = ns.LibAnimate
-
     for i, toast in ipairs(activeToasts) do
         local point, relativeTo, relativePoint, x, y = GetToastPosition(i)
+        local _, _, _, _, currentY = toast:GetPoint()
 
-        if toast._isEntering then
-            -- Toast is mid-entrance animation; update its anchor via LibAnimate
-            if lib then
-                lib:UpdateAnchor(toast, x, y)
-            end
-        else
-            local _, _, _, _, prevY = toast:GetPoint()
-
-            local alreadySlidingToTarget = toast._isSliding and toast._slideToY == y
-
-            if not alreadySlidingToTarget and toast:IsShown() and prevY and math.abs(prevY - y) > 0.5 then
-                ns.ToastAnimations.PlaySlide(toast, prevY, y, point, relativeTo, relativePoint, x)
-            elseif not alreadySlidingToTarget and not toast._isSliding then
-                toast:ClearAllPoints()
-                toast:SetPoint(point, relativeTo, relativePoint, x, y)
-            end
+        if currentY and math.abs(currentY - y) > 0.5 then
+            ns.ToastAnimations.PlaySlide(
+                toast, currentY, y, point, relativeTo, relativePoint, x
+            )
+        elseif not currentY then
+            toast:ClearAllPoints()
+            toast:SetPoint(point, relativeTo, relativePoint, x, y)
         end
     end
 end
@@ -149,6 +168,8 @@ local function FindDuplicate(lootData)
     if lootData.isCurrency then return nil end
 
     local now = GetTime()
+
+    -- Search active toasts first
     for i, toast in ipairs(activeToasts) do
         if toast.lootData and (now - toast.lootData.timestamp) < DUPLICATE_WINDOW then
             -- XP toast stacking: merge consecutive XP gains
@@ -164,53 +185,33 @@ local function FindDuplicate(lootData)
             end
         end
     end
-    return nil
-end
 
--------------------------------------------------------------------------------
--- Fade Timer
--------------------------------------------------------------------------------
+    -- Search pending queues (toastQueue, then combatQueue)
+    local queues = { toastQueue, combatQueue }
+    for _, queue in ipairs(queues) do
+        for idx = queue.first, queue.last do
+            local entry = queue[idx]
+            if entry and (now - entry.timestamp) < DUPLICATE_WINDOW then
+                if lootData.isXP and entry.isXP then
+                    -- Stack XP in-place
+                    entry.xpAmount = (entry.xpAmount or 0) + (lootData.xpAmount or 0)
+                    entry.itemName = "+" .. ns.ToastManager.FormatNumber(entry.xpAmount) .. " XP"
+                    entry.timestamp = now
+                    return entry, nil -- nil index signals queued (not active)
+                end
 
-local function StartFadeTimer(toast)
-    local db = ns.Addon.db.profile
-    local holdDuration = db.animation.holdDuration
-
-    -- Cancel existing timer (CancelTimer is a no-op if handle is nil)
-    ns.Addon:CancelTimer(toast.fadeTimer)
-    toast.fadeTimer = nil
-
-    toast.fadeTimerStart = GetTime()
-    toast.fadeTimerRemaining = holdDuration
-
-    toast.fadeTimer = ns.Addon:ScheduleTimer(function()
-        if toast.isHovered then
-            -- Don't fade while hovered; ResumeFadeTimer will handle it
-            return
+                if not lootData.isXP and not entry.isXP
+                    and entry.itemID == lootData.itemID
+                    and entry.isSelf == lootData.isSelf then
+                    -- Stack quantity in-place
+                    entry.quantity = (entry.quantity or 1) + (lootData.quantity or 1)
+                    return entry, nil
+                end
+            end
         end
-        ns.ToastAnimations.PlayExit(toast)
-    end, holdDuration)
-end
-
-function ns.ToastManager.ResumeFadeTimer(toast)
-    if not toast.fadeTimerStart then return end
-
-    -- Calculate remaining time
-    local elapsed = GetTime() - toast.fadeTimerStart
-    local remaining = (toast.fadeTimerRemaining or ns.Addon.db.profile.animation.holdDuration) - elapsed
-
-    if remaining <= 0 then
-        -- Time already expired, start exit now
-        ns.ToastAnimations.PlayExit(toast)
-        return
     end
 
-    -- Cancel old timer and start new one with remaining time
-    ns.Addon:CancelTimer(toast.fadeTimer)
-
-    toast.fadeTimer = ns.Addon:ScheduleTimer(function()
-        if toast.isHovered then return end
-        ns.ToastAnimations.PlayExit(toast)
-    end, remaining)
+    return nil
 end
 
 -------------------------------------------------------------------------------
@@ -234,8 +235,12 @@ local function ShowToast(lootData)
     local db = ns.Addon.db.profile
 
     -- Check for duplicate
-    local existing = FindDuplicate(lootData)
+    local existing, activeIndex = FindDuplicate(lootData)
     if existing then
+        -- nil activeIndex means the duplicate was found in a pending queue
+        -- and has already been updated in-place by FindDuplicate
+        if activeIndex == nil then return end
+
         if lootData.isXP then
             -- Stack XP: sum amounts and update display name
             existing.lootData.xpAmount = (existing.lootData.xpAmount or 0) + (lootData.xpAmount or 0)
@@ -246,15 +251,15 @@ local function ShowToast(lootData)
             existing.lootData.quantity = (existing.lootData.quantity or 1) + (lootData.quantity or 1)
         end
         ns.ToastFrame.Populate(existing, existing.lootData)
-        -- Reset fade timer
-        StartFadeTimer(existing)
+        -- Update the running lifecycle without restarting from scratch
+        ns.ToastAnimations.UpdateLifecycle(existing, existing.lootData)
         return
     end
 
     -- Check max visible
     if #activeToasts >= db.display.maxToasts then
         -- Queue for later
-        table.insert(toastQueue, lootData)
+        QueuePush(toastQueue, lootData)
         return
     end
 
@@ -268,11 +273,8 @@ local function ShowToast(lootData)
     -- Position all toasts
     ns.ToastManager.UpdatePositions()
 
-    -- Play entrance animation
-    ns.ToastAnimations.PlayEntrance(toast)
-
-    -- Start fade timer
-    StartFadeTimer(toast)
+    -- Play full toast lifecycle (entrance -> hold -> exit)
+    ns.ToastAnimations.PlayLifecycle(toast, lootData)
 
     -- Play sound if enabled
     if db.sound.enabled and db.sound.soundFile and db.sound.soundFile ~= "None" then
@@ -295,7 +297,7 @@ function ns.ToastManager.QueueToast(lootData)
 
     -- Combat deferral
     if db.combat.deferInCombat and InCombatLockdown() then
-        table.insert(combatQueue, lootData)
+        QueuePush(combatQueue, lootData)
         return
     end
 
@@ -304,17 +306,17 @@ end
 
 function ns.ToastManager.FlushQueue()
     -- Process overflow queue
-    while #toastQueue > 0 and #activeToasts < ns.Addon.db.profile.display.maxToasts do
-        local lootData = table.remove(toastQueue, 1)
+    while QueueSize(toastQueue) > 0 and #activeToasts < ns.Addon.db.profile.display.maxToasts do
+        local lootData = QueuePop(toastQueue)
         ShowToast(lootData)
     end
 end
 
 local function FlushCombatQueue()
-    for _, lootData in ipairs(combatQueue) do
+    while QueueSize(combatQueue) > 0 do
+        local lootData = QueuePop(combatQueue)
         ns.ToastManager.QueueToast(lootData)
     end
-    wipe(combatQueue)
 end
 
 -------------------------------------------------------------------------------
@@ -322,12 +324,7 @@ end
 -------------------------------------------------------------------------------
 
 function ns.ToastManager.DismissToast(toast)
-    -- Cancel fade timer
-    ns.Addon:CancelTimer(toast.fadeTimer)
-    toast.fadeTimer = nil
-
-    -- Play exit animation (which calls OnToastFinished when done)
-    ns.ToastAnimations.PlayExit(toast)
+    ns.ToastAnimations.Dismiss(toast)
 end
 
 function ns.ToastManager.OnToastFinished(toast)
@@ -337,12 +334,6 @@ function ns.ToastManager.OnToastFinished(toast)
             table.remove(activeToasts, i)
             break
         end
-    end
-
-    -- Safety: cancel any pending fade timer before releasing
-    if toast.fadeTimer then
-        ns.Addon:CancelTimer(toast.fadeTimer)
-        toast.fadeTimer = nil
     end
 
     -- Release frame back to pool
@@ -358,16 +349,14 @@ end
 
 function ns.ToastManager.ClearAll()
     ns.ToastManager.StopTestMode()
-    -- Cancel all fade timers and hide all toasts
+    -- Cancel all animations and hide all toasts
     for _, toast in ipairs(activeToasts) do
-        ns.Addon:CancelTimer(toast.fadeTimer)
-        toast.fadeTimer = nil
         ns.ToastAnimations.StopAll(toast)
         ns.ToastFrame.Release(toast)
     end
     wipe(activeToasts)
-    wipe(toastQueue)
-    wipe(combatQueue)
+    QueueReset(toastQueue)
+    QueueReset(combatQueue)
 end
 
 -------------------------------------------------------------------------------
@@ -528,7 +517,7 @@ function ns.ToastManager.Initialize()
 
     -- Register for combat end to flush deferred queue
     ns.Addon:RegisterEvent("PLAYER_REGEN_ENABLED", function()
-        if #combatQueue > 0 then
+        if QueueSize(combatQueue) > 0 then
             FlushCombatQueue()
         end
     end)
