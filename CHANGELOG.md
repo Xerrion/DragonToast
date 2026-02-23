@@ -3,6 +3,20 @@
 ### 🐛 Bug Fixes
 
 - Again (#42)
+## [1.5.0](https://github.com/Xerrion/DragonToast/compare/1.4.3...1.5.0) (2026-02-23)
+
+
+### 🚀 Features
+
+* leverage LibAnimate queue APIs for optimized toast management ([#47](https://github.com/Xerrion/DragonToast/issues/47)) ([11d1f9f](https://github.com/Xerrion/DragonToast/commit/11d1f9f93d2c352480bf61af4ee256a4c2d41820))
+
+
+### ⚙️ Miscellaneous Tasks
+
+* add scaled image ([#45](https://github.com/Xerrion/DragonToast/issues/45)) ([aa8a2cd](https://github.com/Xerrion/DragonToast/commit/aa8a2cdffaab290d7a6f3edfdf139e37b06daa9b))
+* centered header content of the README ([#46](https://github.com/Xerrion/DragonToast/issues/46)) ([d567ea8](https://github.com/Xerrion/DragonToast/commit/d567ea8802c7311dcc19500e419ef7ed02c15685))
+* update LibAnimate submodule ([15ae034](https://github.com/Xerrion/DragonToast/commit/15ae0349c3bcf878e78d774cd21ee96d411bed47))
+
 ## [1.4.2] - 2026-02-22
 
 ### 🐛 Bug Fixes
