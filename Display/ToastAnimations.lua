@@ -15,56 +15,153 @@ local lib = LibStub("LibAnimate")
 ns.LibAnimate = lib
 
 -------------------------------------------------------------------------------
--- Helpers
+-- Register the identity ("none") animation for the hold phase.
+-- No-op animation: keeps the frame fully visible at its current position.
 -------------------------------------------------------------------------------
 
---- Build the queue entries table for a toast lifecycle.
---- Returns the entries array and the index of the exit entry within it.
+lib:RegisterAnimation("none", {
+    type = "attention",
+    defaultDuration = 1,
+    keyframes = {
+        { progress = 0, alpha = 1, scale = 1, translateX = 0, translateY = 0 },
+        { progress = 1, alpha = 1, scale = 1, translateX = 0, translateY = 0 },
+    },
+})
+
+-------------------------------------------------------------------------------
+-- Role constants
+-------------------------------------------------------------------------------
+
+local ROLE_ENTRANCE  = "entrance"
+local ROLE_ATTENTION = "attention"
+local ROLE_HOLD      = "hold"
+local ROLE_EXIT      = "exit"
+
+-------------------------------------------------------------------------------
+-- Role tracking helpers
+--
+-- Each frame maintains frame._queueRoles = { [index] = role, ... }
+-- This map mirrors the LibAnimate queue indices without accessing internals.
+-- It is rebuilt on PlayLifecycle and kept in sync during UpdateLifecycle.
+-------------------------------------------------------------------------------
+
+--- Build entries and the corresponding role map for a full lifecycle.
+---@param frame table The toast frame (needed for onFinished closure)
 ---@param db table Profile settings (ns.Addon.db.profile)
 ---@param lootData table Loot data for quality gating
----@return table entries Queue entries
----@return number exitIndex 1-based index of the exit entry
-local function BuildLifecycleEntries(db, lootData)
+---@return table entries Queue entries array
+---@return table roles Index-to-role map
+local function BuildLifecycle(frame, db, lootData)
     local entries = {}
+    local roles = {}
+    local idx = 0
 
     -- 1. Entrance
-    entries[#entries + 1] = {
+    idx = idx + 1
+    entries[idx] = {
         name = db.animation.entranceAnimation,
         duration = db.animation.entranceDuration,
         distance = db.animation.entranceDistance,
     }
+    roles[idx] = ROLE_ENTRANCE
 
-    -- 2. Attention (conditional on item quality)
-    if db.animation.attentionAnimation ~= "none"
+    -- 2. Attention (conditional on quality threshold)
+    local wantsAttention = db.animation.attentionAnimation ~= "none"
         and lootData
         and lootData.itemQuality
         and lootData.itemQuality >= db.animation.attentionMinQuality
-    then
-        entries[#entries + 1] = {
+
+    if wantsAttention then
+        idx = idx + 1
+        entries[idx] = {
             name = db.animation.attentionAnimation,
             delay = db.animation.attentionDelay or 0,
             repeatCount = db.animation.attentionRepeatCount or 2,
         }
+        roles[idx] = ROLE_ATTENTION
     end
 
-    -- 3. Hold (identity animation whose duration IS the display time)
-    entries[#entries + 1] = {
+    -- 3. Hold (identity animation; its duration IS the display time)
+    idx = idx + 1
+    entries[idx] = {
         name = "none",
         duration = db.animation.holdDuration,
-        onFinished = function(frame)
+        onFinished = function()
             frame._isExiting = true
         end,
     }
+    roles[idx] = ROLE_HOLD
 
     -- 4. Exit
-    entries[#entries + 1] = {
+    idx = idx + 1
+    entries[idx] = {
         name = db.animation.exitAnimation,
         duration = db.animation.exitDuration,
         distance = db.animation.exitDistance,
-        delay = 0,
     }
+    roles[idx] = ROLE_EXIT
 
-    return entries, #entries
+    return entries, roles
+end
+
+--- Build tail entries for lifecycle extension (attention -> hold -> exit).
+---@param frame table The toast frame (needed for onFinished closure)
+---@param db table Profile settings
+---@return table entries
+---@return table roles Partial role map (keys starting at 1)
+local function BuildTail(frame, db)
+    local entries = {}
+    local roles = {}
+
+    -- Always show a feedback animation when stacking
+    local attentionName = db.animation.attentionAnimation
+    if attentionName == "none" then
+        attentionName = "pulse"
+    end
+
+    entries[1] = {
+        name = attentionName,
+        delay = 0,
+        repeatCount = 1,
+    }
+    roles[1] = ROLE_ATTENTION
+
+    entries[2] = {
+        name = "none",
+        duration = db.animation.holdDuration,
+        onFinished = function()
+            frame._isExiting = true
+        end,
+    }
+    roles[2] = ROLE_HOLD
+
+    entries[3] = {
+        name = db.animation.exitAnimation,
+        duration = db.animation.exitDuration,
+        distance = db.animation.exitDistance,
+    }
+    roles[3] = ROLE_EXIT
+
+    return entries, roles
+end
+
+--- Find the queue index of the exit entry by scanning the role map forward
+--- from the current queue position.
+---@param frame table The toast frame
+---@return number|nil exitIndex
+local function FindExitIndex(frame)
+    local roles = frame._queueRoles
+    if not roles then return nil end
+
+    local currentIndex = lib:GetQueueInfo(frame)
+    if not currentIndex then return nil end
+
+    for i = currentIndex, #roles do
+        if roles[i] == ROLE_EXIT then
+            return i
+        end
+    end
+    return nil
 end
 
 -------------------------------------------------------------------------------
@@ -72,13 +169,13 @@ end
 -------------------------------------------------------------------------------
 
 function ns.ToastAnimations.PlayLifecycle(frame, lootData)
-    -- Defensive: clear any stale animation state from previous use
     ns.ToastAnimations.StopAll(frame)
 
     local db = ns.Addon.db.profile
 
     frame:Show()
 
+    -- No-animation fallback: just show for holdDuration then finish
     if not db.animation.enableAnimations then
         frame:SetAlpha(1)
         frame._noAnimTimer = ns.Addon:ScheduleTimer(function()
@@ -88,9 +185,8 @@ function ns.ToastAnimations.PlayLifecycle(frame, lootData)
         return
     end
 
-    local entries, exitIndex = BuildLifecycleEntries(db, lootData)
-
-    frame._exitEntryIndex = exitIndex
+    local entries, roles = BuildLifecycle(frame, db, lootData)
+    frame._queueRoles = roles
 
     lib:Queue(frame, entries, {
         onFinished = function()
@@ -102,9 +198,10 @@ end
 -------------------------------------------------------------------------------
 -- Update lifecycle for duplicate/stacking items
 --
--- Called when a duplicate item is looted and an existing toast is updated.
--- Instead of restarting the full lifecycle, this surgically modifies the
--- running queue to renew the hold timer and play a brief attention pulse.
+-- Surgically modifies the running queue using GetQueueInfo, RemoveQueueEntry,
+-- and InsertQueueEntry. Strips remaining entries after the current one and
+-- appends a fresh attention -> hold -> exit tail, giving visual feedback
+-- (pulse/bounce) and resetting the hold timer without restarting the entrance.
 -------------------------------------------------------------------------------
 
 function ns.ToastAnimations.UpdateLifecycle(frame, lootData)
@@ -122,71 +219,56 @@ function ns.ToastAnimations.UpdateLifecycle(frame, lootData)
         return
     end
 
-    -- If the toast is already exiting, stop everything and restart
-    if frame._isExiting then
+    -- If exiting or no active queue, restart fully
+    if frame._isExiting or not lib:IsQueued(frame) then
         ns.ToastAnimations.PlayLifecycle(frame, lootData)
         return
     end
 
     local currentIndex, totalEntries = lib:GetQueueInfo(frame)
-
-    -- No active queue (shouldn't happen, but be safe)
     if not currentIndex then
         ns.ToastAnimations.PlayLifecycle(frame, lootData)
         return
     end
 
-    -- If still in entrance phase (index 1), just restart the full lifecycle.
-    -- The entrance animation hasn't finished so a clean restart looks best.
-    if currentIndex <= 1 then
+    -- Determine current phase from our role map
+    local roles = frame._queueRoles
+    if not roles then
         ns.ToastAnimations.PlayLifecycle(frame, lootData)
         return
     end
 
-    -- Past the entrance: currently in attention or hold phase.
-    -- Remove all entries after the currently-playing one (hold + exit),
-    -- then append a new attention -> hold -> exit sequence.
+    local currentRole = roles[currentIndex]
 
-    -- Remove from the end backwards so indices stay valid
+    -- Still in entrance: restart cleanly (toast hasn't settled into position)
+    if currentRole == ROLE_ENTRANCE then
+        ns.ToastAnimations.PlayLifecycle(frame, lootData)
+        return
+    end
+
+    -- In attention, hold, or unknown phase: strip future entries, append tail
+    frame._isExiting = false
+
+    -- Remove all entries after the current one (iterate backwards for stability)
     for i = totalEntries, currentIndex + 1, -1 do
         lib:RemoveQueueEntry(frame, i)
+        roles[i] = nil
     end
 
-    -- Build the new tail: attention pulse -> hold -> exit
-    local attentionName = db.animation.attentionAnimation
-    if attentionName == "none" then
-        -- Use pulse as a fallback so there's visible feedback
-        attentionName = "pulse"
-    end
+    -- Build and append the new tail
+    local tailEntries, tailRoles = BuildTail(frame, db)
 
-    -- Insert attention pulse after the current entry
-    lib:InsertQueueEntry(frame, {
-        name = attentionName,
-        delay = 0,
-        repeatCount = 1,
-    })
-
-    -- Insert renewed hold
-    lib:InsertQueueEntry(frame, {
-        name = "none",
-        duration = db.animation.holdDuration,
-        onFinished = function(f)
-            f._isExiting = true
-        end,
-    })
-
-    -- Insert exit
-    local exitEntry = {
-        name = db.animation.exitAnimation,
-        duration = db.animation.exitDuration,
-        distance = db.animation.exitDistance,
-        delay = 0,
-    }
-    lib:InsertQueueEntry(frame, exitEntry)
-
-    -- Update the cached exit index (it's now the last entry)
+    -- Re-query total after removals to compute correct offsets
     local _, newTotal = lib:GetQueueInfo(frame)
-    frame._exitEntryIndex = newTotal
+    if not newTotal then
+        ns.ToastAnimations.PlayLifecycle(frame, lootData)
+        return
+    end
+
+    for j = 1, #tailEntries do
+        lib:InsertQueueEntry(frame, tailEntries[j])
+        roles[newTotal + j] = tailRoles[j]
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -195,7 +277,6 @@ end
 
 function ns.ToastAnimations.PlaySlide(frame, _, toY, point, relativeTo,
                                       relativePoint, x)
-    -- Don't slide a toast that's mid-exit; let it finish disappearing
     if frame._isExiting then return end
 
     local db = ns.Addon.db.profile
@@ -214,9 +295,11 @@ end
 -------------------------------------------------------------------------------
 
 function ns.ToastAnimations.Dismiss(frame)
-    if frame._exitEntryIndex and lib:IsQueued(frame) then
+    local exitIndex = FindExitIndex(frame)
+
+    if exitIndex and lib:IsQueued(frame) then
         frame._isExiting = true
-        lib:SkipToEntry(frame, frame._exitEntryIndex)
+        lib:SkipToEntry(frame, exitIndex)
     elseif lib:IsAnimating(frame) or lib:IsPaused(frame) then
         ns.ToastAnimations.StopAll(frame)
         ns.ToastManager.OnToastFinished(frame)
@@ -243,7 +326,7 @@ end
 
 function ns.ToastAnimations.StopAll(frame)
     frame._isExiting = false
-    frame._exitEntryIndex = nil
+    frame._queueRoles = nil
 
     if frame._noAnimTimer then
         ns.Addon:CancelTimer(frame._noAnimTimer)
