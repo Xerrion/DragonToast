@@ -70,6 +70,27 @@ function ns.DebugPrint(msg)
 end
 
 -------------------------------------------------------------------------------
+-- Utility: Number formatting (shared across modules)
+-------------------------------------------------------------------------------
+
+function ns.FormatNumber(num)
+    if num >= 1000000 then
+        local divided = num / 1000000
+        if math.floor(divided) == divided then
+            return string.format("%dM", divided)
+        end
+        return string.format("%.1fM", divided)
+    elseif num >= 1000 then
+        local divided = num / 1000
+        if math.floor(divided) == divided then
+            return string.format("%dK", divided)
+        end
+        return string.format("%.1fK", divided)
+    end
+    return tostring(num)
+end
+
+-------------------------------------------------------------------------------
 -- AceAddon Lifecycle
 -------------------------------------------------------------------------------
 

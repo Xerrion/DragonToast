@@ -148,19 +148,6 @@ local function ParseXPText(text)
 end
 
 -------------------------------------------------------------------------------
--- Number Formatting
--------------------------------------------------------------------------------
-
-local function FormatNumber(num)
-    if num >= 1000000 then
-        return string_format("%.1fM", num / 1000000)
-    elseif num >= 1000 then
-        return string_format("%.1fK", num / 1000)
-    end
-    return tostring(num)
-end
-
--------------------------------------------------------------------------------
 -- Event Handler
 -------------------------------------------------------------------------------
 
@@ -177,7 +164,7 @@ local function OnChatMsgCombatXPGain(_event, text)
         xpAmount = xpAmount,
         mobName = mobName,
         itemIcon = XP_ICON,
-        itemName = "+" .. FormatNumber(xpAmount) .. " XP",
+        itemName = "+" .. ns.FormatNumber(xpAmount) .. " XP",
         itemQuality = XP_QUALITY,
         itemLevel = 0,
         itemType = nil,
@@ -196,7 +183,7 @@ end
 -- Public Interface
 -------------------------------------------------------------------------------
 
-ns.XPListener = {}
+ns.XPListener = ns.XPListener or {}
 
 function ns.XPListener.Initialize(addon)
     InitPatterns()
