@@ -1,8 +1,19 @@
+## [1.4.4] - 2026-02-23
+
+### ⚙️ Miscellaneous Tasks
+
+- Add scaled image (#45)
+- Centered header content of the README (#46)
+- Update LibAnimate submodule
 ## [1.4.3] - 2026-02-22
 
 ### 🐛 Bug Fixes
 
 - Again (#42)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release 1.4.3 (#43)
 ## [1.4.2] - 2026-02-22
 
 ### 🐛 Bug Fixes
