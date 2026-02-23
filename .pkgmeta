@@ -10,18 +10,13 @@ externals:
   Libs/LibAnimate: https://github.com/Xerrion/LibAnimate
 
 ignore:
-  - README.md
-  - DESCRIPTION.md
   - .github
   - .gitignore
   - .luacheckrc
   - .release
   - "*.md"
-  - icon.png
-  - "icon_variant_*.png"
+  - "*.png"
   - "icon_variant_*.tga"
-  - "icon_*_dragon.PNG"
   - generate_icon.ps1
-  - AGENTS.md
   - release-please-config.json
   - .release-please-manifest.json
