@@ -215,16 +215,11 @@ local function FindDuplicate(lootData)
 end
 
 -------------------------------------------------------------------------------
--- Utilities
+-- Utilities (delegates to shared ns.FormatNumber)
 -------------------------------------------------------------------------------
 
-function ns.ToastManager.FormatNumber(num)
-    if num >= 1000000 then
-        return string.format("%.1fM", num / 1000000)
-    elseif num >= 1000 then
-        return string.format("%.1fK", num / 1000)
-    end
-    return tostring(num)
+ns.ToastManager.FormatNumber = function(num)
+    return ns.FormatNumber(num)
 end
 
 -------------------------------------------------------------------------------

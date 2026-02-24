@@ -442,10 +442,15 @@ function ns.ToastFrame.Acquire()
     if not frame then
         frame = CreateToastFrame()
     end
+    frame._isPooled = false
     return frame
 end
 
 function ns.ToastFrame.Release(frame)
+    -- O(1) duplication guard
+    if frame._isPooled then return end
+    frame._isPooled = true
+
     -- Cancel any pending no-anim timer before releasing
     if frame._noAnimTimer then
         ns.Addon:CancelTimer(frame._noAnimTimer)
@@ -466,10 +471,6 @@ function ns.ToastFrame.Release(frame)
     frame:SetAlpha(1)
     frame:SetScale(1)
 
-    -- Pool duplication guard
-    for _, pooled in ipairs(framePool) do
-        if pooled == frame then return end
-    end
     table.insert(framePool, frame)
 end
 

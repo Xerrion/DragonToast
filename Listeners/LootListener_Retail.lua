@@ -210,33 +210,25 @@ local function OnChatMsgLoot(_, msg)
         quantity = tonumber(quantity) or 1
         isSelf = true
         looter = UnitName("player")
-    end
-
     -- Self-loot
-    if not itemLink then
+    elseif msg:match(PATTERN_LOOT_SELF) then
         itemLink = msg:match(PATTERN_LOOT_SELF)
-        if itemLink then
-            quantity = 1
-            isSelf = true
-            looter = UnitName("player")
-        end
-    end
-
-    -- Other-loot with quantity
-    if not itemLink then
+        quantity = 1
+        isSelf = true
+        looter = UnitName("player")
+    else
+        -- Other-loot with quantity
         looter, itemLink, quantity = msg:match(PATTERN_LOOT_OTHER_MULTI)
         if itemLink then
             quantity = tonumber(quantity) or 1
             isSelf = false
-        end
-    end
-
-    -- Other-loot
-    if not itemLink then
-        looter, itemLink = msg:match(PATTERN_LOOT_OTHER)
-        if itemLink then
-            quantity = 1
-            isSelf = false
+        else
+            -- Other-loot
+            looter, itemLink = msg:match(PATTERN_LOOT_OTHER)
+            if itemLink then
+                quantity = 1
+                isSelf = false
+            end
         end
     end
 
