@@ -128,7 +128,7 @@ local function CreateToastFrame()
     end)
 
     frame:SetScript("OnEnter", function(self)
-        -- Show tooltip (not for XP toasts)
+        -- Show tooltip (not for XP or honor toasts)
         if self.lootData and self.lootData.itemLink and not self.lootData.isXP and not self.lootData.isHonor then
             GameTooltip:SetOwner(self, "ANCHOR_LEFT")
             GameTooltip:SetHyperlink(self.lootData.itemLink)
