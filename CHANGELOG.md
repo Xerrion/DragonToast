@@ -3,6 +3,13 @@
 ### 🐛 Bug Fixes
 
 - Again (#42)
+## [1.7.0](https://github.com/Xerrion/DragonToast/compare/1.6.1...1.7.0) (2026-02-24)
+
+
+### 🚀 Features
+
+* add honor gain toasts ([#55](https://github.com/Xerrion/DragonToast/issues/55)) ([cdf6ead](https://github.com/Xerrion/DragonToast/commit/cdf6eadc3d7a245260b22f3dfa99f42f36e3ee3a))
+
 ## [1.6.1](https://github.com/Xerrion/DragonToast/compare/1.6.0...1.6.1) (2026-02-24)
 
 
