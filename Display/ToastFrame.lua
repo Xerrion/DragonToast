@@ -462,6 +462,7 @@ function ns.ToastFrame.Release(frame)
     frame._noAnimTimer = nil
     frame._isExiting = false
     frame._queueRoles = nil
+    frame._targetY = nil
 
     -- Clean up LibAnimate animation state
     if ns.LibAnimate then
