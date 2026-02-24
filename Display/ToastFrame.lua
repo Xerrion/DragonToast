@@ -115,7 +115,8 @@ local function CreateToastFrame()
     frame:RegisterForClicks("LeftButtonUp")
 
     frame:SetScript("OnClick", function(self)
-        if IsShiftKeyDown() and self.lootData and self.lootData.itemLink and not self.lootData.isXP then
+        if IsShiftKeyDown() and self.lootData and self.lootData.itemLink
+            and not self.lootData.isXP and not self.lootData.isHonor then
             -- Shift-click: link item in chat
             ChatFrame_OpenChat(self.lootData.itemLink)
         else
@@ -128,7 +129,7 @@ local function CreateToastFrame()
 
     frame:SetScript("OnEnter", function(self)
         -- Show tooltip (not for XP toasts)
-        if self.lootData and self.lootData.itemLink and not self.lootData.isXP then
+        if self.lootData and self.lootData.itemLink and not self.lootData.isXP and not self.lootData.isHonor then
             GameTooltip:SetOwner(self, "ANCHOR_LEFT")
             GameTooltip:SetHyperlink(self.lootData.itemLink)
             GameTooltip:Show()
@@ -274,6 +275,114 @@ local function PopulateToast(frame, lootData)
         if db.appearance.qualityBorder then
             frame:SetBackdropBorderColor(xpR, xpG, xpB, 0.6)
             frame.iconBorder:SetColorTexture(xpR, xpG, xpB, 0.6)
+        else
+            frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
+            frame.iconBorder:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+        end
+
+        -- Size
+        frame:SetSize(db.display.toastWidth, db.display.toastHeight)
+        frame.icon:SetSize(db.appearance.iconSize, db.appearance.iconSize)
+
+        -- ElvUI skin
+        if ns.ElvUISkin and ns.ElvUISkin.SkinToast then
+            ns.ElvUISkin.SkinToast(frame)
+        end
+
+        return  -- Skip normal item population
+    end
+
+    -- Honor toast special handling
+    if lootData.isHonor then
+        -- Apply fonts
+        frame.itemName:SetFont(fontPath, fontSize, fontOutline)
+        frame.itemLevel:SetFont(fontPath, secondaryFontSize, fontOutline)
+        frame.itemType:SetFont(fontPath, secondaryFontSize, fontOutline)
+        frame.looter:SetFont(fontPath, secondaryFontSize, fontOutline)
+
+        -- Icon display
+        frame.itemName:ClearAllPoints()
+        frame.itemType:ClearAllPoints()
+        frame.itemLevel:ClearAllPoints()
+        frame.looter:ClearAllPoints()
+        local padV = db.display.textPaddingV or 6
+        local padH = db.display.textPaddingH or 8
+        if db.display.showIcon ~= false then
+            frame.icon:SetTexture(lootData.itemIcon)
+            frame.icon:Show()
+            frame.iconBorder:Show()
+            frame.itemName:SetPoint("LEFT", frame.icon, "RIGHT", padH, 0)
+            frame.itemName:SetPoint("TOP", frame, "TOP", 0, -padV)
+            frame.itemType:SetPoint("LEFT", frame.icon, "RIGHT", padH, 0)
+            frame.itemType:SetPoint("BOTTOM", frame, "BOTTOM", 0, padV)
+        else
+            frame.icon:Hide()
+            frame.iconBorder:Hide()
+            frame.itemName:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -padV)
+            frame.itemType:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 10, padV)
+        end
+        frame.itemLevel:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -padH, -padV)
+        frame.looter:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -padH, padV)
+
+        -- Honor name in red color
+        local honorR, honorG, honorB = 1, 0.24, 0.17
+        frame.itemName:SetText(lootData.itemName)
+        frame.itemName:SetTextColor(honorR, honorG, honorB)
+
+        -- No quantity badge for honor
+        frame.quantity:Hide()
+
+        -- No item level for honor
+        frame.itemLevel:Hide()
+
+        -- Secondary text: victim name if available
+        if lootData.victimName and lootData.victimName ~= "" then
+            frame.itemType:SetText(lootData.victimName)
+            frame.itemType:SetTextColor(0.7, 0.7, 0.7)
+            frame.itemType:Show()
+        else
+            frame.itemType:Hide()
+        end
+
+        -- Looter
+        if db.display.showLooter then
+            frame.looter:SetText("You")
+            frame.looter:SetTextColor(0.3, 1.0, 0.3)
+            frame.looter:Show()
+        else
+            frame.looter:Hide()
+        end
+
+        -- Honor glow color: red
+        if db.appearance.qualityGlow then
+            local glowWidth = db.appearance.glowWidth or 4
+            frame.qualityGlow:SetWidth(glowWidth)
+            local statusBarPath = LSM:Fetch("statusbar", db.appearance.statusBarTexture)
+            if statusBarPath then
+                frame.qualityGlow:SetTexture(statusBarPath)
+                frame.qualityGlow:SetVertexColor(honorR, honorG, honorB, 0.8)
+            else
+                frame.qualityGlow:SetColorTexture(honorR, honorG, honorB, 0.8)
+            end
+            frame.qualityGlow:Show()
+        else
+            frame.qualityGlow:Hide()
+        end
+
+        -- Border size, background, and border color
+        local borderSize = db.appearance.borderSize or 1
+        frame:SetBackdrop({
+            bgFile = LSM:Fetch("background", db.appearance.backgroundTexture or "Solid"),
+            edgeFile = LSM:Fetch("border", db.appearance.borderTexture or "None"),
+            edgeSize = borderSize,
+        })
+
+        local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
+        frame:SetBackdropColor(bgColor.r, bgColor.g, bgColor.b, db.appearance.backgroundAlpha)
+
+        if db.appearance.qualityBorder then
+            frame:SetBackdropBorderColor(honorR, honorG, honorB, 0.6)
+            frame.iconBorder:SetColorTexture(honorR, honorG, honorB, 0.6)
         else
             frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
             frame.iconBorder:SetColorTexture(0.3, 0.3, 0.3, 0.8)

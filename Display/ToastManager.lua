@@ -176,10 +176,13 @@ local function FindDuplicate(lootData)
             -- XP toast stacking: merge consecutive XP gains
             if lootData.isXP and toast.lootData.isXP then
                 return toast, i
+            elseif lootData.isHonor and toast.lootData.isHonor then
+                return toast, i
             end
 
             -- Normal item stacking
             if not lootData.isXP and not toast.lootData.isXP
+                and not lootData.isHonor and not toast.lootData.isHonor
                 and toast.lootData.itemID == lootData.itemID
                 and toast.lootData.isSelf == lootData.isSelf then
                 return toast, i
@@ -199,9 +202,15 @@ local function FindDuplicate(lootData)
                     entry.itemName = "+" .. ns.ToastManager.FormatNumber(entry.xpAmount) .. " XP"
                     entry.timestamp = now
                     return entry, nil -- nil index signals queued (not active)
+                elseif lootData.isHonor and entry.isHonor then
+                    entry.honorAmount = (entry.honorAmount or 0) + (lootData.honorAmount or 0)
+                    entry.itemName = "+" .. ns.ToastManager.FormatNumber(entry.honorAmount) .. " Honor"
+                    entry.timestamp = now
+                    return entry, nil -- nil index signals queued (not active)
                 end
 
                 if not lootData.isXP and not entry.isXP
+                    and not lootData.isHonor and not entry.isHonor
                     and entry.itemID == lootData.itemID
                     and entry.isSelf == lootData.isSelf then
                     -- Stack quantity in-place
@@ -241,6 +250,10 @@ local function ShowToast(lootData)
             -- Stack XP: sum amounts and update display name
             existing.lootData.xpAmount = (existing.lootData.xpAmount or 0) + (lootData.xpAmount or 0)
             existing.lootData.itemName = "+" .. ns.ToastManager.FormatNumber(existing.lootData.xpAmount) .. " XP"
+            existing.lootData.timestamp = GetTime()
+        elseif lootData.isHonor then
+            existing.lootData.honorAmount = (existing.lootData.honorAmount or 0) + (lootData.honorAmount or 0)
+            existing.lootData.itemName = "+" .. ns.ToastManager.FormatNumber(existing.lootData.honorAmount) .. " Honor"
             existing.lootData.timestamp = GetTime()
         else
             -- Increment quantity on existing toast
@@ -380,20 +393,41 @@ function ns.ToastManager.ShowTestToast()
           icon = 133784, id = 99998, isMoney = true, copperAmount = 12345 },
         { name = "+1,234 XP", quality = 1, level = 0, type = nil, subType = nil,
           icon = 894556, id = 99999, isXP = true, xpAmount = 1234 },
+        { name = "+150 Honor", quality = 1, level = 0, type = nil, subType = nil,
+          icon = 1455894, id = 99997, isHonor = true, honorAmount = 150, victimName = "Enemy Player" },
     }
 
     local test = testItems[math.random(#testItems)]
 
     local lootData
     if test.isXP then
+        local amount = test.xpAmount + math.random(0, 500)
         lootData = {
             isXP = true,
-            xpAmount = test.xpAmount + math.random(0, 500),
+            xpAmount = amount,
             mobName = (math.random(2) == 1) and "Test Creature" or nil,
             itemIcon = test.icon,
-            itemName = "+" .. ns.ToastManager.FormatNumber(test.xpAmount + math.random(0, 500)) .. " XP",
+            itemName = "+" .. ns.ToastManager.FormatNumber(amount) .. " XP",
             itemQuality = test.quality,
             itemLevel = 0,
+            quantity = 1,
+            looter = UnitName("player") or "TestPlayer",
+            isSelf = true,
+            isCurrency = false,
+            timestamp = GetTime(),
+        }
+    elseif test.isHonor then
+        local amount = test.honorAmount + math.random(0, 100)
+        lootData = {
+            isHonor = true,
+            honorAmount = amount,
+            victimName = test.victimName,
+            itemIcon = test.icon,
+            itemName = "+" .. ns.ToastManager.FormatNumber(amount) .. " Honor",
+            itemQuality = test.quality,
+            itemLevel = 0,
+            itemType = nil,
+            itemSubType = nil,
             quantity = 1,
             looter = UnitName("player") or "TestPlayer",
             isSelf = true,

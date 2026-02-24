@@ -29,6 +29,7 @@ local defaults = {
             showGold = true,
             showQuestItems = true,
             showXP = true,
+            showHonor = true,
         },
 
         display = {
@@ -317,6 +318,14 @@ local function GetOptions()
                         order = 24,
                         get = function() return db.filters.showXP end,
                         set = function(_, val) db.filters.showXP = val end,
+                    },
+                    showHonor = {
+                        name = "Show Honor Gains",
+                        desc = "Show toasts when you gain honor points.",
+                        type = "toggle",
+                        order = 25,
+                        get = function() return db.filters.showHonor end,
+                        set = function(_, val) db.filters.showHonor = val end,
                     },
                 },
             },
@@ -1069,7 +1078,7 @@ end
 -- Profile Migration
 -------------------------------------------------------------------------------
 
-local CURRENT_SCHEMA = 3
+local CURRENT_SCHEMA = 4
 
 local DIRECTION_TO_ANIMATION = {
     RIGHT  = "slideInRight",
@@ -1132,6 +1141,15 @@ local function MigrateProfile(db)
         profile.display = profile.display or {}
         if profile.display.goldFormat == nil then
             profile.display.goldFormat = defaults.profile.display.goldFormat
+        end
+
+        profile.schemaVersion = 3
+    end
+
+    if (profile.schemaVersion or 0) < 4 then
+        -- v3 → v4: honor filter default
+        if profile.filters and profile.filters.showHonor == nil then
+            profile.filters.showHonor = true
         end
 
         profile.schemaVersion = CURRENT_SCHEMA

@@ -8,6 +8,7 @@ exclude_files = {
 ignore = {
     "212/self",
     "211/ADDON_NAME",
+    "211/_.*",  -- unused variables prefixed with underscore
 }
 
 globals = {
@@ -48,6 +49,8 @@ read_globals = {
     "COMBATLOG_XPGAIN_EXHAUSTION2_UNNAMED",
     "COMBATLOG_XPGAIN_FIRSTPERSON_GUILD",
     "COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED_GUILD",
+    "COMBATLOG_HONORGAIN",
+    "COMBATLOG_HONORAWARD",
 
     -- Ace3
     "LibStub",

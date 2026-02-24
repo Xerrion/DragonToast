@@ -45,6 +45,7 @@ ns.ToastAnimations = {}
 ns.ElvUISkin = {}
 ns.LootListener = {}
 ns.XPListener = {}
+ns.HonorListener = {}
 ns.MinimapIcon = {}
 
 -------------------------------------------------------------------------------
@@ -129,6 +130,11 @@ function Addon:OnEnable()
     if ns.XPListener.Initialize then
         ns.XPListener.Initialize(self)
     end
+
+    -- Initialize Honor listener
+    if ns.HonorListener.Initialize then
+        ns.HonorListener.Initialize(self)
+    end
 end
 
 function Addon:OnDisable()
@@ -140,6 +146,11 @@ function Addon:OnDisable()
     -- Shutdown XP listener
     if ns.XPListener.Shutdown then
         ns.XPListener.Shutdown()
+    end
+
+    -- Shutdown Honor listener
+    if ns.HonorListener.Shutdown then
+        ns.HonorListener.Shutdown()
     end
 
     -- Clear all toasts
