@@ -130,15 +130,16 @@ function ns.ToastManager.UpdatePositions()
 
     for i, toast in ipairs(activeToasts) do
         local point, relativeTo, relativePoint, x, y = GetToastPosition(i)
-        local _, _, _, _, currentY = toast:GetPoint()
 
-        if currentY and math.abs(currentY - y) > 0.5 then
-            ns.ToastAnimations.PlaySlide(
-                toast, currentY, y, point, relativeTo, relativePoint, x
-            )
-        elseif not currentY then
+        if toast._targetY == nil then
+            toast._targetY = y
             toast:ClearAllPoints()
             toast:SetPoint(point, relativeTo, relativePoint, x, y)
+        elseif toast._targetY ~= y then
+            toast._targetY = y
+            ns.ToastAnimations.PlaySlide(
+                toast, nil, y, point, relativeTo, relativePoint, x
+            )
         end
     end
 end
