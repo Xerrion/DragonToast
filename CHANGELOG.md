@@ -3,6 +3,14 @@
 ### 🐛 Bug Fixes
 
 - Again (#42)
+## [1.6.1](https://github.com/Xerrion/DragonToast/compare/1.6.0...1.6.1) (2026-02-24)
+
+
+### 🐛 Bug Fixes
+
+* consolidate duplicates, optimize pooling, and improve code quality ([#51](https://github.com/Xerrion/DragonToast/issues/51)) ([cb4cd1d](https://github.com/Xerrion/DragonToast/commit/cb4cd1db4f7513a75b18411c870a106749f1477f))
+* remove unused string_format variable in XPListener ([#53](https://github.com/Xerrion/DragonToast/issues/53)) ([e7deb2f](https://github.com/Xerrion/DragonToast/commit/e7deb2fe39578ad8f59f932abbb60c72791ddd5d))
+
 ## [1.6.0](https://github.com/Xerrion/DragonToast/compare/1.5.0...1.6.0) (2026-02-23)
 
 
