@@ -173,7 +173,7 @@ local function FindDuplicate(lootData)
     -- Search active toasts first
     for i, toast in ipairs(activeToasts) do
         if toast.lootData and (now - toast.lootData.timestamp) < DUPLICATE_WINDOW then
-            -- XP toast stacking: merge consecutive XP gains
+            -- XP/honor toast stacking: merge consecutive XP or honor gains
             if lootData.isXP and toast.lootData.isXP then
                 return toast, i
             elseif lootData.isHonor and toast.lootData.isHonor then
