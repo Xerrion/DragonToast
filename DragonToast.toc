@@ -37,3 +37,4 @@ Listeners\LootListener_TBC.lua
 
 # Shared listeners
 Listeners\XPListener.lua
+Listeners\HonorListener.lua
