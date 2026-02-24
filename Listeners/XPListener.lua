@@ -15,7 +15,6 @@ local GetTime = GetTime
 local UnitName = UnitName
 local tonumber = tonumber
 local string_match = string.match
-local string_format = string.format
 
 
 -------------------------------------------------------------------------------
