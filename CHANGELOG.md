@@ -3,6 +3,24 @@
 ### 🐛 Bug Fixes
 
 - Again (#42)
+## [1.8.0](https://github.com/Xerrion/DragonToast/compare/1.7.0...1.8.0) (2026-02-25)
+
+
+### 🚀 Features
+
+* support mop classic ([#62](https://github.com/Xerrion/DragonToast/issues/62)) ([94433ca](https://github.com/Xerrion/DragonToast/commit/94433ca8d22014e625ad82350d1e42ebc4616186))
+
+
+### 🐛 Bug Fixes
+
+* **toast:** sync slide start anchor ([#59](https://github.com/Xerrion/DragonToast/issues/59)) ([fb174a9](https://github.com/Xerrion/DragonToast/commit/fb174a93161e3af30ecc617ffc38cb42514910eb))
+
+
+### 📚 Documentation
+
+* update README ([#61](https://github.com/Xerrion/DragonToast/issues/61)) ([900f725](https://github.com/Xerrion/DragonToast/commit/900f725310c765dd5af2e63f5587726c04bf70ad))
+* updated AGENTS.md with current information ([#58](https://github.com/Xerrion/DragonToast/issues/58)) ([7114e7e](https://github.com/Xerrion/DragonToast/commit/7114e7e351388e749fe71e540513ed5955a85503))
+
 ## [1.7.0](https://github.com/Xerrion/DragonToast/compare/1.6.1...1.7.0) (2026-02-24)
 
 
