@@ -73,28 +73,32 @@ fi
 # Write commit list - one commit per NUL-delimited record
 # ---------------------------------------------------------------------------
 while IFS= read -r -d $'\0' record; do
-    # First line of record is the subject
-    subject="$(echo "$record" | head -n 1)"
+    # Pick the first non-empty line as the subject; remaining lines are body
+    subject=""
+    body=""
+    while IFS= read -r line; do
+        if [[ -z "$subject" ]]; then
+            if [[ -n "$line" ]]; then
+                subject="$line"
+            fi
+        else
+            body+="$line"$'\n'
+        fi
+    done <<< "$record"
+
+    # Skip records with no usable subject
+    [[ -z "$subject" ]] && continue
 
     # Skip release commits (e.g. "chore: release 1.2.3" or "chore(master): release 1.2.3")
-    if [[ "$subject" =~ ^chore(\([^)]+\))?:\ release\  ]]; then
+    if [[ "$subject" == chore:\ release\ * || "$subject" == chore\(*\):\ release\ * ]]; then
         continue
     fi
 
     # Print subject as a list item
     echo "- ${subject}" >> "$OUTPUT_FILE"
 
-    # Process body lines (everything after the subject, skip leading blank line)
-    body="$(echo "$record" | tail -n +2)"
-    first_body=true
+    # Process body lines
     while IFS= read -r line; do
-        # Skip the blank line immediately after the subject
-        if $first_body && [[ -z "$line" ]]; then
-            first_body=false
-            continue
-        fi
-        first_body=false
-
         # Skip Co-authored-by lines (case insensitive)
         if [[ "$line" =~ ^[[:space:]]*[Cc][Oo]-[Aa][Uu][Tt][Hh][Oo][Rr][Ee][Dd]-[Bb][Yy]: ]]; then
             continue
@@ -105,7 +109,7 @@ while IFS= read -r -d $'\0' record; do
             continue
         fi
 
-        # Skip empty trailing lines
+        # Skip empty lines
         if [[ -z "$line" ]]; then
             continue
         fi
