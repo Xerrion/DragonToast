@@ -1,30 +1,105 @@
 # DragonToast - Agent Guidelines
 
-Project-specific guidelines for DragonToast. See the parent `../AGENTS.md` for general WoW addon development rules.
+Project-specific guidelines for DragonToast. See the parent `../AGENTS.md` for general WoW addon rules.
 
----
-
-## Overview
-
-DragonToast is an animated loot feed addon for World of Warcraft.
-*Every drop deserves a toast — a dragon-forged loot feed for your adventures.*
-
-It shows a stacking feed of toast notifications when items are looted, with smooth animations and ElvUI skin matching.
+DragonToast is an animated loot feed addon for World of Warcraft. It shows a stacking feed of toast notifications when items are looted, with smooth animations and ElvUI skin matching.
 
 **GitHub**: https://github.com/Xerrion/DragonToast
 
 ---
 
-## Target Versions
+## Build, Lint & Test
 
-| Version | Interface | TOC Directive | Listener File |
-|---------|-----------|---------------|---------------|
-| TBC Anniversary (Primary) | 20505 | `## Interface: 20505` | `LootListener_TBC.lua` |
-| Retail (Secondary) | 110207 | `## Interface: 110207` | `LootListener_Retail.lua` |
+### Linting
 
-Version-specific files are loaded via BigWigsMods packager comment directives (`#@retail@` / `#@non-retail@`) in the TOC, **not** via `## Interface-*` mid-file directives (those don't work).
+Luacheck is the only static analysis tool. Config lives in `.luacheckrc` (Lua 5.1, 120 char lines, `Libs/` excluded).
 
-**Local dev behavior**: `#@non-retail@` lines are comments, so the line AFTER them loads. Both listener files load locally, but TBC overrides Retail (loads second).
+```bash
+# Lint entire addon
+luacheck .
+
+# Lint a single file (preferred during development)
+luacheck Core/Init.lua
+
+# CI-style (matches GitHub Actions workflow)
+luacheck . --no-color
+```
+
+CI runs Luacheck via `nebularg/actions-luacheck@v1` on `pull_request_target` to `master`. All warnings must pass before merge.
+
+### Testing
+
+**No automated test framework.** Test manually in-game:
+
+1. `/dt test` - Show a single test toast
+2. `/dt testmode` - Toggle continuous test toasts (2.5s interval) for live config preview
+3. `/dt clear` - Dismiss all active toasts
+4. `/dt config` - Open config window
+5. Rapid-fire `/dt test` (10+ times) to stress the frame pool
+6. Hover/unhover during animations to verify pause/resume
+7. `/console scriptErrors 1` to surface Lua errors
+
+### Packaging
+
+No local build step. BigWigsMods packager runs automatically on tag push via `release.yml`. Release flow: merge to `master` -> release-please PR -> merge that PR -> tag -> packager publishes to CurseForge, Wago, GitHub Releases.
+
+---
+
+## Code Style
+
+### Formatting
+- **4 spaces** for indentation (no tabs)
+- **120 character** max line length (enforced by Luacheck)
+- Spaces around operators: `local x = 1 + 2`
+- No trailing whitespace
+- Dashes, not em-dashes or en-dashes, in comments and docs
+
+### File Header
+
+Every `.lua` file starts with this block:
+
+```lua
+-------------------------------------------------------------------------------
+-- FileName.lua
+-- Brief description of the file
+--
+-- Supported versions: TBC Anniversary, Retail
+-------------------------------------------------------------------------------
+```
+
+### Namespace and Imports
+
+All files use the shared private namespace. Frequently-used WoW API globals are cached as locals at the top of each file, after the header.
+
+```lua
+local ADDON_NAME, ns = ...
+
+-- Cached WoW API
+local CreateFrame = CreateFrame
+local GetItemInfo = GetItemInfo
+
+-- Ace3 libraries via LibStub
+local LSM = LibStub("LibSharedMedia-3.0")
+```
+
+### Naming Conventions
+
+| Type | Convention | Example |
+|------|------------|---------|
+| Files | PascalCase | `ToastFrame.lua` |
+| Global variables | PascalCase | `DragonToastDB` |
+| Local variables | camelCase | `local frameCount` |
+| Functions (public) | PascalCase | `ns.ToastFrame.Acquire()` |
+| Functions (local) | PascalCase | `local function CreateToastFrame()` |
+| Constants | UPPER_SNAKE | `local MAX_RETRIES = 5` |
+| Color codes | COLOR_UPPER | `ns.COLOR_GOLD` |
+| Unused args | Underscore prefix | `local _unused` |
+
+### Error Handling
+- **GetItemInfo may return nil** on first call. Always use the AceTimer retry pattern (up to 5 retries, 0.2s each).
+- Defensive nil checks before calling optional module functions: `if ns.Module.Func then ns.Module.Func() end`
+- Use `pcall` for operations that may not exist on all WoW versions.
+- Cancel AceTimers before nullifying references, or closures fire on recycled frames.
 
 ---
 
@@ -33,212 +108,69 @@ Version-specific files are loaded via BigWigsMods packager comment directives (`
 | Layer | Directory | Responsibility |
 |-------|-----------|----------------|
 | Core | `Core/` | Addon lifecycle, config, slash commands, minimap icon |
-| Listeners | `Listeners/` | Version-specific loot/XP event parsing |
+| Listeners | `Listeners/` | Version-specific loot/XP/honor event parsing |
 | Display | `Display/` | Toast frames, animations, feed management, ElvUI skin |
-| Libs | `Libs/` | Embedded Ace3 + utility libraries |
+| Libs | `Libs/` | Embedded Ace3 + utility libraries (never lint or edit) |
 
-### File Inventory
+### Namespace Sub-tables
 
-```
-Core/
-├── Init.lua              # AceAddon bootstrap with all mixins
-├── Config.lua            # AceDB defaults + AceConfig options table
-├── ConfigWindow.lua      # Standalone AceGUI config window
-├── SlashCommands.lua     # /dt and /dragontoast commands
-└── MinimapIcon.lua       # LibDBIcon + LibDataBroker minimap button
+All modules attach to `ns`: `ns.Addon`, `ns.ToastManager`, `ns.ToastFrame`, `ns.ToastAnimations`, `ns.ElvUISkin`, `ns.LootListener`, `ns.XPListener`, `ns.HonorListener`, `ns.MinimapIcon`, `ns.Print`.
 
-Listeners/
-├── LootListener_TBC.lua      # CHAT_MSG_LOOT + CHAT_MSG_MONEY (TBC only)
-├── LootListener_Retail.lua   # Same + CHAT_MSG_CURRENCY (Retail only)
-└── XPListener.lua            # CHAT_MSG_COMBAT_XP_GAIN (both versions)
+### Ace3 Stack (mandatory, no raw alternatives)
 
-Display/
-├── ToastFrame.lua        # Frame creation (BackdropTemplate), Populate, Acquire/Release pool
-├── ToastAnimations.lua   # Entrance, Exit, Slide animations
-├── ToastManager.lua      # Queue management, positioning, combat deferral
-└── ElvUISkin.lua          # ElvUI detection and font/border matching
-```
+| Library | Replaces |
+|---------|----------|
+| AceEvent | `frame:RegisterEvent()` |
+| AceTimer | `C_Timer.After()` / `C_Timer.NewTimer()` |
+| AceDB | Raw `SavedVariables` |
+| AceConsole | `SLASH_*` globals |
+| LibSharedMedia-3.0 | Hardcoded font/texture paths |
 
-### Namespace Pattern
+For local dev, Ace3 is a git submodule at `Libs/Ace3/`. The `.pkgmeta` externals only resolve during CI packaging.
 
-All files use the shared private namespace:
-```lua
-local ADDON_NAME, ns = ...
-```
+### Version-Specific Loading
 
-Sub-tables on `ns`:
-- `ns.Addon` — AceAddon instance (set in Init.lua)
-- `ns.ToastManager` — Queue, positioning, combat deferral
-- `ns.ToastFrame` — Frame creation, pool, populate
-- `ns.ToastAnimations` — Entrance/Exit/Slide animation control
-- `ns.ElvUISkin` — ElvUI detection and skin application
-- `ns.LootListener` — Loot event parsing (version-specific)
-- `ns.XPListener` — XP event parsing
-- `ns.MinimapIcon` — Minimap button management
-- `ns.Print` — Prefixed chat output helper
+Two target versions: TBC Anniversary (20505, primary) and Retail (110207, secondary).
 
----
-
-## Ace3 Stack
-
-DragonToast uses Ace3 extensively. **All** of these must be used — no raw alternatives:
-
-| Library | Usage | Raw Alternative (DO NOT USE) |
-|---------|-------|------------------------------|
-| AceAddon | Addon lifecycle | — |
-| AceEvent | Event registration | `frame:RegisterEvent()` |
-| AceTimer | Timers | `C_Timer.After()` / `C_Timer.NewTimer()` |
-| AceDB | SavedVariables + profiles | Raw `SavedVariables` |
-| AceConfig | Options table registration | — |
-| AceConfigDialog | Blizzard settings integration | — |
-| AceGUI | Standalone config window | — |
-| AceConsole | Slash command registration | `SLASH_*` globals |
-| LibSharedMedia-3.0 | Font/texture/sound selection | Hardcoded paths |
-| LibDataBroker-1.1 | Data source for minimap icon | — |
-| LibDBIcon-1.0 | Minimap button | — |
-| AceGUI-3.0-SharedMediaWidgets | LSM widget controls in config | — |
-
-### Local Dev: Ace3 Submodule
-
-`.pkgmeta` externals only work during CI packaging. For local dev, Ace3 is a git submodule at `Libs/Ace3/`. Other libs are regular directories.
+Version-specific files load via BigWigsMods packager comment directives in the TOC (`#@retail@` / `#@tbc-anniversary@`). Do NOT use `## Interface-*` mid-file directives. Locally, both listener files load, but TBC overrides Retail (loads second).
 
 ---
 
 ## Toast Lifecycle
 
-1. **Loot event** → `LootListener` / `XPListener` parses and calls `ToastManager.QueueToast(lootData)`
-2. **QueueToast** → Checks combat deferral, duplicate stacking, then calls `ShowToast()`
-3. **ShowToast** → `ToastFrame.Acquire()` gets frame from pool, `Populate()` fills it, `PlayLifecycle()` starts the animation queue
-4. **PlayLifecycle** → Builds a `lib:Queue()` with chained entries: entrance → attention (optional, quality-gated) → exit (with hold delay)
-5. **Queue completes** → `OnToastFinished()` → `StopAll()` → `Release()` returns frame to pool
-6. **Hover** → `PauseQueue()` freezes animation + hold timer. Unhover → `ResumeQueue()` continues from exact pause point
-7. **Click** → `Dismiss()` skips to exit animation via `SkipToEntry()`. **Shift-click** → Link item in chat.
+1. Loot event -> `LootListener` / `XPListener` parses and calls `ToastManager.QueueToast(lootData)`
+2. QueueToast -> Checks combat deferral and duplicate stacking, then calls `ShowToast()`
+3. ShowToast -> `ToastFrame.Acquire()` gets frame from pool, `Populate()` fills it, `PlayLifecycle()` starts animation
+4. PlayLifecycle -> Builds a `lib:Queue()`: entrance -> attention (optional, quality-gated) -> exit (with hold delay)
+5. Queue completes -> `OnToastFinished()` -> `StopAll()` -> `Release()` returns frame to pool
 
-### Frame Pool
-
-Frames are recycled via `Acquire()` / `Release()`. Key safety measures:
-- `Release()` calls `ClearQueue()` to stop animations and clear queue
-- `Release()` clears `_exitEntryIndex` and `_noAnimTimer` fields
-- `Release()` has a pool duplication guard
-- `StopAll()` calls `lib:ClearQueue()` which stops animation + restores frame state
-- `PlayLifecycle()` defensively calls `StopAll()` before starting new queue
-
-### Animation System
-
-Three animation phases managed by LibAnimate Queue:
-- **Entrance**: Configurable entrance animation (slideInRight, fadeIn, etc.)
-- **Attention** (optional): Quality-gated attention animation (pulse, bounce, heartBeat, etc.) — only plays for items meeting minimum quality threshold
-- **Exit**: Configurable exit animation with hold delay (the delay IS the display duration)
-- **Slide**: `SlideAnchor()` for smooth repositioning without interrupting the lifecycle queue
-
-### Test Mode
-
-`/dt testmode` or the General → Actions config toggle starts a repeating AceTimer (2.5s interval) that calls `ShowTestToast()` continuously. Useful for previewing settings changes in real-time. Runtime-only state — not persisted in SavedVariables. Auto-stops on `/dt clear`.
+Frames are recycled via `Acquire()` / `Release()`. `Release()` calls `ClearQueue()`, clears state fields, and has a pool duplication guard. Always call `StopAll()` before starting a new queue on an acquired frame.
 
 ---
 
 ## ElvUI Integration
 
-Detection: `ElvUI and ElvUI[1]` → store as `E`
-
-When "Match ElvUI Style" is enabled:
-- **Font face**: Uses `E.media.normFont` (ElvUI's typeface)
-- **Font size/outline**: Respects user's Appearance settings (NOT overridden)
-- **Background**: Never overridden — user's Appearance settings are final
-- **Border color**: Uses `E.media.bordercolor` when quality border is off
-
----
-
-## Config UI Structure
-
-6 tabs + Profiles (AceDBOptions):
-
-| Tab | Sections |
-|-----|----------|
-| General | Controls (enable, minimap, combat defer) → Actions (test, clear) |
-| Filters | Item Quality → Loot Sources → Rewards |
-| Display | Layout → Toast Size → Toast Content → Position |
-| Animation | General → Timing → Entrance |
-| Appearance | Font → Background (color, texture, opacity) → Border & Glow (quality, thickness, texture) → Icon → ElvUI |
-| Sound | Notification Sound |
-
-Config uses `type = "header"` separators and `type = "description"` intro text on every tab. LSM widget controls (`LSM30_Font`, `LSM30_Statusbar`, `LSM30_Sound`) for media selection.
+When "Match ElvUI Style" is enabled: font face uses `E.media.normFont`, font size/outline respects user settings (not overridden), background is never overridden, border color uses `E.media.bordercolor` when quality border is off. `SkinToast()` runs after `PopulateToast()`.
 
 ---
 
 ## CI/CD
 
-### Workflows
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `lint.yml` | `pull_request_target` to master | Luacheck (uses `pull_request_target` for release-please bot PRs) |
+| `release-pr.yml` | `push` to master | release-please creates/updates a Release PR |
+| `release.yml` | tag push or `workflow_dispatch` | BigWigsMods packager -> CurseForge, Wago, GitHub Releases |
 
-| File | Trigger | Purpose |
-|------|---------|---------|
-| `lint.yml` | `pull_request_target` to master | Luacheck (uses `pull_request_target` so it runs on release-please bot PRs) |
-| `release-pr.yml` | `push` to master | release-please creates/updates a Release PR with version bump and changelog |
-| `release.yml` | tag push or `workflow_dispatch` | BigWigsMods packager builds and uploads to CurseForge, Wago, and GitHub Releases |
-
-### Branch Protection (Ruleset for `master`)
-
-| Setting | State |
-|---------|-------|
-| Require pull request before merging | ON |
-| Require approvals | OFF |
-| Require status checks to pass | ON (Luacheck - strict mode) |
-| Require branches to be up to date | ON |
-| Allow force pushes | OFF |
-| Allow deletions | OFF |
-
-### Repository Merge Settings
-
-| Setting | State |
-|---------|-------|
-| Squash merging | ON |
-| Merge commits | OFF |
-| Rebase merging | OFF |
-| Auto-delete head branches | ON |
-
-### Secrets
-
-| Secret | Purpose |
-|--------|---------|
-| `CF_API_KEY` | CurseForge upload |
-| `WAGO_API_TOKEN` | Wago.io upload |
-
-### Project IDs
-
-| Platform | ID | TOC Field |
-|----------|----|-----------|
-| CurseForge | `1468628` | `X-Curse-Project-ID` |
-| Wago | `E6gvQAN1` | `X-Wago-ID` |
-
----
-
-## Local Development
-
-### Install Location
-
-Create a directory junction from the WoW addons folder to the repo:
-```powershell
-New-Item -ItemType Junction -Path "E:\World of Warcraft\_anniversary_\Interface\AddOns\DragonToast" -Target "F:\Repos\wow-addons\DragonToast"
-```
-
-### Testing
-
-No automated tests. Test manually in-game:
-1. `/dt test` — Show a test toast
-2. `/dt` — Open config window
-3. `/dt clear` — Dismiss all toasts
-4. `/dt testmode` — Toggle continuous test toasts for live config preview
-5. Rapid-fire `/dt test` (10+ times) to stress frame pool recycling
-6. Hover/unhover during fade to test timer pause/resume
-7. `/console scriptErrors 1` to catch Lua errors
+Branch protection on `master`: PRs required, Luacheck status check required, branches must be up to date, no force pushes. Squash merge only; auto-delete head branches.
 
 ---
 
 ## Known Gotchas
 
-1. **GetItemInfo may return nil** on first call if item not cached — handled with AceTimer retry (up to 5 retries, 0.2s each)
-2. **CHAT_MSG_LOOT patterns are localized** — parsing uses Lua pattern matching on the localized chat string
-3. **AceTimer cancellation** — Always cancel timers before nullifying references, or the closure fires on a recycled frame
-4. **ElvUI skin ordering** — `SkinToast()` runs after `PopulateToast()`. It must respect user's Appearance settings, not override them
-5. **TOC conditional loading** — Mid-file `## Interface:` directives don't work. Use BigWigsMods packager comment directives (`#@retail@`, `#@non-retail@`)
-6. **pull_request vs pull_request_target** — GitHub doesn't trigger `pull_request` workflows for PRs created by GITHUB_TOKEN (release-please). Use `pull_request_target` for lint workflows
+1. **GetItemInfo caching** - Returns nil on first call for uncached items. Use retry pattern.
+2. **Localized loot patterns** - `CHAT_MSG_LOOT` strings are locale-dependent. Build patterns from Blizzard globals.
+3. **AceTimer cleanup** - Cancel timers before nullifying references.
+4. **ElvUI skin ordering** - `SkinToast()` must respect user Appearance settings, not override them.
+5. **TOC conditional loading** - Use packager comment directives, not `## Interface:` mid-file.
+6. **pull_request_target** - GitHub does not trigger `pull_request` for PRs from GITHUB_TOKEN. Use `pull_request_target`.
