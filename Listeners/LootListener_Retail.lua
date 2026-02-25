@@ -1,11 +1,24 @@
 -------------------------------------------------------------------------------
 -- LootListener_Retail.lua
--- Retail loot event parsing
+-- Retail loot event parsing (also used by MoP Classic)
 --
--- Supported versions: Retail
+-- Supported versions: Retail, MoP Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+
+-------------------------------------------------------------------------------
+-- Version guard: only run on Retail or MoP Classic
+-------------------------------------------------------------------------------
+
+local WOW_PROJECT_ID = WOW_PROJECT_ID
+local WOW_PROJECT_MAINLINE = WOW_PROJECT_MAINLINE
+local WOW_PROJECT_MISTS_CLASSIC = WOW_PROJECT_MISTS_CLASSIC
+
+if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
+    and WOW_PROJECT_ID ~= WOW_PROJECT_MISTS_CLASSIC then
+    return
+end
 
 -------------------------------------------------------------------------------
 -- Cached WoW API

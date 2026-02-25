@@ -2,7 +2,7 @@
 -- ToastManager.lua
 -- Feed management: queue, stacking, positioning, recycling, combat deferral
 --
--- Supported versions: TBC Anniversary, Retail
+-- Supported versions: TBC Anniversary, Retail, MoP Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...

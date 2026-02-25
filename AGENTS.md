@@ -63,7 +63,7 @@ Every `.lua` file starts with this block:
 -- FileName.lua
 -- Brief description of the file
 --
--- Supported versions: TBC Anniversary, Retail
+-- Supported versions: TBC Anniversary, Retail, MoP Classic
 -------------------------------------------------------------------------------
 ```
 
@@ -130,9 +130,9 @@ For local dev, Ace3 is a git submodule at `Libs/Ace3/`. The `.pkgmeta` externals
 
 ### Version-Specific Loading
 
-Two target versions: TBC Anniversary (20505, primary) and Retail (110207, secondary).
+Three target versions: TBC Anniversary (20505, primary), MoP Classic (50502/50503), and Retail (110207, secondary).
 
-Version-specific files load via BigWigsMods packager comment directives in the TOC (`#@retail@` / `#@tbc-anniversary@`). Do NOT use `## Interface-*` mid-file directives. Locally, both listener files load, but TBC overrides Retail (loads second).
+Version-specific files load via BigWigsMods packager comment directives in the TOC (`#@retail@` / `#@tbc-anniversary@` / `#@version-mists@`). Do NOT use `## Interface-*` mid-file directives. Locally, all listener files load; runtime guards in each version-specific listener ensure only the correct one initializes.
 
 ---
 

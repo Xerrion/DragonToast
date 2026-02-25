@@ -2,7 +2,7 @@
 -- MinimapIcon.lua
 -- Minimap button via LibDBIcon-1.0 and LibDataBroker-1.1
 --
--- Supported versions: TBC Anniversary, Retail
+-- Supported versions: TBC Anniversary, Retail, MoP Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...

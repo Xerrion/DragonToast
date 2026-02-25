@@ -9,7 +9,7 @@
 
 [![Latest Release](https://img.shields.io/github/v/release/Xerrion/DragonToast?style=for-the-badge)](https://github.com/Xerrion/DragonToast/releases/latest)
 [![License](https://img.shields.io/github/license/Xerrion/DragonToast?style=for-the-badge)](LICENSE)
-[![WoW Versions](https://img.shields.io/badge/WoW-TBC%20Anniversary%20%C2%B7%20Retail-blue?style=for-the-badge&logo=battledotnet)](https://worldofwarcraft.blizzard.com/)
+[![WoW Versions](https://img.shields.io/badge/WoW-TBC%20Anniversary%20%C2%B7%20MoP%20Classic%20%C2%B7%20Retail-blue?style=for-the-badge&logo=battledotnet)](https://worldofwarcraft.blizzard.com/)
 [![Lint](https://img.shields.io/github/actions/workflow/status/Xerrion/DragonToast/lint.yml?style=for-the-badge&label=lint)](https://github.com/Xerrion/DragonToast/actions)
 
 </div>
@@ -34,6 +34,7 @@
 | Version         | Interface              | Status       |
 |:----------------|:-----------------------|:-------------|
 | TBC Anniversary | 20505                  | ✅ Primary   |
+| Mists Classic   | 50502, 50503           | ✅ Supported |
 | Retail          | 110207, 120001, 120000 | ✅ Secondary |
 
 ## 📦 Installation
