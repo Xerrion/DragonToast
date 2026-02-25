@@ -135,6 +135,11 @@ function Addon:OnEnable()
     if ns.HonorListener.Initialize then
         ns.HonorListener.Initialize(self)
     end
+
+    -- Initialize DragonLoot bridge (optional cross-addon integration)
+    if ns.DragonLootBridge and ns.DragonLootBridge.Initialize then
+        ns.DragonLootBridge.Initialize(self)
+    end
 end
 
 function Addon:OnDisable()
@@ -151,6 +156,11 @@ function Addon:OnDisable()
     -- Shutdown Honor listener
     if ns.HonorListener.Shutdown then
         ns.HonorListener.Shutdown()
+    end
+
+    -- Shutdown DragonLoot bridge
+    if ns.DragonLootBridge and ns.DragonLootBridge.Shutdown then
+        ns.DragonLootBridge.Shutdown()
     end
 
     -- Clear all toasts

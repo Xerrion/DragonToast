@@ -306,6 +306,15 @@ function ns.ToastManager.QueueToast(lootData)
     local db = ns.Addon.db.profile
     if not db.enabled then return end
 
+    -- Suppress normal item toasts while DragonLoot loot window is open
+    if ns.dragonLootSuppressLoot
+        and not lootData.isXP
+        and not lootData.isHonor
+        and not lootData.isCurrency
+        and not lootData.isRollWin then
+        return
+    end
+
     -- Combat deferral
     if db.combat.deferInCombat and InCombatLockdown() then
         QueuePush(combatQueue, lootData)
