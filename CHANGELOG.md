@@ -3,6 +3,13 @@
 ### 🐛 Bug Fixes
 
 - Again (#42)
+## [1.8.2](https://github.com/Xerrion/DragonToast/compare/1.8.1...1.8.2) (2026-02-25)
+
+
+### ⚙️ Miscellaneous Tasks
+
+* fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
+
 ## [1.8.1](https://github.com/Xerrion/DragonToast/compare/1.8.0...1.8.1) (2026-02-25)
 
 
