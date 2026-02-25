@@ -275,7 +275,7 @@ end
 -- Play slide animation (reposition in stack)
 -------------------------------------------------------------------------------
 
-function ns.ToastAnimations.PlaySlide(frame, _, toY, point, relativeTo,
+function ns.ToastAnimations.PlaySlide(frame, startY, toY, point, relativeTo,
                                       relativePoint, x)
     if frame._isExiting then return end
 
@@ -285,6 +285,13 @@ function ns.ToastAnimations.PlaySlide(frame, _, toY, point, relativeTo,
         frame:ClearAllPoints()
         frame:SetPoint(point, relativeTo, relativePoint, x, toY)
         return
+    end
+
+    -- Sync the library anchor to the caller-provided startY so the slide
+    -- interpolates from the frame's actual current position rather than
+    -- whatever anchorY the library last recorded.
+    if startY then
+        lib:UpdateAnchor(frame, x, startY)
     end
 
     lib:SlideAnchor(frame, x, toY, db.animation.slideSpeed or 0.2)

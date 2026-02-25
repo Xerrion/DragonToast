@@ -136,9 +136,11 @@ function ns.ToastManager.UpdatePositions()
             toast:ClearAllPoints()
             toast:SetPoint(point, relativeTo, relativePoint, x, y)
         elseif toast._targetY ~= y then
+            local _, _, _, _, currentY = toast:GetPoint()
+            local startY = currentY or toast._targetY or y
             toast._targetY = y
             ns.ToastAnimations.PlaySlide(
-                toast, nil, y, point, relativeTo, relativePoint, x
+                toast, startY, y, point, relativeTo, relativePoint, x
             )
         end
     end
