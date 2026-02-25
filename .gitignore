@@ -1,6 +1,9 @@
 .env
 .release/
 
+# Windows reserved-name device artifact
+nul
+
 # Libs managed by .pkgmeta externals (submodules Ace3 and LibAnimate are tracked separately)
 Libs/*
 !Libs/Ace3

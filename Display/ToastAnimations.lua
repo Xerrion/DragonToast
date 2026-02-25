@@ -2,7 +2,7 @@
 -- ToastAnimations.lua
 -- Animation sequences for toast frames using LibAnimate
 --
--- Supported versions: TBC Anniversary, Retail
+-- Supported versions: TBC Anniversary, Retail, MoP Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...

@@ -1,7 +1,8 @@
 ## Interface: 110207, 120001, 120000
 ## Interface-BCC: 20505
+## Interface-Mists: 50502, 50503
 ## Title: Dragon Toast
-## Notes: Every drop deserves a toast — a dragon-forged loot feed for your adventures
+## Notes: Every drop deserves a toast. A dragon-forged loot feed for your adventures
 ## Author: @project-author@
 ## Version: @project-version@
 ## SavedVariables: DragonToastDB
@@ -34,6 +35,9 @@ Listeners\LootListener_Retail.lua
 #@tbc-anniversary@
 Listeners\LootListener_TBC.lua
 #@end-tbc-anniversary@
+#@version-mists@
+Listeners\LootListener_Retail.lua
+#@end-version-mists@
 
 # Shared listeners
 Listeners\XPListener.lua
