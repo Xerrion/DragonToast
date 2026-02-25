@@ -68,11 +68,21 @@ end
 -- DragonToast can optionally render it differently.
 -------------------------------------------------------------------------------
 
+-- Map numeric roll types to display names
+local rollTypeNames = { [0] = "Pass", [1] = "Need", [2] = "Greed", [3] = "Disenchant", [4] = "Transmog" }
+
 local function OnDragonLootRollWon(_event, rollData)
     if not rollData then return end
 
     local db = ns.Addon.db.profile
     if not db.enabled then return end
+
+    -- Build human-readable roll display (e.g. "Need (87)")
+    local rollTypeName = rollTypeNames[rollData.rollType] or "Roll"
+    local rollDisplay = rollTypeName
+    if rollData.rollValue then
+        rollDisplay = rollTypeName .. " (" .. rollData.rollValue .. ")"
+    end
 
     local lootData = {
         isRollWin = true,
@@ -82,11 +92,11 @@ local function OnDragonLootRollWon(_event, rollData)
         itemQuality = rollData.itemQuality or 1,
         itemIcon = rollData.itemIcon,
         itemLevel = 0,
-        itemType = rollData.rollType or "Roll",
+        itemType = rollDisplay,
         itemSubType = nil,
         quantity = rollData.quantity or 1,
-        looter = UnitName("player") or "You",
-        isSelf = true,
+        looter = rollData.winnerName or UnitName("player") or "You",
+        isSelf = rollData.isSelf ~= false, -- default true for backward compat
         isCurrency = false,
         timestamp = GetTime(),
     }
