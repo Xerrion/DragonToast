@@ -1,5 +1,6 @@
 package-as: DragonToast
 enable-toc-creation: yes
+manual-changelog: .release/CHANGELOG.md
 
 externals:
   Libs/Ace3: https://repos.wowace.com/wow/ace3/trunk
@@ -14,6 +15,7 @@ ignore:
   - .gitignore
   - .luacheckrc
   - .release
+  - scripts
   - "*.md"
   - "*.png"
   - "icon_variant_*.tga"
