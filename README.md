@@ -5,7 +5,7 @@
 
 # Dragon Toast
 
-*Every drop deserves a toast — a dragon-forged loot feed for your adventures*  
+*Every drop deserves a toast: a dragon-forged loot feed for your adventures.*  
 
 [![Latest Release](https://img.shields.io/github/v/release/Xerrion/DragonToast?style=for-the-badge)](https://github.com/Xerrion/DragonToast/releases/latest)
 [![License](https://img.shields.io/github/license/Xerrion/DragonToast?style=for-the-badge)](LICENSE)
@@ -14,27 +14,27 @@
 
 </div>
 
-## 🐉 Featuresa
+## 🐉 Features
 
-- Animated toast notifications for all loot types — items, gold, currency, quest items, and XP gains
+- Animated toast notifications for all loot types: items, gold, currency, quest items, XP, and honor gains
 - Quality-colored item names with configurable minimum quality filter
 - Stacking feed with configurable max toasts and growth direction (up/down)
-- Smooth entrance, pop, and exit animations
-- Duplicate stacking (x2, x3…) and consecutive XP gain aggregation
-- ElvUI skin matching — automatically uses ElvUI fonts, textures, and borders when detected
+- Smooth entrance, attention, and exit animations
+- Duplicate stacking (x2, x3...) and consecutive XP gain aggregation
+- ElvUI skin matching: automatically uses ElvUI fonts, textures, and borders when detected
 - Toggleable toast info: icon, item level, type/subtype, looter name, quantity
 - Shift-click to link items in chat, hover for tooltip
-- Combat deferral — queue toasts during combat, flush when combat ends
+- Combat deferral: queue toasts during combat, flush when combat ends
 - Optional loot sounds via LibSharedMedia
 - Minimap icon with quick-access controls (left-click config, right-click toggle, shift-click test)
 - Full LibSharedMedia-3.0 support for fonts, textures, and sounds
 
 ## 🎮 Supported Versions
 
-| Version         | Interface | Status       |
-|:----------------|:----------|:-------------|
-| TBC Anniversary | 20505     | ✅ Primary   |
-| Retail          | 110207    | ✅ Secondary |
+| Version         | Interface              | Status       |
+|:----------------|:-----------------------|:-------------|
+| TBC Anniversary | 20505                  | ✅ Primary   |
+| Retail          | 110207, 120001, 120000 | ✅ Secondary |
 
 ## 📦 Installation
 
@@ -59,25 +59,27 @@
 
 All commands use the `/dt` prefix (or the full `/dragontoast`):
 
-| Command      | Description                             |
-|:-------------|:----------------------------------------|
-| `/dt`        | Toggle addon on/off                     |
-| `/dt config` | Open settings panel                     |
-| `/dt lock`   | Toggle anchor lock (drag to reposition) |
-| `/dt test`   | Show a test toast                       |
-| `/dt clear`  | Dismiss all active toasts               |
-| `/dt status` | Show current settings                   |
-| `/dt help`   | Show available commands                 |
+| Command         | Description                             |
+|:----------------|:----------------------------------------|
+| `/dt`           | Toggle addon on/off                     |
+| `/dt config`    | Open settings panel                     |
+| `/dt lock`      | Toggle anchor lock (drag to reposition) |
+| `/dt test`      | Show a test toast                       |
+| `/dt testmode`  | Toggle continuous test toasts           |
+| `/dt clear`     | Dismiss all active toasts               |
+| `/dt reset`     | Reset anchor position to default        |
+| `/dt status`    | Show current settings                   |
+| `/dt help`      | Show available commands                 |
 
 ## ⚙️ Configuration
 
-- **General**: Enable/disable, minimum quality filter (Poor through Legendary), growth direction (up/down), max visible toasts (1-10), hold duration
-- **Filters**: Self loot, party/raid loot, gold, currency, quest items, XP gains — each independently toggleable
-- **Display**: Toast info toggles — item level, type/subtype, looter name, quantity badge
-- **Appearance**: Fonts, textures, and colors customizable via LibSharedMedia-3.0 pickers
-- **Sound**: Optional loot sound with LSM sound picker (off by default)
-- **Behavior**: Combat deferral (queue during combat), anchor position (drag to move), minimap icon visibility
-- **ElvUI**: Automatic skin matching when ElvUI is detected — uses ElvUI fonts, statusbar textures, and border colors
+- **General**: Enable/disable addon, show minimap icon, defer toasts during combat, test mode toggle, show test toast, clear all toasts
+- **Filters**: Minimum item quality (Poor through Legendary), loot sources (self, group), reward types (gold, currency, quest items, XP, honor)
+- **Display**: Layout (max toasts, growth direction, spacing), toast size (width, height), toast content (icon, item level, type/subtype, quantity, looter name, gold format, text padding), position (unlock anchor, reset position)
+- **Animation**: Enable/disable animations, timing (entrance duration, display duration, fade-out duration), entrance (animation style, distance), attention (animation style, minimum quality, repeat count, delay), exit (animation style, distance), repositioning speed
+- **Appearance**: Font (face, primary/secondary size, outline), background (color, opacity, texture), border and glow (quality-colored border, thickness, texture, quality glow strip, glow width, glow texture), icon size, ElvUI style matching
+- **Sound**: Enable/disable notification sound, sound effect picker via LibSharedMedia
+- **Profiles**: AceDB profile management (create, copy, delete, reset)
 
 Access settings with `/dt config` or click the minimap icon.
 
@@ -93,6 +95,6 @@ Contributions are welcome! Feel free to open an [issue](https://github.com/Xerri
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](https://github.com/Xerrion/DragonToast/blob/master/LICENSE) file for details.
+This project is licensed under the **MIT License**. See the [LICENSE](https://github.com/Xerrion/DragonToast/blob/master/LICENSE) file for details.
 
 Made with ❤️ by [Xerrion](https://github.com/Xerrion)
