@@ -42,4 +42,4 @@ Listeners\LootListener_Retail.lua
 # Shared listeners
 Listeners\XPListener.lua
 Listeners\HonorListener.lua
-Listeners\DragonLootBridge.lua
+Listeners\MessageBridge.lua
