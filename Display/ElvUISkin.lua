@@ -82,7 +82,7 @@ function ns.ElvUISkin.SkinToast(frame)
     if not db.appearance.qualityBorder then
         local br, bg, bb, ba = ns.ElvUISkin.GetBorderColor()
         frame:SetBackdropBorderColor(br, bg, bb, ba)
-        frame.iconBorder:SetColorTexture(br, bg, bb, ba)
+        frame.iconFrame:SetBackdropBorderColor(br, bg, bb, ba)
     end
 end
 
