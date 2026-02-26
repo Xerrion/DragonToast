@@ -83,6 +83,18 @@ All commands use the `/dt` prefix (or the full `/dragontoast`):
 
 Access settings with `/dt config` or click the minimap icon.
 
+## 🔌 Integration API
+
+DragonToast provides a generic AceEvent messaging API for other addons to control toast behavior:
+
+| Message | Payload | Purpose |
+|:--------|:--------|:--------|
+| `DRAGONTOAST_SUPPRESS` | `source` (string) | Suppress item toasts while your addon handles loot |
+| `DRAGONTOAST_UNSUPPRESS` | `source` (string) | Resume normal toast display |
+| `DRAGONTOAST_QUEUE_TOAST` | `toastData` (table) | Queue a custom toast notification |
+
+Messages are fire-and-forget via `AceEvent:SendMessage()` - no dependency on DragonToast required. See [AGENTS.md](AGENTS.md) for the full toast data contract and integration guide.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, coding standards, and the PR process. All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
