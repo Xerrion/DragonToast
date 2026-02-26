@@ -306,8 +306,8 @@ function ns.ToastManager.QueueToast(lootData)
     local db = ns.Addon.db.profile
     if not db.enabled then return end
 
-    -- Suppress normal item toasts while DragonLoot loot window is open
-    if ns.dragonLootSuppressLoot
+    -- Suppress normal item toasts while any source has active suppression
+    if ns.MessageBridge.IsSuppressed()
         and not lootData.isXP
         and not lootData.isHonor
         and not lootData.isCurrency

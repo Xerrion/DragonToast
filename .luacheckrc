@@ -9,6 +9,7 @@ ignore = {
     "212/self",
     "211/ADDON_NAME",
     "211/_.*",  -- unused variables prefixed with underscore
+    "213/_.*",  -- unused loop variables prefixed with underscore
 }
 
 globals = {

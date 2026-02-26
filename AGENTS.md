@@ -116,7 +116,7 @@ local LSM = LibStub("LibSharedMedia-3.0")
 
 ### Namespace Sub-tables
 
-All modules attach to `ns`: `ns.Addon`, `ns.ToastManager`, `ns.ToastFrame`, `ns.ToastAnimations`, `ns.ElvUISkin`, `ns.LootListener`, `ns.XPListener`, `ns.HonorListener`, `ns.MinimapIcon`, `ns.Print`.
+All modules attach to `ns`: `ns.Addon`, `ns.ToastManager`, `ns.ToastFrame`, `ns.ToastAnimations`, `ns.ElvUISkin`, `ns.LootListener`, `ns.XPListener`, `ns.HonorListener`, `ns.MessageBridge`, `ns.MinimapIcon`, `ns.Print`.
 
 ### Ace3 Stack (mandatory, no raw alternatives)
 
@@ -153,6 +153,82 @@ Frames are recycled via `Acquire()` / `Release()`. `Release()` calls `ClearQueue
 ## ElvUI Integration
 
 When "Match ElvUI Style" is enabled: font face uses `E.media.normFont`, font size/outline respects user settings (not overridden), background is never overridden, border color uses `E.media.bordercolor` when quality border is off. `SkinToast()` runs after `PopulateToast()`.
+
+---
+
+## Cross-Addon Messaging API
+
+DragonToast exposes a generic messaging API via `ns.MessageBridge` so external addons can suppress toasts and queue custom toast notifications without depending on internal implementation details.
+
+### Generic Messages
+
+| Message | Payload | Description |
+|---------|---------|-------------|
+| `DRAGONTOAST_SUPPRESS` | `source` (string) | Suppresses normal item toasts. Adds source to suppression set with a per-source 120s safety timer. |
+| `DRAGONTOAST_UNSUPPRESS` | `source` (string) | Removes source from suppression set and cancels its safety timer. |
+| `DRAGONTOAST_QUEUE_TOAST` | `toastData` (table) | Validates required fields and forwards to `ToastManager.QueueToast()`. |
+
+### Toast Data Contract
+
+Required fields:
+- `itemName` (string) - display name
+- `itemIcon` (number) - texture ID
+- `itemQuality` (number) - Blizzard quality enum (0-7)
+
+Optional fields (auto-filled if missing):
+- `timestamp` (number) - defaults to `GetTime()` if omitted
+- `itemLink` (string) - clickable item link
+- `itemID` (number) - item ID for duplicate detection
+- `itemLevel` (number) - item level
+- `itemType` (string) - item type / subheading text
+- `itemSubType` (string) - item sub-type
+- `quantity` (number) - stack count
+- `looter` (string) - name of the looter
+- `isSelf` (boolean) - whether the looter is the local player
+- `isCurrency` (boolean) - currency flag (bypasses suppression)
+- `isRollWin` (boolean) - roll-win flag (bypasses suppression)
+- `isXP` (boolean) - XP flag (bypasses suppression, enables XP stacking)
+- `isHonor` (boolean) - honor flag (bypasses suppression, enables honor stacking)
+
+### Suppression Mechanism
+
+Suppression uses a multi-source set. Each source string maps to its own 120-second safety timer. Toasts are suppressed when any source is active (`next(suppressionSources) ~= nil`). Normal item toasts are blocked; XP, honor, currency, and roll-win toasts always pass through.
+
+The safety timer auto-clears a source if the matching UNSUPPRESS message never arrives (e.g. crash or reload).
+
+### Legacy Messages (backward compat)
+
+| Legacy Message | Translates To |
+|----------------|---------------|
+| `DRAGONLOOT_LOOT_OPENED` | `DRAGONTOAST_SUPPRESS` with source `"DragonLoot"` |
+| `DRAGONLOOT_LOOT_CLOSED` | `DRAGONTOAST_UNSUPPRESS` with source `"DragonLoot"` |
+| `DRAGONLOOT_ROLL_WON` | `DRAGONTOAST_QUEUE_TOAST` (transforms rollData to lootData) |
+
+These will be removed when all senders migrate to the generic API.
+
+### Example: External Addon Integration
+
+```lua
+-- Suppress toasts while your custom loot frame is open
+local AceEvent = LibStub("AceEvent-3.0")
+
+-- When your loot frame opens
+AceEvent:SendMessage("DRAGONTOAST_SUPPRESS", "MyLootAddon")
+
+-- Queue a custom toast
+AceEvent:SendMessage("DRAGONTOAST_QUEUE_TOAST", {
+    itemName = "Thunderfury, Blessed Blade of the Windseeker",
+    itemIcon = 134585,
+    itemQuality = 5,
+    itemLink = itemLink,
+    quantity = 1,
+    looter = UnitName("player"),
+    isSelf = true,
+})
+
+-- When your loot frame closes
+AceEvent:SendMessage("DRAGONTOAST_UNSUPPRESS", "MyLootAddon")
+```
 
 ---
 

@@ -46,6 +46,7 @@ ns.ElvUISkin = {}
 ns.LootListener = {}
 ns.XPListener = {}
 ns.HonorListener = {}
+ns.MessageBridge = {}
 ns.MinimapIcon = {}
 
 -------------------------------------------------------------------------------
@@ -136,9 +137,9 @@ function Addon:OnEnable()
         ns.HonorListener.Initialize(self)
     end
 
-    -- Initialize DragonLoot bridge (optional cross-addon integration)
-    if ns.DragonLootBridge and ns.DragonLootBridge.Initialize then
-        ns.DragonLootBridge.Initialize(self)
+    -- Initialize message bridge (cross-addon integration)
+    if ns.MessageBridge and ns.MessageBridge.Initialize then
+        ns.MessageBridge.Initialize(self)
     end
 end
 
@@ -158,9 +159,9 @@ function Addon:OnDisable()
         ns.HonorListener.Shutdown()
     end
 
-    -- Shutdown DragonLoot bridge
-    if ns.DragonLootBridge and ns.DragonLootBridge.Shutdown then
-        ns.DragonLootBridge.Shutdown()
+    -- Shutdown message bridge
+    if ns.MessageBridge and ns.MessageBridge.Shutdown then
+        ns.MessageBridge.Shutdown()
     end
 
     -- Clear all toasts
