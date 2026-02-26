@@ -4,7 +4,7 @@ Project-specific guidelines for DragonToast. See the parent `../AGENTS.md` for g
 
 DragonToast is an animated loot feed addon for World of Warcraft. It shows a stacking feed of toast notifications when items are looted, with smooth animations and ElvUI skin matching.
 
-**GitHub**: https://github.com/Xerrion/DragonToast
+**GitHub**: <https://github.com/Xerrion/DragonToast>
 
 ---
 
@@ -48,6 +48,7 @@ No local build step. BigWigsMods packager runs automatically on tag push via `re
 ## Code Style
 
 ### Formatting
+
 - **4 spaces** for indentation (no tabs)
 - **120 character** max line length (enforced by Luacheck)
 - Spaces around operators: `local x = 1 + 2`
@@ -84,18 +85,19 @@ local LSM = LibStub("LibSharedMedia-3.0")
 
 ### Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Files | PascalCase | `ToastFrame.lua` |
-| Global variables | PascalCase | `DragonToastDB` |
-| Local variables | camelCase | `local frameCount` |
-| Functions (public) | PascalCase | `ns.ToastFrame.Acquire()` |
-| Functions (local) | PascalCase | `local function CreateToastFrame()` |
-| Constants | UPPER_SNAKE | `local MAX_RETRIES = 5` |
-| Color codes | COLOR_UPPER | `ns.COLOR_GOLD` |
-| Unused args | Underscore prefix | `local _unused` |
+| Type               | Convention        | Example                             |
+|--------------------|-------------------|-------------------------------------|
+| Files              | PascalCase        | `ToastFrame.lua`                    |
+| Global variables   | PascalCase        | `DragonToastDB`                     |
+| Local variables    | camelCase         | `local frameCount`                  |
+| Functions (public) | PascalCase        | `ns.ToastFrame.Acquire()`           |
+| Functions (local)  | PascalCase        | `local function CreateToastFrame()` |
+| Constants          | UPPER_SNAKE       | `local MAX_RETRIES = 5`             |
+| Color codes        | COLOR_UPPER       | `ns.COLOR_GOLD`                     |
+| Unused args        | Underscore prefix | `local _unused`                     |
 
 ### Error Handling
+
 - **GetItemInfo may return nil** on first call. Always use the AceTimer retry pattern (up to 5 retries, 0.2s each).
 - Defensive nil checks before calling optional module functions: `if ns.Module.Func then ns.Module.Func() end`
 - Use `pcall` for operations that may not exist on all WoW versions.
@@ -105,12 +107,12 @@ local LSM = LibStub("LibSharedMedia-3.0")
 
 ## Architecture
 
-| Layer | Directory | Responsibility |
-|-------|-----------|----------------|
-| Core | `Core/` | Addon lifecycle, config, slash commands, minimap icon |
-| Listeners | `Listeners/` | Version-specific loot/XP/honor event parsing |
-| Display | `Display/` | Toast frames, animations, feed management, ElvUI skin |
-| Libs | `Libs/` | Embedded Ace3 + utility libraries (never lint or edit) |
+| Layer     | Directory    | Responsibility                                         |
+|-----------|--------------|--------------------------------------------------------|
+| Core      | `Core/`      | Addon lifecycle, config, slash commands, minimap icon  |
+| Listeners | `Listeners/` | Version-specific loot/XP/honor event parsing           |
+| Display   | `Display/`   | Toast frames, animations, feed management, ElvUI skin  |
+| Libs      | `Libs/`      | Embedded Ace3 + utility libraries (never lint or edit) |
 
 ### Namespace Sub-tables
 
@@ -118,13 +120,13 @@ All modules attach to `ns`: `ns.Addon`, `ns.ToastManager`, `ns.ToastFrame`, `ns.
 
 ### Ace3 Stack (mandatory, no raw alternatives)
 
-| Library | Replaces |
-|---------|----------|
-| AceEvent | `frame:RegisterEvent()` |
-| AceTimer | `C_Timer.After()` / `C_Timer.NewTimer()` |
-| AceDB | Raw `SavedVariables` |
-| AceConsole | `SLASH_*` globals |
-| LibSharedMedia-3.0 | Hardcoded font/texture paths |
+| Library            | Replaces                                 |
+|--------------------|------------------------------------------|
+| AceEvent           | `frame:RegisterEvent()`                  |
+| AceTimer           | `C_Timer.After()` / `C_Timer.NewTimer()` |
+| AceDB              | Raw `SavedVariables`                     |
+| AceConsole         | `SLASH_*` globals                        |
+| LibSharedMedia-3.0 | Hardcoded font/texture paths             |
 
 For local dev, Ace3 is a git submodule at `Libs/Ace3/`. The `.pkgmeta` externals only resolve during CI packaging.
 
@@ -156,11 +158,11 @@ When "Match ElvUI Style" is enabled: font face uses `E.media.normFont`, font siz
 
 ## CI/CD
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| `lint.yml` | `pull_request_target` to master | Luacheck (uses `pull_request_target` for release-please bot PRs) |
-| `release-pr.yml` | `push` to master | release-please creates/updates a Release PR |
-| `release.yml` | tag push or `workflow_dispatch` | BigWigsMods packager -> CurseForge, Wago, GitHub Releases |
+| Workflow         | Trigger                         | Purpose                                                          |
+|------------------|---------------------------------|------------------------------------------------------------------|
+| `lint.yml`       | `pull_request_target` to master | Luacheck (uses `pull_request_target` for release-please bot PRs) |
+| `release-pr.yml` | `push` to master                | release-please creates/updates a Release PR                      |
+| `release.yml`    | tag push or `workflow_dispatch` | BigWigsMods packager -> CurseForge, Wago, GitHub Releases        |
 
 Branch protection on `master`: PRs required, Luacheck status check required, branches must be up to date, no force pushes. Squash merge only; auto-delete head branches.
 
