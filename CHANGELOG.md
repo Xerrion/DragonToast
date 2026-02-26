@@ -1,10 +1,4 @@
-## [1.4.3] - 2026-02-22
-
-### 🐛 Bug Fixes
-
-- Again (#42)
 ## [1.8.2](https://github.com/Xerrion/DragonToast/compare/1.8.1...1.8.2) (2026-02-25)
-
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -12,23 +6,19 @@
 
 ## [1.8.1](https://github.com/Xerrion/DragonToast/compare/1.8.0...1.8.1) (2026-02-25)
 
-
 ### ⚙️ Miscellaneous Tasks
 
 * customize release changelog ([#63](https://github.com/Xerrion/DragonToast/issues/63)) ([7f07d71](https://github.com/Xerrion/DragonToast/commit/7f07d7107c9bf28cd2f5676bd5a00fb1cc039492))
 
 ## [1.8.0](https://github.com/Xerrion/DragonToast/compare/1.7.0...1.8.0) (2026-02-25)
 
-
 ### 🚀 Features
 
 * support mop classic ([#62](https://github.com/Xerrion/DragonToast/issues/62)) ([94433ca](https://github.com/Xerrion/DragonToast/commit/94433ca8d22014e625ad82350d1e42ebc4616186))
 
-
 ### 🐛 Bug Fixes
 
 * **toast:** sync slide start anchor ([#59](https://github.com/Xerrion/DragonToast/issues/59)) ([fb174a9](https://github.com/Xerrion/DragonToast/commit/fb174a93161e3af30ecc617ffc38cb42514910eb))
-
 
 ### 📚 Documentation
 
@@ -37,13 +27,11 @@
 
 ## [1.7.0](https://github.com/Xerrion/DragonToast/compare/1.6.1...1.7.0) (2026-02-24)
 
-
 ### 🚀 Features
 
 * add honor gain toasts ([#55](https://github.com/Xerrion/DragonToast/issues/55)) ([cdf6ead](https://github.com/Xerrion/DragonToast/commit/cdf6eadc3d7a245260b22f3dfa99f42f36e3ee3a))
 
 ## [1.6.1](https://github.com/Xerrion/DragonToast/compare/1.6.0...1.6.1) (2026-02-24)
-
 
 ### 🐛 Bug Fixes
 
@@ -52,23 +40,19 @@
 
 ## [1.6.0](https://github.com/Xerrion/DragonToast/compare/1.5.0...1.6.0) (2026-02-23)
 
-
 ### 🚀 Features
 
 * add configurable gold display format ([#49](https://github.com/Xerrion/DragonToast/issues/49)) ([485cffc](https://github.com/Xerrion/DragonToast/commit/485cffcdc759c613ba7f15d876a4dc8eecc56ea6))
 
-
 ### ⚙️ Miscellaneous Tasks
 
-* simplify .pkgmeta ignore list with *.png and *.md globs ([f7b3ba8](https://github.com/Xerrion/DragonToast/commit/f7b3ba8df74b57c1173d6a44ab16cb7cf9e6aa37))
+* simplify .pkgmeta ignore list with *.png and*.md globs ([f7b3ba8](https://github.com/Xerrion/DragonToast/commit/f7b3ba8df74b57c1173d6a44ab16cb7cf9e6aa37))
 
 ## [1.5.0](https://github.com/Xerrion/DragonToast/compare/1.4.3...1.5.0) (2026-02-23)
-
 
 ### 🚀 Features
 
 * leverage LibAnimate queue APIs for optimized toast management ([#47](https://github.com/Xerrion/DragonToast/issues/47)) ([11d1f9f](https://github.com/Xerrion/DragonToast/commit/11d1f9f93d2c352480bf61af4ee256a4c2d41820))
-
 
 ### ⚙️ Miscellaneous Tasks
 
@@ -80,103 +64,110 @@
 
 ### 🐛 Bug Fixes
 
-- Include Libs/embeds.xml in git tracking (#39)
-- Load correct xml for LibDBIcon-1.0 (#41)
+* Include Libs/embeds.xml in git tracking (#39)
+* Load correct xml for LibDBIcon-1.0 (#41)
 
 ### ⚙️ Miscellaneous Tasks
 
-- Release 1.4.2 (#40)
+* Release 1.4.2 (#40)
+
 ## [1.4.1] - 2026-02-22
 
 ### 🐛 Bug Fixes
 
-- Use latest libanimate (#36)
+* Use latest libanimate (#36)
 
 ### ⚙️ Miscellaneous Tasks
 
-- Release 1.4.1 (#37)
+* Release 1.4.1 (#37)
+
 ## [1.4.0] - 2026-02-22
 
 ### 🚀 Features
 
-- Backdrop template, border/background textures, and test mode (#35)
+* Backdrop template, border/background textures, and test mode (#35)
 
 ### ⚙️ Miscellaneous Tasks
 
-- Fix release workflow (#32)
-- Release 1.4.0 (#33)
+* Fix release workflow (#32)
+* Release 1.4.0 (#33)
+
 ## [1.3.0] - 2026-02-22
 
 ### 🚀 Features
 
-- Rewrite animation system to use LibAnimate-1.0 (#26)
+* Rewrite animation system to use LibAnimate-1.0 (#26)
 
 ### 🐛 Bug Fixes
 
-- Resolve invisible toast and slide animation snap bugs (#24)
+* Resolve invisible toast and slide animation snap bugs (#24)
 
 ### 🚜 Refactor
 
-- Rebranding (#31)
+* Rebranding (#31)
 
 ### ⚙️ Miscellaneous Tasks
 
-- Update release workflow (#28)
-- Add release-please-style auto-release workflow (#29)
-- Release 1.3.0 (#30)
+* Update release workflow (#28)
+* Add release-please-style auto-release workflow (#29)
+* Release 1.3.0 (#30)
+
 ## [1.2.1] - 2026-02-22
 
 ### 🐛 Bug Fixes
 
-- Workflow should now work? (#21)
+* Workflow should now work? (#21)
 
 ### ⚙️ Miscellaneous Tasks
 
-- *(master)* Release 1.2.1 (#23)
+* *(master)* Release 1.2.1 (#23)
+
 ## [1.2.0] - 2026-02-22
 
 ### 🚀 Features
 
-- Add /dt reset command to restore default anchor position (#17)
+* Add /dt reset command to restore default anchor position (#17)
 
 ### ⚙️ Miscellaneous Tasks
 
-- Fix BigWigsMods packager future tag error (#16)
-- *(master)* Release 1.2.0 (#18)
+* Fix BigWigsMods packager future tag error (#16)
+* *(master)* Release 1.2.0 (#18)
+
 ## [1.1.0] - 2026-02-22
 
 ### 🐛 Bug Fixes
 
-- ElvUI skin now respects user Appearance settings (#12)
-- Lint workflow now triggers on release-please PRs (#13)
+* ElvUI skin now respects user Appearance settings (#12)
+* Lint workflow now triggers on release-please PRs (#13)
 
 ### 🚜 Refactor
 
-- Remove pop animation system (#9)
-- Reorganize config UI with headers and logical grouping (#10)
+* Remove pop animation system (#9)
+* Reorganize config UI with headers and logical grouping (#10)
 
 ### 📚 Documentation
 
-- Comprehensive DragonToast AGENTS.md (#15)
+* Comprehensive DragonToast AGENTS.md (#15)
 
 ### ⚙️ Miscellaneous Tasks
 
-- Update addon tagline (#8)
-- Set CurseForge project ID (#14)
-- *(master)* Release 1.1.0 (#11)
+* Update addon tagline (#8)
+* Set CurseForge project ID (#14)
+* *(master)* Release 1.1.0 (#11)
+
 ## [1.0.0] - 2026-02-22
 
 ### 🚀 Features
 
-- Initial DragonToast implementation
+* Initial DragonToast implementation
 
 ### 🐛 Bug Fixes
 
-- Prevent invisible toasts from stale animation state and leaked timers (#5)
-- Correct branch name in CI workflows from main to master (#6)
-- Pop animation no longer overflows toast border (#7)
+* Prevent invisible toasts from stale animation state and leaked timers (#5)
+* Correct branch name in CI workflows from main to master (#6)
+* Pop animation no longer overflows toast border (#7)
 
 ### ⚙️ Miscellaneous Tasks
 
-- Initialize repository
-- Set Wago project ID and fix gitignore
+* Initialize repository
+* Set Wago project ID and fix gitignore
