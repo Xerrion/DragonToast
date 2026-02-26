@@ -18,8 +18,6 @@ local ChatFrame_OpenChat = ChatFrame_OpenChat
 local GetCoinTextureString = GetCoinTextureString
 local UIParent = UIParent
 local STANDARD_TEXT_FONT = STANDARD_TEXT_FONT
-local max = math.max
-
 local LSM = LibStub("LibSharedMedia-3.0")
 
 -------------------------------------------------------------------------------
@@ -250,12 +248,14 @@ local function PopulateToast(frame, lootData)
         local xpR, xpG, xpB = 1, 0.82, 0
         local borderSize = db.appearance.borderSize or 1
         local borderInset = db.appearance.borderInset or 0
-        local glowOffset = max(borderSize, 1)
+        local glowOffset = borderSize > 0 and (borderInset + borderSize) or 0
+        local glowWidth = db.appearance.glowWidth or 4
+        frame.icon:ClearAllPoints()
+        frame.icon:SetPoint("LEFT", frame, "LEFT", glowOffset + glowWidth + 6, 0)
         frame.qualityGlow:ClearAllPoints()
         frame.qualityGlow:SetPoint("TOPLEFT", frame, "TOPLEFT", glowOffset, -glowOffset)
         frame.qualityGlow:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", glowOffset, glowOffset)
         if db.appearance.qualityGlow then
-            local glowWidth = db.appearance.glowWidth or 4
             frame.qualityGlow:SetWidth(glowWidth)
             local statusBarPath = LSM:Fetch("statusbar", db.appearance.statusBarTexture)
             if statusBarPath then
@@ -364,12 +364,14 @@ local function PopulateToast(frame, lootData)
         -- Honor glow color: red
         local borderSize = db.appearance.borderSize or 1
         local borderInset = db.appearance.borderInset or 0
-        local glowOffset = max(borderSize, 1)
+        local glowOffset = borderSize > 0 and (borderInset + borderSize) or 0
+        local glowWidth = db.appearance.glowWidth or 4
+        frame.icon:ClearAllPoints()
+        frame.icon:SetPoint("LEFT", frame, "LEFT", glowOffset + glowWidth + 6, 0)
         frame.qualityGlow:ClearAllPoints()
         frame.qualityGlow:SetPoint("TOPLEFT", frame, "TOPLEFT", glowOffset, -glowOffset)
         frame.qualityGlow:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", glowOffset, glowOffset)
         if db.appearance.qualityGlow then
-            local glowWidth = db.appearance.glowWidth or 4
             frame.qualityGlow:SetWidth(glowWidth)
             local statusBarPath = LSM:Fetch("statusbar", db.appearance.statusBarTexture)
             if statusBarPath then
@@ -513,12 +515,14 @@ local function PopulateToast(frame, lootData)
     -- Quality glow strip
     local borderSize = db.appearance.borderSize or 1
     local borderInset = db.appearance.borderInset or 0
-    local glowOffset = max(borderSize, 1)
+    local glowOffset = borderSize > 0 and (borderInset + borderSize) or 0
+    local glowWidth = db.appearance.glowWidth or 4
+    frame.icon:ClearAllPoints()
+    frame.icon:SetPoint("LEFT", frame, "LEFT", glowOffset + glowWidth + 6, 0)
     frame.qualityGlow:ClearAllPoints()
     frame.qualityGlow:SetPoint("TOPLEFT", frame, "TOPLEFT", glowOffset, -glowOffset)
     frame.qualityGlow:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", glowOffset, glowOffset)
     if db.appearance.qualityGlow then
-        local glowWidth = db.appearance.glowWidth or 4
         frame.qualityGlow:SetWidth(glowWidth)
         -- Apply LSM statusbar texture if available
         local statusBarPath = LSM:Fetch("statusbar", db.appearance.statusBarTexture)
