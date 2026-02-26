@@ -132,16 +132,31 @@ function ns.ToastManager.UpdatePositions()
         local point, relativeTo, relativePoint, x, y = GetToastPosition(i)
 
         if toast._targetY == nil then
+            -- First positioning: hard-set the frame and record logical anchor
             toast._targetY = y
+            toast._anchorY = y
             toast:ClearAllPoints()
             toast:SetPoint(point, relativeTo, relativePoint, x, y)
         elseif toast._targetY ~= y then
-            local _, _, _, _, currentY = toast:GetPoint()
-            local startY = currentY or toast._targetY or y
-            toast._targetY = y
-            ns.ToastAnimations.PlaySlide(
-                toast, startY, y, point, relativeTo, relativePoint, x
-            )
+            -- Skip repositioning for exiting toasts to avoid stale position data
+            if not toast._isExiting then
+                if toast._isEntering then
+                    -- Entrance still playing: defer the slide until entrance finishes.
+                    -- Store anchor args so the onFinished callback can issue the catch-up slide.
+                    toast._targetY = y
+                    toast._deferredSlideArgs = { point, relativeTo, relativePoint, x }
+                else
+                    -- Normal slide: use logical anchor instead of GetPoint() which
+                    -- returns the animated position, not the base position.
+                    local currentY = toast._anchorY
+                    local startY = currentY or toast._targetY or y
+                    toast._targetY = y
+                    toast._anchorY = y
+                    ns.ToastAnimations.PlaySlide(
+                        toast, startY, y, point, relativeTo, relativePoint, x
+                    )
+                end
+            end
         end
     end
 end

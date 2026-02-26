@@ -29,15 +29,12 @@ Display\ToastManager.lua
 Display\ElvUISkin.lua
 
 # Version-specific listeners
-#@retail@
-Listeners\LootListener_Retail.lua
-#@end-retail@
 #@tbc-anniversary@
 Listeners\LootListener_TBC.lua
 #@end-tbc-anniversary@
-#@version-mists@
+#@non-tbc-anniversary@
 Listeners\LootListener_Retail.lua
-#@end-version-mists@
+#@end-non-tbc-anniversary@
 
 # Shared listeners
 Listeners\XPListener.lua

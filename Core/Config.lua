@@ -587,7 +587,7 @@ local function GetOptions()
                         set = function(_, val) db.animation.holdDuration = val end,
                     },
                     exitDuration = {
-                        name = "Fade Out Duration",
+                        name = "Exit Duration",
                         desc = "How long the fade-out takes (seconds).",
                         type = "range",
                         order = 13,
