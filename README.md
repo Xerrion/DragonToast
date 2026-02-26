@@ -1,7 +1,6 @@
 <div align="center">
 
-![Dragon Toast Logo](https://raw.githubusercontent.com/Xerrion/DragonToast/refs/heads/master/icon-dragon-toast-400x400.png)
-
+![Dragon Toast Logo](https://raw.githubusercontent.com/Xerrion/DragonToast/refs/heads/master/assets/icon-dragon-toast-400x400.png)
 
 # Dragon Toast
 
@@ -86,13 +85,11 @@ Access settings with `/dt config` or click the minimap icon.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Feel free to open an [issue](https://github.com/Xerrion/DragonToast/issues) or submit a [pull request](https://github.com/Xerrion/DragonToast/pulls).
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, coding standards, and the PR process. All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feat/my-feature`)
-3. Commit your changes (`git commit -m 'feat: add my feature'`)
-4. Push to the branch (`git push origin feat/my-feature`)
-5. Open a Pull Request
+## ❤️ Support
+
+If you would like to support Dragon Toast, you can sponsor the project on [GitHub Sponsors](https://github.com/sponsors/Xerrion) or buy me a coffee on [Ko-fi](https://ko-fi.com/Xerrion).
 
 ## 📄 License
 
