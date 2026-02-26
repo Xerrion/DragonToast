@@ -81,6 +81,7 @@ local defaults = {
             qualityGlow = true,
             iconSize = 36,
             borderSize = 1,
+            borderInset = 0,
             borderTexture = "None",
             glowWidth = 4,
             statusBarTexture = "Blizzard",
@@ -923,10 +924,22 @@ local function GetOptions()
                         desc = "Border thickness in pixels.",
                         type = "range",
                         order = 22,
-                        min = 1, max = 4, step = 1,
+                        min = 0, max = 20, step = 1,
                         get = function() return db.appearance.borderSize end,
                         set = function(_, val)
                             db.appearance.borderSize = val
+                            ns.ToastManager.UpdateLayout()
+                        end,
+                    },
+                    borderInset = {
+                        name = "Border Inset",
+                        desc = "Inset the background from the border edge. Increase for ornamental borders.",
+                        type = "range",
+                        order = 22.5,
+                        min = 0, max = 20, step = 1,
+                        get = function() return db.appearance.borderInset end,
+                        set = function(_, val)
+                            db.appearance.borderInset = val
                             ns.ToastManager.UpdateLayout()
                         end,
                     },
