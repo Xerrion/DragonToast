@@ -87,17 +87,16 @@ function ns.MinimapIcon.Initialize()
     ns.DebugPrint("Minimap icon initialized")
 end
 
-function ns.MinimapIcon.Toggle()
+function ns.MinimapIcon.SetShown(shown)
     local LDBIcon = LibStub("LibDBIcon-1.0", true)
     if not LDBIcon then return end
 
     local db = ns.Addon.db.profile.minimap
-    if db.hide then
+    db.hide = not shown
+    if shown then
         LDBIcon:Show("DragonToast")
-        db.hide = false
     else
         LDBIcon:Hide("DragonToast")
-        db.hide = true
     end
 end
 
