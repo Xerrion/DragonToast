@@ -18,6 +18,7 @@ local ChatFrame_OpenChat = ChatFrame_OpenChat
 local GetCoinTextureString = GetCoinTextureString
 local UIParent = UIParent
 local STANDARD_TEXT_FONT = STANDARD_TEXT_FONT
+local max = math.max
 
 local LSM = LibStub("LibSharedMedia-3.0")
 
@@ -47,6 +48,7 @@ local function CreateToastFrame()
         bgFile = "Interface\\Buttons\\WHITE8x8",
         edgeFile = "Interface\\Buttons\\WHITE8x8",
         edgeSize = 1,
+        insets = { left = 0, right = 0, top = 0, bottom = 0 },
     })
     frame:SetBackdropColor(0.05, 0.05, 0.05, 0.7)
     frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
@@ -246,6 +248,12 @@ local function PopulateToast(frame, lootData)
 
         -- XP glow color: gold/amber
         local xpR, xpG, xpB = 1, 0.82, 0
+        local borderSize = db.appearance.borderSize or 1
+        local borderInset = db.appearance.borderInset or 0
+        local glowOffset = max(borderSize, 1)
+        frame.qualityGlow:ClearAllPoints()
+        frame.qualityGlow:SetPoint("TOPLEFT", frame, "TOPLEFT", glowOffset, -glowOffset)
+        frame.qualityGlow:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", glowOffset, glowOffset)
         if db.appearance.qualityGlow then
             local glowWidth = db.appearance.glowWidth or 4
             frame.qualityGlow:SetWidth(glowWidth)
@@ -262,11 +270,11 @@ local function PopulateToast(frame, lootData)
         end
 
         -- Border size, background, and border color
-        local borderSize = db.appearance.borderSize or 1
         frame:SetBackdrop({
             bgFile = LSM:Fetch("background", db.appearance.backgroundTexture or "Solid"),
             edgeFile = LSM:Fetch("border", db.appearance.borderTexture or "None"),
             edgeSize = borderSize,
+            insets = { left = borderInset, right = borderInset, top = borderInset, bottom = borderInset },
         })
 
         local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
@@ -354,6 +362,12 @@ local function PopulateToast(frame, lootData)
         end
 
         -- Honor glow color: red
+        local borderSize = db.appearance.borderSize or 1
+        local borderInset = db.appearance.borderInset or 0
+        local glowOffset = max(borderSize, 1)
+        frame.qualityGlow:ClearAllPoints()
+        frame.qualityGlow:SetPoint("TOPLEFT", frame, "TOPLEFT", glowOffset, -glowOffset)
+        frame.qualityGlow:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", glowOffset, glowOffset)
         if db.appearance.qualityGlow then
             local glowWidth = db.appearance.glowWidth or 4
             frame.qualityGlow:SetWidth(glowWidth)
@@ -370,11 +384,11 @@ local function PopulateToast(frame, lootData)
         end
 
         -- Border size, background, and border color
-        local borderSize = db.appearance.borderSize or 1
         frame:SetBackdrop({
             bgFile = LSM:Fetch("background", db.appearance.backgroundTexture or "Solid"),
             edgeFile = LSM:Fetch("border", db.appearance.borderTexture or "None"),
             edgeSize = borderSize,
+            insets = { left = borderInset, right = borderInset, top = borderInset, bottom = borderInset },
         })
 
         local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
@@ -497,6 +511,12 @@ local function PopulateToast(frame, lootData)
     end
 
     -- Quality glow strip
+    local borderSize = db.appearance.borderSize or 1
+    local borderInset = db.appearance.borderInset or 0
+    local glowOffset = max(borderSize, 1)
+    frame.qualityGlow:ClearAllPoints()
+    frame.qualityGlow:SetPoint("TOPLEFT", frame, "TOPLEFT", glowOffset, -glowOffset)
+    frame.qualityGlow:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", glowOffset, glowOffset)
     if db.appearance.qualityGlow then
         local glowWidth = db.appearance.glowWidth or 4
         frame.qualityGlow:SetWidth(glowWidth)
@@ -514,11 +534,11 @@ local function PopulateToast(frame, lootData)
     end
 
     -- Border size, background, and border color
-    local borderSize = db.appearance.borderSize or 1
     frame:SetBackdrop({
         bgFile = LSM:Fetch("background", db.appearance.backgroundTexture or "Solid"),
         edgeFile = LSM:Fetch("border", db.appearance.borderTexture or "None"),
         edgeSize = borderSize,
+        insets = { left = borderInset, right = borderInset, top = borderInset, bottom = borderInset },
     })
 
     local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
