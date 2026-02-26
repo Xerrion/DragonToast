@@ -161,9 +161,8 @@ local function GetOptions()
                         order = 3,
                         get = function() return not db.minimap.hide end,
                         set = function(_, val)
-                            db.minimap.hide = not val
-                            if ns.MinimapIcon.Toggle then
-                                ns.MinimapIcon.Toggle()
+                            if ns.MinimapIcon.SetShown then
+                                ns.MinimapIcon.SetShown(val)
                             end
                         end,
                     },
