@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to DragonToast! This is an open-source World of Warcraft addon that provides an animated loot feed with toast notifications. Contributions of all kinds are welcome - bug reports, feature suggestions, documentation improvements, and code.
 
-Please note that this project follows a [Code of Conduct](https://github.com/DragonAddons/DragonLoot/blob/master/CODE_OF_CONDUCT.md). By participating, you are expected to uphold it.
+Please note that this project follows a [Code of Conduct](https://github.com/DragonAddons/DragonToast/blob/master/CODE_OF_CONDUCT.md). By participating, you are expected to uphold it.
 
 ---
 
@@ -10,11 +10,11 @@ Please note that this project follows a [Code of Conduct](https://github.com/Dra
 
 ### Report Bugs
 
-Found a bug? Please [open an issue](https://github.com/DragonAddons/DragonLoot/issues/new/choose) on GitHub using the existing bug report template. Include as much detail as possible - your WoW version, steps to reproduce, and any Lua errors you see.
+Found a bug? Please [open an issue](https://github.com/DragonAddons/DragonToast/issues/new/choose) on GitHub using the existing bug report template. Include as much detail as possible - your WoW version, steps to reproduce, and any Lua errors you see.
 
 ### Suggest Features
 
-Have an idea for a new feature or improvement? [Open an issue](https://github.com/DragonAddons/DragonLoot/issues/new/choose) on GitHub and describe what you'd like to see and why it would be useful.
+Have an idea for a new feature or improvement? [Open an issue](https://github.com/DragonAddons/DragonToast/issues/new/choose) on GitHub and describe what you'd like to see and why it would be useful.
 
 ### Submit Code
 
