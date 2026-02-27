@@ -420,7 +420,8 @@ function ns.ToastManager.ShowTestToast()
         { name = "+1,234 XP", quality = 1, level = 0, type = nil, subType = nil,
           icon = 894556, id = 99999, isXP = true, xpAmount = 1234 },
         { name = "+150 Honor", quality = 1, level = 0, type = nil, subType = nil,
-          icon = 1455894, id = 99997, isHonor = true, honorAmount = 150, victimName = "Enemy Player" },
+          icon = ns.HonorListener.GetHonorIcon(), id = 99997, isHonor = true, honorAmount = 150,
+          victimName = "Enemy Player" },
     }
 
     local test = testItems[math.random(#testItems)]
