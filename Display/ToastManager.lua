@@ -183,7 +183,7 @@ end
 -------------------------------------------------------------------------------
 
 local function FindDuplicate(lootData)
-    if lootData.isCurrency then return nil end
+    if lootData.isCurrency and not lootData.copperAmount then return nil end
 
     local now = GetTime()
 
@@ -194,6 +194,9 @@ local function FindDuplicate(lootData)
             if lootData.isXP and toast.lootData.isXP then
                 return toast, i
             elseif lootData.isHonor and toast.lootData.isHonor then
+                return toast, i
+            -- Gold/money stacking
+            elseif lootData.copperAmount and toast.lootData.copperAmount then
                 return toast, i
             end
 
@@ -224,6 +227,10 @@ local function FindDuplicate(lootData)
                     entry.itemName = "+" .. ns.ToastManager.FormatNumber(entry.honorAmount) .. " Honor"
                     entry.timestamp = now
                     return entry, nil -- nil index signals queued (not active)
+                elseif entry.copperAmount and lootData.copperAmount then
+                    entry.copperAmount = entry.copperAmount + lootData.copperAmount
+                    entry.timestamp = lootData.timestamp
+                    return entry, nil
                 end
 
                 if not lootData.isXP and not entry.isXP
@@ -271,6 +278,9 @@ local function ShowToast(lootData)
         elseif lootData.isHonor then
             existing.lootData.honorAmount = (existing.lootData.honorAmount or 0) + (lootData.honorAmount or 0)
             existing.lootData.itemName = "+" .. ns.ToastManager.FormatNumber(existing.lootData.honorAmount) .. " Honor"
+            existing.lootData.timestamp = GetTime()
+        elseif existing.lootData.copperAmount and lootData.copperAmount then
+            existing.lootData.copperAmount = existing.lootData.copperAmount + lootData.copperAmount
             existing.lootData.timestamp = GetTime()
         else
             -- Increment quantity on existing toast
@@ -482,7 +492,7 @@ function ns.ToastManager.ShowTestToast()
         lootData = {
             itemLink = "|cff" .. (test.quality == 5 and "ff8000" or "a335ee") .. "|Hitem:" .. test.id
                 .. "::::::::70::::::|h[" .. test.name .. "]|h|r" .. testCounter,
-            itemID = test.id + testCounter * 100000,
+            itemID = test.id,
             itemName = test.name,
             itemQuality = test.quality,
             itemLevel = test.level,
@@ -519,7 +529,7 @@ function ns.ToastManager.StartTestMode()
     -- Schedule repeating timer
     testModeTimer = ns.Addon:ScheduleRepeatingTimer(function()
         ns.ToastManager.ShowTestToast()
-    end, 2.5)
+    end, 1.5)
 
     ns.Print("Test mode " .. ns.COLOR_GREEN .. "started" .. ns.COLOR_RESET .. " — toasts will keep appearing.")
 end
@@ -538,6 +548,118 @@ function ns.ToastManager.ToggleTestMode()
         ns.ToastManager.StopTestMode()
     else
         ns.ToastManager.StartTestMode()
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Stack Test Commands (in-game verification)
+-------------------------------------------------------------------------------
+
+function ns.ToastManager.RunStackTest(testType)
+    local addon = ns.Addon
+
+    local function FireToast(lootData, delay)
+        if delay and delay > 0 then
+            addon:ScheduleTimer(function() ShowToast(lootData) end, delay)
+        else
+            ShowToast(lootData)
+        end
+    end
+
+    local function MakeItemData()
+        return {
+            itemLink = "|cffa335ee|Hitem:32837::::::::70::::::|h[Warglaive of Azzinoth]|h|r",
+            itemID = 32837,
+            itemName = "Warglaive of Azzinoth",
+            itemQuality = 5,
+            itemLevel = 156,
+            itemType = "Weapon",
+            itemSubType = "Sword",
+            itemIcon = 135562,
+            quantity = 1,
+            looter = UnitName("player") or "TestPlayer",
+            isSelf = true,
+            isCurrency = false,
+            timestamp = GetTime(),
+        }
+    end
+
+    local function MakeXPData()
+        return {
+            isXP = true,
+            xpAmount = 500,
+            itemIcon = 894556,
+            itemName = "+500 XP",
+            itemQuality = 1,
+            itemLevel = 0,
+            quantity = 1,
+            looter = UnitName("player") or "TestPlayer",
+            isSelf = true,
+            isCurrency = false,
+            timestamp = GetTime(),
+        }
+    end
+
+    local function MakeGoldData()
+        return {
+            itemLink = nil,
+            itemID = nil,
+            copperAmount = 50000,
+            itemName = GetCoinTextureString(50000),
+            itemQuality = 1,
+            itemLevel = 0,
+            itemType = "Currency",
+            itemSubType = "Gold",
+            itemIcon = 133784,
+            quantity = 1,
+            looter = UnitName("player") or "TestPlayer",
+            isSelf = true,
+            isCurrency = true,
+            timestamp = GetTime(),
+        }
+    end
+
+    local function MakeHonorData()
+        return {
+            isHonor = true,
+            honorAmount = 100,
+            victimName = "Enemy Player",
+            itemIcon = ns.HonorListener.GetHonorIcon(),
+            itemName = "+100 Honor",
+            itemQuality = 1,
+            itemLevel = 0,
+            quantity = 1,
+            looter = UnitName("player") or "TestPlayer",
+            isSelf = true,
+            isCurrency = false,
+            timestamp = GetTime(),
+        }
+    end
+
+    local function RunGroup(label, makeFunc)
+        ns.Print("[Stack Test] Testing " .. ns.COLOR_WHITE .. label .. ns.COLOR_RESET .. " stacking...")
+        FireToast(makeFunc(), 0)
+        FireToast(makeFunc(), 0.3)
+        FireToast(makeFunc(), 0.6)
+    end
+
+    if testType == "item" or testType == "stack" then
+        RunGroup("item", MakeItemData)
+    elseif testType == "xp" then
+        RunGroup("XP", MakeXPData)
+    elseif testType == "gold" then
+        RunGroup("gold", MakeGoldData)
+    elseif testType == "honor" then
+        RunGroup("honor", MakeHonorData)
+    elseif testType == "all" then
+        RunGroup("item", MakeItemData)
+        addon:ScheduleTimer(function() RunGroup("XP", MakeXPData) end, 2.0)
+        addon:ScheduleTimer(function() RunGroup("gold", MakeGoldData) end, 4.0)
+        addon:ScheduleTimer(function() RunGroup("honor", MakeHonorData) end, 6.0)
+    else
+        ns.Print("Unknown test type: " .. ns.COLOR_WHITE .. (testType or "nil") .. ns.COLOR_RESET)
+        ns.Print("Usage: /dt test [stack|xp|gold|honor|all]")
+        return
     end
 end
 
@@ -600,3 +722,26 @@ function ns.ToastManager.Initialize()
 
     ns.DebugPrint("ToastManager initialized")
 end
+
+-------------------------------------------------------------------------------
+-- Test Harness (exposes internals for busted unit tests)
+-------------------------------------------------------------------------------
+
+ns.ToastManager._test = {
+    -- State references (live tables, not copies)
+    activeToasts = activeToasts,
+    toastQueue = toastQueue,
+    combatQueue = combatQueue,
+    -- Internal functions
+    FindDuplicate = FindDuplicate,
+    ShowToast = ShowToast,
+    QueuePush = QueuePush,
+    QueuePop = QueuePop,
+    QueueSize = QueueSize,
+    QueueReset = QueueReset,
+    GetToastPosition = GetToastPosition,
+    FlushCombatQueue = FlushCombatQueue,
+    -- Constants
+    DUPLICATE_WINDOW = DUPLICATE_WINDOW,
+    TOAST_SPACING = TOAST_SPACING,
+}

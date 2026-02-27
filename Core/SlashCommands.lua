@@ -67,6 +67,11 @@ local function PrintHelp()
     print("  " .. ns.COLOR_WHITE .. "/dt config" .. ns.COLOR_RESET .. " — Open settings panel")
     print("  " .. ns.COLOR_WHITE .. "/dt lock" .. ns.COLOR_RESET .. " — Toggle anchor lock (drag to move)")
     print("  " .. ns.COLOR_WHITE .. "/dt test" .. ns.COLOR_RESET .. " — Show a test toast")
+    print("  " .. ns.COLOR_WHITE .. "/dt test stack" .. ns.COLOR_RESET .. " -- Test item stacking (3 rapid items)")
+    print("  " .. ns.COLOR_WHITE .. "/dt test xp" .. ns.COLOR_RESET .. " -- Test XP accumulation")
+    print("  " .. ns.COLOR_WHITE .. "/dt test gold" .. ns.COLOR_RESET .. " -- Test gold accumulation")
+    print("  " .. ns.COLOR_WHITE .. "/dt test honor" .. ns.COLOR_RESET .. " -- Test honor accumulation")
+    print("  " .. ns.COLOR_WHITE .. "/dt test all" .. ns.COLOR_RESET .. " -- Run all stacking tests")
     print("  " .. ns.COLOR_WHITE .. "/dt testmode" .. ns.COLOR_RESET .. " — Toggle continuous test toast generation")
     print("  " .. ns.COLOR_WHITE .. "/dt clear" .. ns.COLOR_RESET .. " — Dismiss all toasts")
     print("  " .. ns.COLOR_WHITE .. "/dt reset" .. ns.COLOR_RESET .. " — Reset anchor position to default")
@@ -103,9 +108,11 @@ function ns.HandleSlashCommand(input)
         ns.ToastManager.ToggleLock()
 
     elseif cmd == "test" then
-        if ns.ToastManager.ShowTestToast then
-            ns.ToastManager.ShowTestToast()
-        end
+        ns.ToastManager.ShowTestToast()
+
+    elseif cmd:find("^test ") then
+        local subCmd = cmd:match("^test (.+)$")
+        ns.ToastManager.RunStackTest(subCmd)
 
     elseif cmd == "testmode" then
         ns.ToastManager.ToggleTestMode()

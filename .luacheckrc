@@ -62,3 +62,14 @@ read_globals = {
     -- ElvUI
     "ElvUI",
 }
+
+files = {
+    ["spec/**"] = {
+        std = "+busted",
+        globals = {
+            -- WoW API mocks (set as globals in wow_mock.lua)
+            "GetTime", "InCombatLockdown", "PlaySoundFile", "UnitName",
+            "GetCoinTextureString", "CreateFrame", "UIParent", "LibStub", "wipe",
+        },
+    },
+}
