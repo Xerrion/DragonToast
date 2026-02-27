@@ -4,6 +4,26 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [1.9.0](https://github.com/Xerrion/DragonToast/compare/1.8.2...1.9.0) (2026-02-27)
+
+
+### 🚀 Features
+
+* DragonLoot cross-addon bridge via AceEvent messaging ([#70](https://github.com/Xerrion/DragonToast/issues/70)) ([7b4ed89](https://github.com/Xerrion/DragonToast/commit/7b4ed8945ec4a8aad0495ecef0df435a8d4c0089))
+* enhanced border customization ([#75](https://github.com/Xerrion/DragonToast/issues/75)) ([37f1918](https://github.com/Xerrion/DragonToast/commit/37f19184bf70afec5195f4eb8371fb67afde1ca8))
+* enhanced roll-won toast with winner name and roll details ([#71](https://github.com/Xerrion/DragonToast/issues/71)) ([e1c7b62](https://github.com/Xerrion/DragonToast/commit/e1c7b622be7e55e8f78bfc08df48eb5474341fc1))
+
+
+### 🐛 Bug Fixes
+
+* add contents:write permission to release workflow ([7dd5274](https://github.com/Xerrion/DragonToast/commit/7dd5274e472c4f9a1bc744bc397c3172375c5e85))
+* add permissions to caller workflow ([#68](https://github.com/Xerrion/DragonToast/issues/68)) ([1ae82cb](https://github.com/Xerrion/DragonToast/commit/1ae82cbb556adb2491d760974ecbd246df86ddcd))
+* address code review issues in MessageBridge ([#81](https://github.com/Xerrion/DragonToast/issues/81)) ([5843b81](https://github.com/Xerrion/DragonToast/commit/5843b8109bfcab9d0b126a64bc8327f8d696c56b))
+* resolve minimap icon toggle inverted logic ([#74](https://github.com/Xerrion/DragonToast/issues/74)) ([7389939](https://github.com/Xerrion/DragonToast/commit/738993949c3e2c4f4d631d7e00ad182c30972e1e))
+* rework toast frame layout with child-frame hierarchy ([#83](https://github.com/Xerrion/DragonToast/issues/83)) ([9e3daf8](https://github.com/Xerrion/DragonToast/commit/9e3daf81ca37070b7e9220c40f2fc2887739c71b))
+* stacking accumulation bugs and add busted unit tests ([#85](https://github.com/Xerrion/DragonToast/issues/85)) ([f45f211](https://github.com/Xerrion/DragonToast/commit/f45f211f4870f02430271cf0c7fbc8b899bed961))
+* use faction-specific honor icon constants (closes [#76](https://github.com/Xerrion/DragonToast/issues/76)) ([#84](https://github.com/Xerrion/DragonToast/issues/84)) ([38499c9](https://github.com/Xerrion/DragonToast/commit/38499c938a5de14b9853c8409dfe024ccfd73fae))
+
 ## [1.8.1](https://github.com/Xerrion/DragonToast/compare/1.8.0...1.8.1) (2026-02-25)
 
 ### ⚙️ Miscellaneous Tasks
