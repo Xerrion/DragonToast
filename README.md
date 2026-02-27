@@ -1,15 +1,15 @@
 <div align="center">
 
-![Dragon Toast Logo](https://raw.githubusercontent.com/Xerrion/DragonToast/refs/heads/master/assets/dragon-toast.png)
+![Dragon Toast Logo](https://raw.githubusercontent.com/DragonAddons/DragonLoot/refs/heads/master/assets/dragon-toast.png)
 
 # Dragon Toast
 
 *Every drop deserves a toast: a dragon-forged loot feed for your adventures.*  
 
-[![Latest Release](https://img.shields.io/github/v/release/Xerrion/DragonToast?style=for-the-badge)](https://github.com/Xerrion/DragonToast/releases/latest)
-[![License](https://img.shields.io/github/license/Xerrion/DragonToast?style=for-the-badge)](LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/DragonAddons/DragonLoot?style=for-the-badge)](https://github.com/DragonAddons/DragonLoot/releases/latest)
+[![License](https://img.shields.io/github/license/DragonAddons/DragonLoot?style=for-the-badge)](LICENSE)
 [![WoW Versions](https://img.shields.io/badge/WoW-TBC%20Anniversary%20%C2%B7%20MoP%20Classic%20%C2%B7%20Retail-blue?style=for-the-badge&logo=battledotnet)](https://worldofwarcraft.blizzard.com/)
-[![Lint](https://img.shields.io/github/actions/workflow/status/Xerrion/DragonToast/lint.yml?style=for-the-badge&label=lint)](https://github.com/Xerrion/DragonToast/actions)
+[![Lint](https://img.shields.io/github/actions/workflow/status/DragonAddons/DragonLoot/lint.yml?style=for-the-badge&label=lint)](https://github.com/DragonAddons/DragonLoot/actions)
 
 </div>
 
@@ -42,7 +42,7 @@
 
 [![CurseForge](https://img.shields.io/badge/CurseForge-Download-F16436?style=for-the-badge&logo=curseforge)](https://www.curseforge.com/wow/addons/dragon-toast)
 [![Wago](https://img.shields.io/badge/Wago-Download-C1272D?style=for-the-badge)](https://addons.wago.io/addons/dragon-toast)
-[![GitHub](https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&logo=github)](https://github.com/Xerrion/DragonToast/releases/latest)
+[![GitHub](https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&logo=github)](https://github.com/DragonAddons/DragonLoot/releases/latest)
 
 ### Manual Install
 
@@ -105,6 +105,6 @@ If you would like to support Dragon Toast, you can sponsor the project on [GitHu
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](https://github.com/Xerrion/DragonToast/blob/master/LICENSE) file for details.
+This project is licensed under the **MIT License**. See the [LICENSE](https://github.com/DragonAddons/DragonLoot/blob/master/LICENSE) file for details.
 
 Made with ❤️ by [Xerrion](https://github.com/Xerrion)

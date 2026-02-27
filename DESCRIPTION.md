@@ -15,4 +15,4 @@ Use `/dt config` to open the settings panel and customize filters, appearance, g
 
 DragonToast automatically detects ElvUI and matches its fonts, statusbar textures, and border colors for a seamless UI experience.
 
-For full documentation and source code, visit [GitHub](https://github.com/Xerrion/DragonToast).
+For full documentation and source code, visit [GitHub](https://github.com/DragonAddons/DragonLoot).
