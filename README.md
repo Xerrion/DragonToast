@@ -1,6 +1,6 @@
 <div align="center">
 
-![Dragon Toast Logo](https://raw.githubusercontent.com/Xerrion/DragonToast/refs/heads/master/assets/icon-dragon-toast-400x400.png)
+![Dragon Toast Logo](https://raw.githubusercontent.com/Xerrion/DragonToast/refs/heads/master/assets/dragon-toast.png)
 
 # Dragon Toast
 
