@@ -26,6 +26,7 @@ read_globals = {
 
     -- WoW API
     "CreateFrame", "GetTime", "IsInInstance", "UnitName", "UnitClass",
+    "UnitFactionGroup",
     "GetItemInfo", "GetItemQualityColor", "C_Timer", "C_Item", "C_Container",
     "GameTooltip", "UIParent", "PlaySound", "PlaySoundFile",
     "ChatFrame_OpenChat", "IsShiftKeyDown",
@@ -33,7 +34,7 @@ read_globals = {
     "InterfaceOptionsFrame_OpenToCategory", "Settings","GetTime",
 
     -- WoW Globals
-    "Enum", "RAID_CLASS_COLORS", "ITEM_QUALITY_COLORS", "STANDARD_TEXT_FONT",
+    "Constants", "Enum", "RAID_CLASS_COLORS", "ITEM_QUALITY_COLORS", "STANDARD_TEXT_FONT",
     "WOW_PROJECT_ID", "WOW_PROJECT_MAINLINE",
     "WOW_PROJECT_BURNING_CRUSADE_CLASSIC", "WOW_PROJECT_MISTS_CLASSIC",
     "LOOT_ITEM_SELF", "LOOT_ITEM_SELF_MULTIPLE",
