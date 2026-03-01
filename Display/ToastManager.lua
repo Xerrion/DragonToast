@@ -72,41 +72,51 @@ end
 local function CreateAnchorFrame()
     if anchorFrame then return end
 
+    -- Invisible 1x1 positioning reference -- never shown, never resized
     anchorFrame = CreateFrame("Frame", "DragonToastAnchor", UIParent)
-    anchorFrame:SetSize(10, 10)
+    anchorFrame:SetSize(1, 1)
     anchorFrame:SetMovable(true)
     anchorFrame:SetClampedToScreen(true)
-    anchorFrame:Hide()
 
     -- Position from saved settings
     local db = ns.Addon.db.profile.display
     anchorFrame:ClearAllPoints()
     anchorFrame:SetPoint(db.anchorPoint, UIParent, db.anchorPoint, db.anchorX, db.anchorY)
 
-    -- Drag handle (visible when unlocked)
-    anchorFrame.dragBg = anchorFrame:CreateTexture(nil, "BACKGROUND")
-    anchorFrame.dragBg:SetAllPoints()
-    anchorFrame.dragBg:SetColorTexture(1, 0.82, 0, 0.5) -- gold
+    -- Visual drag overlay (child of anchor, HIGH strata so it renders above toasts)
+    local overlay = CreateFrame("Frame", nil, anchorFrame)
+    overlay:SetSize(120, 20)
+    overlay:SetPoint("CENTER", anchorFrame, "CENTER")
+    overlay:SetFrameStrata("HIGH")
+    overlay:SetMovable(true)
+    overlay:EnableMouse(false)
+    overlay:Hide()
 
-    anchorFrame.dragText = anchorFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    anchorFrame.dragText:SetPoint("CENTER")
-    anchorFrame.dragText:SetText("DragonToast\nDrag to move")
+    local dragBg = overlay:CreateTexture(nil, "BACKGROUND")
+    dragBg:SetAllPoints()
+    dragBg:SetColorTexture(1, 0.82, 0, 0.5) -- gold
 
-    anchorFrame:SetScript("OnMouseDown", function(self, button)
+    local dragText = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    dragText:SetPoint("CENTER")
+    dragText:SetText("Drag to move")
+
+    overlay:SetScript("OnMouseDown", function(_self, button)
         if button == "LeftButton" then
-            self:StartMoving()
+            anchorFrame:StartMoving()
         end
     end)
 
-    anchorFrame:SetScript("OnMouseUp", function(self)
-        self:StopMovingOrSizing()
+    overlay:SetScript("OnMouseUp", function()
+        anchorFrame:StopMovingOrSizing()
         -- Save position
-        local point, _, _, x, y = self:GetPoint()
+        local point, _, _, x, y = anchorFrame:GetPoint()
         local displayDb = ns.Addon.db.profile.display
         displayDb.anchorPoint = point
         displayDb.anchorX = x
         displayDb.anchorY = y
     end)
+
+    anchorFrame.overlay = overlay
 end
 
 -------------------------------------------------------------------------------
@@ -669,17 +679,17 @@ end
 
 function ns.ToastManager.ToggleLock()
     if not anchorFrame then return end
+    local overlay = anchorFrame.overlay
 
-    if anchorFrame:IsShown() then
-        anchorFrame:EnableMouse(false)
-        anchorFrame:SetSize(10, 10) -- Reset to default size
-        anchorFrame:Hide()
+    if overlay:IsShown() then
+        overlay:EnableMouse(false)
+        overlay:Hide()
         ns.Print("Anchor " .. ns.COLOR_RED .. "locked" .. ns.COLOR_RESET)
     else
-        anchorFrame:SetSize(200, 50)
-        anchorFrame:EnableMouse(true)
-        anchorFrame:Show()
-        ns.Print("Anchor " .. ns.COLOR_GREEN .. "unlocked" .. ns.COLOR_RESET .. " — drag to reposition")
+        overlay:EnableMouse(true)
+        overlay:Show()
+        ns.Print("Anchor " .. ns.COLOR_GREEN .. "unlocked" .. ns.COLOR_RESET
+            .. " -- drag to reposition")
     end
 end
 
