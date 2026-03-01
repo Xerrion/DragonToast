@@ -22,12 +22,12 @@ local string_match = string.match
 -- Constants
 -------------------------------------------------------------------------------
 
--- Faction-specific honor icons (tournament banner FileDataIDs, present in all clients)
+-- Faction-specific honor icons (PVP banner FileDataIDs, present in all clients)
 local HONOR_ICONS = {
-    Alliance = 255130,  -- interface/icons/inv_misc_tournaments_banner_human.blp
-    Horde    = 255132,  -- interface/icons/inv_misc_tournaments_banner_orc.blp
+    Alliance = 132486,  -- interface/icons/inv_bannerpvp_02 (blue Alliance PVP banner)
+    Horde    = 132485,  -- interface/icons/inv_bannerpvp_01 (red Horde PVP banner)
 }
-local HONOR_ICON_FALLBACK = 255130
+local HONOR_ICON_FALLBACK = 132486
 -- Honor quality color
 local HONOR_QUALITY = 1  -- Common quality (white) -- we override color in ToastFrame
 local HONOR_ICON
