@@ -85,7 +85,7 @@ local function CreateAnchorFrame()
 
     -- Visual drag overlay (child of anchor, HIGH strata so it renders above toasts)
     local overlay = CreateFrame("Frame", nil, anchorFrame)
-    overlay:SetSize(200, 50)
+    overlay:SetSize(120, 20)
     overlay:SetPoint("CENTER", anchorFrame, "CENTER")
     overlay:SetFrameStrata("HIGH")
     overlay:SetMovable(true)
@@ -96,9 +96,9 @@ local function CreateAnchorFrame()
     dragBg:SetAllPoints()
     dragBg:SetColorTexture(1, 0.82, 0, 0.5) -- gold
 
-    local dragText = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    local dragText = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     dragText:SetPoint("CENTER")
-    dragText:SetText("DragonToast\nDrag to move")
+    dragText:SetText("Drag to move")
 
     overlay:SetScript("OnMouseDown", function(_self, button)
         if button == "LeftButton" then
