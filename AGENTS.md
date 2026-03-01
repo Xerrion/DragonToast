@@ -116,7 +116,7 @@ local LSM = LibStub("LibSharedMedia-3.0")
 
 ### Namespace Sub-tables
 
-All modules attach to `ns`: `ns.Addon`, `ns.ToastManager`, `ns.ToastFrame`, `ns.ToastAnimations`, `ns.ElvUISkin`, `ns.LootListener`, `ns.XPListener`, `ns.HonorListener`, `ns.MessageBridge`, `ns.MinimapIcon`, `ns.Print`.
+All modules attach to `ns`: `ns.Addon`, `ns.ToastManager`, `ns.ToastFrame`, `ns.ToastAnimations`, `ns.ElvUISkin`, `ns.LootListener`, `ns.XPListener`, `ns.HonorListener`, `ns.MailListener`, `ns.MessageBridge`, `ns.ListenerUtils`, `ns.MinimapIcon`, `ns.Print`.
 
 ### Ace3 Stack (mandatory, no raw alternatives)
 
@@ -252,3 +252,20 @@ Branch protection on `master`: PRs required, Luacheck status check required, bra
 4. **ElvUI skin ordering** - `SkinToast()` must respect user Appearance settings, not override them.
 5. **TOC conditional loading** - Use packager comment directives, not `## Interface:` mid-file.
 6. **pull_request_target** - GitHub does not trigger `pull_request` for PRs from GITHUB_TOKEN. Use `pull_request_target`.
+
+---
+
+## GitHub Project Board
+
+DragonToast uses the [DragonToast/Bug Tracker](https://github.com/orgs/DragonAddons/projects/2) project board (org project #2) for issue tracking.
+
+Board columns: **To triage** | **Backlog** | **Ready** | **In progress** | **In review** | **Done**
+
+Custom fields: Priority (P0/P1/P2), Size (XS/S/M/L/XL), Estimate, Start/Target dates.
+
+When working on DragonToast issues:
+1. Move issue from "To triage" or "Backlog" to "In progress" when starting work
+2. Add a comment on the issue describing the approach
+3. Move to "In review" when PR is created
+4. Add a comment with the PR link
+5. "Done" is typically auto-updated when the PR merges and closes the issue
