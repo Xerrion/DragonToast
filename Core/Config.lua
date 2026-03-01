@@ -521,7 +521,7 @@ local function GetOptions()
                         order = 31,
                         get = function()
                             local anchor = _G["DragonToastAnchor"]
-                            return anchor and anchor:IsShown() or false
+                            return anchor and anchor.overlay and anchor.overlay:IsShown() or false
                         end,
                         set = function(_, _val)
                             ns.ToastManager.ToggleLock()
