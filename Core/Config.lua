@@ -802,6 +802,45 @@ local function GetOptions()
                         order = 0,
                         fontSize = "medium",
                     },
+                    headerPresets = {
+                        type = "header",
+                        name = "Skin Presets",
+                        order = 0.1,
+                    },
+                    presetDesc = {
+                        type = "description",
+                        name = "Apply a preset to quickly change the look."
+                            .. " You can still tweak individual settings after.\n",
+                        order = 0.2,
+                    },
+                    presetSelect = {
+                        type = "select",
+                        name = "Preset",
+                        desc = "Select a skin preset to apply",
+                        order = 0.3,
+                        values = function()
+                            local values = {}
+                            for _, key in ipairs(ns.Presets.order) do
+                                values[key] = ns.Presets.names[key]
+                            end
+                            return values
+                        end,
+                        sorting = function()
+                            return ns.Presets.order
+                        end,
+                        get = function()
+                            return ns.Presets.DetectPreset() or ""
+                        end,
+                        set = function(_, value)
+                            ns.Presets.ApplyPreset(value)
+                        end,
+                        width = 1.0,
+                    },
+                    presetSpacer = {
+                        type = "description",
+                        name = "\n",
+                        order = 0.4,
+                    },
 
                     -- Font
                     headerFont = {
