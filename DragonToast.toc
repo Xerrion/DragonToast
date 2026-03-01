@@ -35,6 +35,12 @@ Listeners\LootListener_TBC.lua
 #@non-tbc-anniversary@
 Listeners\LootListener_Retail.lua
 #@end-non-tbc-anniversary@
+#@tbc-anniversary@
+Listeners\MailListener_TBC.lua
+#@end-tbc-anniversary@
+#@non-tbc-anniversary@
+Listeners\MailListener_Retail.lua
+#@end-non-tbc-anniversary@
 
 # Shared listeners
 Listeners\XPListener.lua

@@ -47,6 +47,7 @@ ns.LootListener = {}
 ns.XPListener = {}
 ns.HonorListener = {}
 ns.MessageBridge = {}
+ns.MailListener = {}
 ns.MinimapIcon = {}
 
 -------------------------------------------------------------------------------
@@ -137,6 +138,11 @@ function Addon:OnEnable()
         ns.HonorListener.Initialize(self)
     end
 
+    -- Initialize mail listener
+    if ns.MailListener.Initialize then
+        ns.MailListener.Initialize(self)
+    end
+
     -- Initialize message bridge (cross-addon integration)
     if ns.MessageBridge and ns.MessageBridge.Initialize then
         ns.MessageBridge.Initialize(self)
@@ -157,6 +163,11 @@ function Addon:OnDisable()
     -- Shutdown Honor listener
     if ns.HonorListener.Shutdown then
         ns.HonorListener.Shutdown()
+    end
+
+    -- Shutdown mail listener
+    if ns.MailListener.Shutdown then
+        ns.MailListener.Shutdown()
     end
 
     -- Shutdown message bridge
