@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local Utils = ns.ListenerUtils
 
 local WOW_PROJECT_ID = WOW_PROJECT_ID
 local WOW_PROJECT_BURNING_CRUSADE_CLASSIC = WOW_PROJECT_BURNING_CRUSADE_CLASSIC
@@ -44,19 +45,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Pattern Building
--- WoW global strings use %s for strings and %d for numbers.
--- We convert them to Lua patterns for matching.
+-- Uses shared BuildPattern with anchor=true for honor patterns.
 -------------------------------------------------------------------------------
-
-local function BuildPattern(globalString)
-    if not globalString then return nil end
-    -- Escape magic pattern characters
-    local pattern = globalString:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1")
-    -- Replace %d with number capture, %s with string capture
-    pattern = pattern:gsub("%%%%d", "(%%d+)")
-    pattern = pattern:gsub("%%%%s", "(.+)")
-    return "^" .. pattern .. "$"
-end
 
 -- Build patterns from WoW global strings (available in both TBC and Retail)
 -- These globals are set by Blizzard's localization system
@@ -65,12 +55,12 @@ local PATTERNS = {}
 local function InitPatterns()
     -- "%s dies, honorable kill Rank: %s (Estimated Honor Points: %d)"
     if COMBATLOG_HONORGAIN then
-        PATTERNS.honorGain = BuildPattern(COMBATLOG_HONORGAIN)
+        PATTERNS.honorGain = Utils.BuildPattern(COMBATLOG_HONORGAIN, true)
     end
 
     -- "You have been awarded %d honor points."
     if COMBATLOG_HONORAWARD then
-        PATTERNS.honorAward = BuildPattern(COMBATLOG_HONORAWARD)
+        PATTERNS.honorAward = Utils.BuildPattern(COMBATLOG_HONORAWARD, true)
     end
 end
 

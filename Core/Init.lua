@@ -39,6 +39,7 @@ ns.QUALITY_COLORS = {
 -- Namespace sub-tables (populated by other files)
 -------------------------------------------------------------------------------
 
+ns.ListenerUtils = {}
 ns.ToastManager = {}
 ns.ToastFrame = {}
 ns.ToastAnimations = {}

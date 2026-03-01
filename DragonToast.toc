@@ -17,6 +17,7 @@ Libs\embeds.xml
 
 # Core (shared)
 Core\Init.lua
+Core\ListenerUtils.lua
 Core\Presets.lua
 Core\Config.lua
 Core\ConfigWindow.lua
