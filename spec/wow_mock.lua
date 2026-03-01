@@ -208,7 +208,7 @@ function M.CreateNamespace()
 
     -- Mock HonorListener
     ns.HonorListener = {
-        GetHonorIcon = function() return 132486 end,
+        GetHonorIcon = function() return 463450 end,
     }
 
     -- Mock Addon (Ace3 mixin)

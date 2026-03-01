@@ -60,7 +60,7 @@ local function makeHonorData(overrides)
         isHonor = true,
         honorAmount = 100,
         victimName = "Enemy Player",
-        itemIcon = 132486,
+        itemIcon = 463450,
         itemName = "+100 Honor",
         itemQuality = 1,
         itemLevel = 0,

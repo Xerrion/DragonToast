@@ -31,18 +31,15 @@ Display\ElvUISkin.lua
 # Version-specific listeners
 #@tbc-anniversary@
 Listeners\LootListener_TBC.lua
+Listeners\MailListener_TBC.lua
+Listeners\HonorListener_TBC.lua
 #@end-tbc-anniversary@
 #@non-tbc-anniversary@
 Listeners\LootListener_Retail.lua
-#@end-non-tbc-anniversary@
-#@tbc-anniversary@
-Listeners\MailListener_TBC.lua
-#@end-tbc-anniversary@
-#@non-tbc-anniversary@
 Listeners\MailListener_Retail.lua
+Listeners\HonorListener_Retail.lua
 #@end-non-tbc-anniversary@
 
 # Shared listeners
 Listeners\XPListener.lua
-Listeners\HonorListener.lua
 Listeners\MessageBridge.lua

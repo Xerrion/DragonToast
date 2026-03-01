@@ -1,11 +1,16 @@
 -------------------------------------------------------------------------------
--- HonorListener.lua
+-- HonorListener_TBC.lua
 -- Honor gain toast notifications
 --
--- Supported versions: TBC Anniversary, Retail, MoP Classic
+-- Supported versions: TBC Anniversary, Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+
+local WOW_PROJECT_ID = WOW_PROJECT_ID
+local WOW_PROJECT_BURNING_CRUSADE_CLASSIC = WOW_PROJECT_BURNING_CRUSADE_CLASSIC
+
+if WOW_PROJECT_ID ~= WOW_PROJECT_BURNING_CRUSADE_CLASSIC then return end
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
