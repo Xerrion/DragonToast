@@ -4,6 +4,24 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [1.10.0](https://github.com/DragonAddons/DragonToast/compare/1.9.0...1.10.0) (2026-03-01)
+
+
+### 🚀 Features
+
+* add built-in skin presets ([#88](https://github.com/DragonAddons/DragonToast/issues/88)) ([#92](https://github.com/DragonAddons/DragonToast/issues/92)) ([8c2a7c4](https://github.com/DragonAddons/DragonToast/commit/8c2a7c4a87e5f07c39525b6a6b73f8557c7565de))
+* add mail toast support ([#87](https://github.com/DragonAddons/DragonToast/issues/87)) ([#89](https://github.com/DragonAddons/DragonToast/issues/89)) ([05914a9](https://github.com/DragonAddons/DragonToast/commit/05914a94929690a35a24fa4e47bd898da7b89808))
+
+
+### 🐛 Bug Fixes
+
+* use hardcoded honor icon FileDataIDs ([#91](https://github.com/DragonAddons/DragonToast/issues/91)) ([d074976](https://github.com/DragonAddons/DragonToast/commit/d074976bc3fb75c6359e6a8c84ceb67b4e928685))
+
+
+### 🚜 Refactor
+
+* extract shared listener helpers into ListenerUtils ([#96](https://github.com/DragonAddons/DragonToast/issues/96)) ([#98](https://github.com/DragonAddons/DragonToast/issues/98)) ([0702a5b](https://github.com/DragonAddons/DragonToast/commit/0702a5b24f154ec5ec6e1af471cded9caee6a501))
+
 ## [1.9.0](https://github.com/Xerrion/DragonToast/compare/1.8.2...1.9.0) (2026-02-27)
 
 
