@@ -30,6 +30,7 @@ local defaults = {
             showQuestItems = true,
             showXP = true,
             showHonor = true,
+            showMail = true,
         },
 
         display = {
@@ -326,6 +327,14 @@ local function GetOptions()
                         order = 25,
                         get = function() return db.filters.showHonor end,
                         set = function(_, val) db.filters.showHonor = val end,
+                    },
+                    showMail = {
+                        name = "Show Mail Items",
+                        desc = "Show toasts for items and gold collected from the mailbox.",
+                        type = "toggle",
+                        order = 26,
+                        get = function() return db.filters.showMail end,
+                        set = function(_, val) db.filters.showMail = val end,
                     },
                 },
             },
@@ -1090,7 +1099,7 @@ end
 -- Profile Migration
 -------------------------------------------------------------------------------
 
-local CURRENT_SCHEMA = 4
+local CURRENT_SCHEMA = 5
 
 local DIRECTION_TO_ANIMATION = {
     RIGHT  = "slideInRight",
@@ -1162,6 +1171,15 @@ local function MigrateProfile(db)
         -- v3 → v4: honor filter default
         if profile.filters and profile.filters.showHonor == nil then
             profile.filters.showHonor = true
+        end
+
+        profile.schemaVersion = 4
+    end
+
+    if (profile.schemaVersion or 0) < 5 then
+        -- v4 -> v5: mail filter default
+        if profile.filters and profile.filters.showMail == nil then
+            profile.filters.showMail = true
         end
 
         profile.schemaVersion = CURRENT_SCHEMA

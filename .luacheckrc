@@ -28,6 +28,8 @@ read_globals = {
     "CreateFrame", "GetTime", "IsInInstance", "UnitName", "UnitClass",
     "UnitFactionGroup",
     "GetItemInfo", "GetItemQualityColor", "C_Timer", "C_Item", "C_Container",
+    "GetInboxHeaderInfo", "GetInboxItem", "GetInboxInvoiceInfo", "GetInboxText",
+    "TakeInboxItem", "TakeInboxMoney", "AutoLootMailItem",
     "GameTooltip", "UIParent", "PlaySound", "PlaySoundFile",
     "ChatFrame_OpenChat", "IsShiftKeyDown",
     "InCombatLockdown", "hooksecurefunc",
