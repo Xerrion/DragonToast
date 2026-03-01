@@ -22,31 +22,19 @@ local string_match = string.match
 -- Constants
 -------------------------------------------------------------------------------
 
--- Honor icon - resolved at runtime in Initialize() based on player faction
--- Uses Blizzard's faction-specific PVP currency icons from Constants.CurrencyConsts
-local HONOR_ICON
-local HONOR_ICON_FALLBACK = "Interface\\Icons\\Achievement_LegionPVPTier4"
+-- Faction-specific honor icons (tournament banner FileDataIDs, present in all clients)
+local HONOR_ICONS = {
+    Alliance = 255130,  -- interface/icons/inv_misc_tournaments_banner_human.blp
+    Horde    = 255132,  -- interface/icons/inv_misc_tournaments_banner_orc.blp
+}
+local HONOR_ICON_FALLBACK = 255130
 -- Honor quality color
-local HONOR_QUALITY = 1  -- Common quality (white) — we override color in ToastFrame
-
--------------------------------------------------------------------------------
--- Honor Icon Resolution
--- On Classic, numeric FileDataIDs (e.g. 1455894) render as green squares.
--- We resolve a string-path icon from Constants.CurrencyConsts at runtime,
--- falling back to the Retail texture path when the table is unavailable.
--------------------------------------------------------------------------------
+local HONOR_QUALITY = 1  -- Common quality (white) -- we override color in ToastFrame
+local HONOR_ICON
 
 local function ResolveHonorIcon()
-    local consts = Constants and Constants.CurrencyConsts
-    if consts then
-        local faction = UnitFactionGroup("player")
-        if faction == "Alliance" then
-            return consts.PVP_CURRENCY_HONOR_ALLIANCE_INV_ICON or HONOR_ICON_FALLBACK
-        elseif faction == "Horde" then
-            return consts.PVP_CURRENCY_HONOR_HORDE_INV_ICON or HONOR_ICON_FALLBACK
-        end
-    end
-    return HONOR_ICON_FALLBACK
+    local faction = UnitFactionGroup("player")
+    return HONOR_ICONS[faction] or HONOR_ICON_FALLBACK
 end
 
 -------------------------------------------------------------------------------

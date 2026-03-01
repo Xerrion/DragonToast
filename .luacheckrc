@@ -36,7 +36,7 @@ read_globals = {
     "InterfaceOptionsFrame_OpenToCategory", "Settings","GetTime",
 
     -- WoW Globals
-    "Constants", "Enum", "RAID_CLASS_COLORS", "ITEM_QUALITY_COLORS", "STANDARD_TEXT_FONT",
+    "Enum", "RAID_CLASS_COLORS", "ITEM_QUALITY_COLORS", "STANDARD_TEXT_FONT",
     "WOW_PROJECT_ID", "WOW_PROJECT_MAINLINE",
     "WOW_PROJECT_BURNING_CRUSADE_CLASSIC", "WOW_PROJECT_MISTS_CLASSIC",
     "LOOT_ITEM_SELF", "LOOT_ITEM_SELF_MULTIPLE",
