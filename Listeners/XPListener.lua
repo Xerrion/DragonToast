@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local Utils = ns.ListenerUtils
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -24,23 +25,12 @@ local string_match = string.match
 -- XP icon (a generic XP/level-up style icon)
 local XP_ICON = 894556   -- Interface\Icons\UI_Chat (chat bubble icon, common for XP)
 -- XP quality color (gold/amber)
-local XP_QUALITY = 1  -- Common quality (white) — we override color in ToastFrame
+local XP_QUALITY = 1  -- Common quality (white) -- we override color in ToastFrame
 
 -------------------------------------------------------------------------------
 -- Pattern Building
--- WoW global strings use %s for strings and %d for numbers.
--- We convert them to Lua patterns for matching.
+-- Uses shared BuildPattern with anchor=true for XP patterns.
 -------------------------------------------------------------------------------
-
-local function BuildPattern(globalString)
-    if not globalString then return nil end
-    -- Escape magic pattern characters
-    local pattern = globalString:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1")
-    -- Replace %d with number capture, %s with string capture
-    pattern = pattern:gsub("%%%%d", "(%%d+)")
-    pattern = pattern:gsub("%%%%s", "(.+)")
-    return "^" .. pattern .. "$"
-end
 
 -- Build patterns from WoW global strings (available in both TBC and Retail)
 -- These globals are set by Blizzard's localization system
@@ -49,38 +39,38 @@ local PATTERNS = {}
 local function InitPatterns()
     -- "You gain %d experience." (no mob)
     if COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED then
-        PATTERNS.unnamed = BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED)
+        PATTERNS.unnamed = Utils.BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED, true)
     end
 
     -- "%s dies, you gain %d experience." (with mob)
     if COMBATLOG_XPGAIN_FIRSTPERSON then
-        PATTERNS.named = BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON)
+        PATTERNS.named = Utils.BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON, true)
     end
 
     -- Rested bonus variants: "%s dies, you gain %d experience. (%s exp %s bonus)"
     if COMBATLOG_XPGAIN_EXHAUSTION1 then
-        PATTERNS.rested1 = BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION1)
+        PATTERNS.rested1 = Utils.BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION1, true)
     end
     if COMBATLOG_XPGAIN_EXHAUSTION2 then
-        PATTERNS.rested2 = BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION2)
+        PATTERNS.rested2 = Utils.BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION2, true)
     end
 
     -- Rested unnamed: "You gain %d experience. (%s exp %s bonus)"
     if COMBATLOG_XPGAIN_EXHAUSTION1_UNNAMED then
-        PATTERNS.restedUnnamed1 = BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION1_UNNAMED)
+        PATTERNS.restedUnnamed1 = Utils.BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION1_UNNAMED, true)
     end
     if COMBATLOG_XPGAIN_EXHAUSTION2_UNNAMED then
-        PATTERNS.restedUnnamed2 = BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION2_UNNAMED)
+        PATTERNS.restedUnnamed2 = Utils.BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION2_UNNAMED, true)
     end
 
     -- Guild bonus: "%s dies, you gain %d experience. (+%d exp Guild Bonus)"
     if COMBATLOG_XPGAIN_FIRSTPERSON_GUILD then
-        PATTERNS.guild = BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON_GUILD)
+        PATTERNS.guild = Utils.BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON_GUILD, true)
     end
 
     -- Unnamed guild bonus: "You gain %d experience. (+%d exp Guild Bonus)"
     if COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED_GUILD then
-        PATTERNS.guildUnnamed = BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED_GUILD)
+        PATTERNS.guildUnnamed = Utils.BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED_GUILD, true)
     end
 
     -- Quest XP: "You gain %d experience." (same as unnamed, quest context handled by event)

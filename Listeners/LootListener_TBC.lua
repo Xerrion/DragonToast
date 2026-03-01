@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local Utils = ns.ListenerUtils
 
 -------------------------------------------------------------------------------
 -- Version guard: only run on TBC Anniversary
@@ -34,63 +35,14 @@ local UnitName = UnitName
 -- LOOT_ITEM = "%s receives loot: %s."
 -- LOOT_ITEM_MULTIPLE = "%s receives loot: %s x%d."
 
-local function BuildPattern(globalString)
-    -- First, escape all Lua pattern special characters
-    local pattern = globalString:gsub("([%.%+%-%*%?%[%]%^%$%(%)%%])", "%%%1")
-    -- Now our %s and %d have been escaped to %%s and %%d
-    -- Replace them with capture groups
-    pattern = pattern:gsub("%%%%s", "(.+)")
-    pattern = pattern:gsub("%%%%d", "(%%d+)")
-    return pattern
-end
-
-local PATTERN_LOOT_SELF = BuildPattern(LOOT_ITEM_SELF or "You receive loot: %s.")
-local PATTERN_LOOT_SELF_MULTI = BuildPattern(LOOT_ITEM_SELF_MULTIPLE or "You receive loot: %s x%d.")
-local PATTERN_LOOT_OTHER = BuildPattern(LOOT_ITEM or "%s receives loot: %s.")
-local PATTERN_LOOT_OTHER_MULTI = BuildPattern(LOOT_ITEM_MULTIPLE or "%s receives loot: %s x%d.")
+local PATTERN_LOOT_SELF = Utils.BuildPattern(LOOT_ITEM_SELF or "You receive loot: %s.")
+local PATTERN_LOOT_SELF_MULTI = Utils.BuildPattern(LOOT_ITEM_SELF_MULTIPLE or "You receive loot: %s x%d.")
+local PATTERN_LOOT_OTHER = Utils.BuildPattern(LOOT_ITEM or "%s receives loot: %s.")
+local PATTERN_LOOT_OTHER_MULTI = Utils.BuildPattern(LOOT_ITEM_MULTIPLE or "%s receives loot: %s x%d.")
 
 -- Money patterns
-local PATTERN_MONEY_SELF = BuildPattern(YOU_LOOT_MONEY or "You loot %s")
-local PATTERN_MONEY_OTHER = BuildPattern(LOOT_MONEY or "%s loots %s")
-
--- Money amount patterns (text and texture variants)
-local PATTERN_GOLD = BuildPattern(GOLD_AMOUNT)
-local PATTERN_SILVER = BuildPattern(SILVER_AMOUNT)
-local PATTERN_COPPER = BuildPattern(COPPER_AMOUNT)
-local PATTERN_GOLD_TEXTURE = BuildPattern(GOLD_AMOUNT_TEXTURE)
-local PATTERN_SILVER_TEXTURE = BuildPattern(SILVER_AMOUNT_TEXTURE)
-local PATTERN_COPPER_TEXTURE = BuildPattern(COPPER_AMOUNT_TEXTURE)
-
-local function ParseMoneyString(moneyString)
-    local gold, silver, copper = 0, 0, 0
-
-    -- Try text-based patterns first
-    local g = moneyString:match(PATTERN_GOLD)
-    if g then gold = tonumber(g) or 0 end
-
-    local s = moneyString:match(PATTERN_SILVER)
-    if s then silver = tonumber(s) or 0 end
-
-    local c = moneyString:match(PATTERN_COPPER)
-    if c then copper = tonumber(c) or 0 end
-
-    -- Fall back to texture-based patterns if text patterns found nothing
-    if gold == 0 and silver == 0 and copper == 0 then
-        g = moneyString:match(PATTERN_GOLD_TEXTURE)
-        if g then gold = tonumber(g) or 0 end
-
-        s = moneyString:match(PATTERN_SILVER_TEXTURE)
-        if s then silver = tonumber(s) or 0 end
-
-        c = moneyString:match(PATTERN_COPPER_TEXTURE)
-        if c then copper = tonumber(c) or 0 end
-    end
-
-    local total = gold * 10000 + silver * 100 + copper
-    return total > 0 and total or nil
-end
-
-local MAX_RETRIES = 5
+local PATTERN_MONEY_SELF = Utils.BuildPattern(YOU_LOOT_MONEY or "You loot %s")
+local PATTERN_MONEY_OTHER = Utils.BuildPattern(LOOT_MONEY or "%s loots %s")
 
 -------------------------------------------------------------------------------
 -- Parse and Build LootData
@@ -115,7 +67,7 @@ local function BuildLootData(itemLink, quantity, looter, isSelf)
         itemLevel = itemLevel or 0,
         itemType = itemType or UNKNOWN,
         itemSubType = itemSubType or "",
-        itemIcon = itemTexture or 134400, -- question mark icon fallback
+        itemIcon = itemTexture or Utils.QUESTION_MARK_ICON,
         quantity = quantity,
         looter = looter,
         isSelf = isSelf,
@@ -133,7 +85,7 @@ local function BuildMoneyData(amount, copperAmount, looter, isSelf)
         itemLevel = 0,
         itemType = "Currency",
         itemSubType = "Gold",
-        itemIcon = 133784, -- gold coin icon
+        itemIcon = Utils.GOLD_ICON,
         quantity = 1,
         copperAmount = copperAmount,
         looter = looter,
@@ -169,30 +121,6 @@ local function PassesFilter(lootData)
     if lootData.isCurrency and not db.filters.showCurrency then return false end
 
     return true
-end
-
--------------------------------------------------------------------------------
--- Item Info Retry
--------------------------------------------------------------------------------
-
-local function RetryBuildLootData(itemLink, quantity, looter, isSelf, retries)
-    retries = retries or 0
-    if retries >= MAX_RETRIES then
-        ns.DebugPrint("Failed to get item info for: " .. itemLink .. " after " .. MAX_RETRIES .. " retries")
-        return
-    end
-
-    local lootData = BuildLootData(itemLink, quantity, looter, isSelf)
-    if lootData then
-        if PassesFilter(lootData) then
-            ns.ToastManager.QueueToast(lootData)
-        end
-    else
-        -- Item not cached, retry after a short delay
-        ns.Addon:ScheduleTimer(function()
-            RetryBuildLootData(itemLink, quantity, looter, isSelf, retries + 1)
-        end, 0.2)
-    end
 end
 
 -------------------------------------------------------------------------------
@@ -232,7 +160,11 @@ local function OnChatMsgLoot(_, msg)
 
     -- If we found an item link, process it
     if itemLink then
-        RetryBuildLootData(itemLink, quantity, looter or UNKNOWN, isSelf)
+        Utils.RetryWithTimer(
+            ns.Addon,
+            function() return BuildLootData(itemLink, quantity, looter or UNKNOWN, isSelf) end,
+            PassesFilter
+        )
     end
 end
 
@@ -246,7 +178,7 @@ local function OnChatMsgMoney(_, msg)
     -- Self money loot
     amount = msg:match(PATTERN_MONEY_SELF)
     if amount then
-        local copperAmount = ParseMoneyString(amount)
+        local copperAmount = Utils.ParseMoneyString(amount)
         local lootData = BuildMoneyData(amount, copperAmount, playerName, true)
         if PassesFilter(lootData) then
             ns.ToastManager.QueueToast(lootData)
@@ -258,7 +190,7 @@ local function OnChatMsgMoney(_, msg)
     local looter
     looter, amount = msg:match(PATTERN_MONEY_OTHER)
     if amount and looter then
-        local copperAmount = ParseMoneyString(amount)
+        local copperAmount = Utils.ParseMoneyString(amount)
         local lootData = BuildMoneyData(amount, copperAmount, looter, false)
         if PassesFilter(lootData) then
             ns.ToastManager.QueueToast(lootData)

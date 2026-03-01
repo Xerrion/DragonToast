@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local Utils = ns.ListenerUtils
 
 -------------------------------------------------------------------------------
 -- Version guard: only run on Retail or MoP Classic
@@ -44,8 +45,6 @@ ns.MailListener = ns.MailListener or {}
 -- Constants
 -------------------------------------------------------------------------------
 
-local MAX_RETRIES = 5
-local GOLD_ICON = 133784
 local ATTACHMENTS_MAX = 12 -- ATTACHMENTS_MAX_RECEIVE in Blizzard code
 
 -------------------------------------------------------------------------------
@@ -173,7 +172,7 @@ local function BuildMailItemData(snapshot)
         itemLevel = itemLevel or 0,
         itemType = snapshot.sourceLabel,
         itemSubType = itemSubType or "",
-        itemIcon = itemTexture or 134400,
+        itemIcon = itemTexture or Utils.QUESTION_MARK_ICON,
         quantity = snapshot.count,
         looter = UnitName("player"),
         isSelf = true,
@@ -196,7 +195,7 @@ local function BuildMailMoneyData(snapshot)
         itemLevel = 0,
         itemType = snapshot.sourceLabel,
         itemSubType = "Gold",
-        itemIcon = GOLD_ICON,
+        itemIcon = Utils.GOLD_ICON,
         quantity = 1,
         copperAmount = snapshot.copperAmount,
         looter = UnitName("player"),
@@ -205,30 +204,6 @@ local function BuildMailMoneyData(snapshot)
         isMail = true,
         timestamp = GetTime(),
     }
-end
-
--------------------------------------------------------------------------------
--- Retry pattern for item cache misses
--------------------------------------------------------------------------------
-
-local function RetryBuildMailItem(snapshot, retries)
-    retries = retries or 0
-    if retries >= MAX_RETRIES then
-        ns.DebugPrint("MailListener: failed to get item info for ID "
-            .. tostring(snapshot.itemID) .. " after " .. MAX_RETRIES .. " retries")
-        return
-    end
-
-    local lootData = BuildMailItemData(snapshot)
-    if lootData then
-        if PassesFilter(lootData) then
-            ns.ToastManager.QueueToast(lootData)
-        end
-    else
-        ns.Addon:ScheduleTimer(function()
-            RetryBuildMailItem(snapshot, retries + 1)
-        end, 0.2)
-    end
 end
 
 -------------------------------------------------------------------------------
@@ -244,7 +219,11 @@ local function ProcessSnapshot(snapshot)
             ns.ToastManager.QueueToast(lootData)
         end
     elseif snapshot.type == "item" then
-        RetryBuildMailItem(snapshot)
+        Utils.RetryWithTimer(
+            ns.Addon,
+            function() return BuildMailItemData(snapshot) end,
+            PassesFilter
+        )
     end
 end
 
