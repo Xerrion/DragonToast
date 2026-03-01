@@ -1,11 +1,16 @@
 -------------------------------------------------------------------------------
--- HonorListener.lua
+-- HonorListener_TBC.lua
 -- Honor gain toast notifications
 --
--- Supported versions: TBC Anniversary, Retail, MoP Classic
+-- Supported versions: TBC Anniversary, Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+
+local WOW_PROJECT_ID = WOW_PROJECT_ID
+local WOW_PROJECT_BURNING_CRUSADE_CLASSIC = WOW_PROJECT_BURNING_CRUSADE_CLASSIC
+
+if WOW_PROJECT_ID ~= WOW_PROJECT_BURNING_CRUSADE_CLASSIC then return end
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -22,31 +27,19 @@ local string_match = string.match
 -- Constants
 -------------------------------------------------------------------------------
 
--- Honor icon - resolved at runtime in Initialize() based on player faction
--- Uses Blizzard's faction-specific PVP currency icons from Constants.CurrencyConsts
-local HONOR_ICON
-local HONOR_ICON_FALLBACK = "Interface\\Icons\\Achievement_LegionPVPTier4"
+-- Faction-specific honor icons (PVP banner FileDataIDs, present in all clients)
+local HONOR_ICONS = {
+    Alliance = 132486,  -- interface/icons/inv_bannerpvp_02 (blue Alliance PVP banner)
+    Horde    = 132485,  -- interface/icons/inv_bannerpvp_01 (red Horde PVP banner)
+}
+local HONOR_ICON_FALLBACK = 132486
 -- Honor quality color
-local HONOR_QUALITY = 1  -- Common quality (white) — we override color in ToastFrame
-
--------------------------------------------------------------------------------
--- Honor Icon Resolution
--- On Classic, numeric FileDataIDs (e.g. 1455894) render as green squares.
--- We resolve a string-path icon from Constants.CurrencyConsts at runtime,
--- falling back to the Retail texture path when the table is unavailable.
--------------------------------------------------------------------------------
+local HONOR_QUALITY = 1  -- Common quality (white) -- we override color in ToastFrame
+local HONOR_ICON
 
 local function ResolveHonorIcon()
-    local consts = Constants and Constants.CurrencyConsts
-    if consts then
-        local faction = UnitFactionGroup("player")
-        if faction == "Alliance" then
-            return consts.PVP_CURRENCY_HONOR_ALLIANCE_INV_ICON or HONOR_ICON_FALLBACK
-        elseif faction == "Horde" then
-            return consts.PVP_CURRENCY_HONOR_HORDE_INV_ICON or HONOR_ICON_FALLBACK
-        end
-    end
-    return HONOR_ICON_FALLBACK
+    local faction = UnitFactionGroup("player")
+    return HONOR_ICONS[faction] or HONOR_ICON_FALLBACK
 end
 
 -------------------------------------------------------------------------------
