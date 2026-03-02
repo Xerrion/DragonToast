@@ -112,16 +112,15 @@ local function PlayEntrance(frame, db, lootData, onLifecycleFinished)
         distance = db.animation.entranceDistance,
         onFinished = function()
             frame._isEntering = false
+            PlayAttentionOrHold(frame, db, lootData, onLifecycleFinished)
             -- Deferred slide catch-up: if the target moved while entrance
             -- was playing, issue the slide now that the frame has landed.
             local args = frame._deferredSlideArgs
             if args and frame._targetY ~= nil then
-                frame:ClearAllPoints()
-                frame:SetPoint(args[1], args[2], args[3], args[4], frame._targetY)
+                ns.ToastAnimations.PlaySlide(frame, nil, frame._targetY, args[1], args[2], args[3], args[4])
                 frame._anchorY = frame._targetY
                 frame._deferredSlideArgs = nil
             end
-            PlayAttentionOrHold(frame, db, lootData, onLifecycleFinished)
         end,
     })
 end
@@ -199,6 +198,12 @@ function ns.ToastAnimations.PlaySlide(frame, _startY, toY, point, relativeTo,
     local db = ns.Addon.db.profile
 
     if not db.animation.enableAnimations then
+        frame:ClearAllPoints()
+        frame:SetPoint(point, relativeTo, relativePoint, x, toY)
+        return
+    end
+
+    if not lib.activeAnimations or not lib.activeAnimations[frame] then
         frame:ClearAllPoints()
         frame:SetPoint(point, relativeTo, relativePoint, x, toY)
         return
