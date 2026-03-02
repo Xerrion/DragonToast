@@ -103,6 +103,18 @@ local LSM = LibStub("LibSharedMedia-3.0")
 - Use `pcall` for operations that may not exist on all WoW versions.
 - Cancel AceTimers before nullifying references, or closures fire on recycled frames.
 
+### Types
+- Default to plain Lua 5.1 with no annotations
+- Only add LuaLS annotations when the file already uses them or for public library APIs
+- Keep annotations minimal and accurate; do not introduce new tooling
+
+### Functions and Structure
+- Keep functions under 50 lines; extract helpers when longer
+- Prefer early returns over deep nesting
+- Prefer composition over inheritance
+- Keep logic separated by layer when possible: Core (WoW API), Engine (pure Lua),
+  Data (tables), Presentation (UI)
+
 ---
 
 ## Architecture
@@ -255,7 +267,47 @@ Branch protection on `master`: PRs required, Luacheck status check required, bra
 
 ---
 
-## GitHub Project Board
+## GitHub Workflow
+
+### Issues
+Create issues using the repo's issue templates (`.github/ISSUE_TEMPLATE/`):
+- **Bug reports**: Use `bug-report.yml` template. Title prefix: `[Bug]: `
+- **Feature requests**: Use `feature-request.yml` template. Title prefix: `[Feature]: `
+
+Create via CLI:
+```bash
+gh issue create --repo <ORG>/<REPO> --label "bug" --title "[Bug]: <title>" --body "<body matching template fields>"
+gh issue create --repo <ORG>/<REPO> --label "enhancement" --title "[Feature]: <title>" --body "<body matching template fields>"
+```
+
+### Branches
+Use conventional branch prefixes:
+
+| Prefix | Purpose | Example |
+|--------|---------|---------|
+| `feat/` | New feature | `feat/87-mail-toasts` |
+| `fix/` | Bug fix | `fix/99-anchor-zorder` |
+| `refactor/` | Code improvement | `refactor/96-listener-utils` |
+
+Include the issue number in the branch name when linked to an issue.
+
+### Commits
+Use [Conventional Commits](https://www.conventionalcommits.org/):
+- `feat: <description> (#issue)` - new feature
+- `fix: <description> (#issue)` - bug fix
+- `refactor: <description> (#issue)` - code restructuring
+- `docs: <description>` - documentation only
+
+Always use `--no-gpg-sign` (GPG signing not available in CI agent environments).
+
+### Pull Requests
+1. Create PRs via CLI using the repo's `.github/PULL_REQUEST_TEMPLATE.md` format
+2. Link to the issue with `Closes #N` in the PR body
+3. PRs require passing status checks (luacheck, test) before merge
+4. Squash merge only: `gh pr merge <number> --squash`
+5. Branches are auto-deleted after merge
+
+### Project Boards
 
 DragonToast uses the [DragonToast/Bug Tracker](https://github.com/orgs/DragonAddons/projects/2) project board (org project #2) for issue tracking.
 
@@ -269,3 +321,29 @@ When working on DragonToast issues:
 3. Move to "In review" when PR is created
 4. Add a comment with the PR link
 5. "Done" is typically auto-updated when the PR merges and closes the issue
+
+---
+
+## Working Agreement for Agents
+- Addon-level AGENTS.md overrides root rules when present
+- Do not add new dependencies without discussing trade-offs
+- Run luacheck before and after changes
+- If only manual tests exist, document what you verified in-game
+- Verify changes in the game client when possible
+- Keep changes small and focused; prefer composition over inheritance
+
+---
+
+## Communication Style
+
+When responding to or commenting on issues, always write in **first-person singular** ("I")
+as the repo owner -- never use "we" or "our team". Speak as if you are the developer personally.
+
+**Writing style:**
+- Direct, structured, solution-driven. Get to the point fast. Text is a tool, not decoration.
+- Think in systems. Break things into flows, roles, rules, and frameworks.
+- Bias toward precision. Concrete output, copy-paste-ready solutions, clear constraints. Low
+  tolerance for fluff.
+- Tone is calm and rational with small flashes of humor and self-awareness.
+- When confident in a topic, become more informal and creative.
+- When something matters, become sharp and focused.

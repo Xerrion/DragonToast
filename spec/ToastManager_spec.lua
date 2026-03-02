@@ -109,6 +109,7 @@ local function makeCurrencyData(overrides)
         looter = "TestPlayer",
         isSelf = true,
         isCurrency = true,
+        currencyID = 1191,
         timestamp = GetTime(),
     }
     if overrides then
@@ -257,8 +258,26 @@ describe("ToastManager", function()
             assert.is_nil(T.FindDuplicate(makeItemData({ isSelf = false })))
         end)
 
-        it("returns nil for non-gold currency", function()
-            assert.is_nil(T.FindDuplicate(makeCurrencyData()))
+        it("returns nil for non-gold currency without currencyID", function()
+            assert.is_nil(T.FindDuplicate(makeCurrencyData({ currencyID = nil })))
+        end)
+
+        it("stacks currency by currencyID in active toasts", function()
+            T.ShowToast(makeCurrencyData({ currencyID = 1191, quantity = 5 }))
+            assert.equal(1, #T.activeToasts)
+
+            local existing, idx = T.FindDuplicate(makeCurrencyData({ currencyID = 1191, quantity = 3 }))
+            assert.is_not_nil(existing)
+            assert.equal(1, idx)
+        end)
+
+        it("does not stack currency with different currencyID", function()
+            T.ShowToast(makeCurrencyData({ currencyID = 1191 }))
+            assert.is_nil(T.FindDuplicate(makeCurrencyData({ currencyID = 9999 })))
+        end)
+
+        it("does not stack currency without currencyID", function()
+            assert.is_nil(T.FindDuplicate(makeCurrencyData({ currencyID = nil })))
         end)
 
     end)
@@ -305,6 +324,19 @@ describe("ToastManager", function()
             assert.is_not_nil(existing)
             assert.is_nil(idx)
             assert.equal(30000, existing.copperAmount)
+
+            ns.Addon.db.profile.display.maxToasts = 5
+        end)
+
+        it("stacks currency by currencyID in queue", function()
+            ns.Addon.db.profile.display.maxToasts = 0
+            T.ShowToast(makeCurrencyData({ currencyID = 1191, quantity = 2 }))
+            assert.equal(1, T.QueueSize(T.toastQueue))
+
+            local existing, idx = T.FindDuplicate(makeCurrencyData({ currencyID = 1191, quantity = 3 }))
+            assert.is_not_nil(existing)
+            assert.is_nil(idx)
+            assert.equal(5, existing.quantity)
 
             ns.Addon.db.profile.display.maxToasts = 5
         end)

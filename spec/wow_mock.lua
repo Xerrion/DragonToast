@@ -98,6 +98,7 @@ local function CreateMockFrame()
     function frame:EnableMouse() end
     function frame:StartMoving() end
     function frame:StopMovingOrSizing() end
+    function frame:SetFrameStrata() end
 
     function frame:CreateTexture()
         return {

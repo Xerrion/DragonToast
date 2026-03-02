@@ -193,7 +193,7 @@ end
 -------------------------------------------------------------------------------
 
 local function FindDuplicate(lootData)
-    if lootData.isCurrency and not lootData.copperAmount then return nil end
+    if lootData.isCurrency and not lootData.copperAmount and not lootData.currencyID then return nil end
 
     local now = GetTime()
 
@@ -208,11 +208,15 @@ local function FindDuplicate(lootData)
             -- Gold/money stacking
             elseif lootData.copperAmount and toast.lootData.copperAmount then
                 return toast, i
+            -- Currency stacking by currencyID
+            elseif lootData.currencyID and toast.lootData.currencyID == lootData.currencyID then
+                return toast, i
             end
 
-            -- Normal item stacking
+            -- Normal item stacking (skip currencies -- those stack by currencyID above)
             if not lootData.isXP and not toast.lootData.isXP
                 and not lootData.isHonor and not toast.lootData.isHonor
+                and not lootData.currencyID and not toast.lootData.currencyID
                 and toast.lootData.itemID == lootData.itemID
                 and toast.lootData.isSelf == lootData.isSelf then
                 return toast, i
@@ -241,10 +245,16 @@ local function FindDuplicate(lootData)
                     entry.copperAmount = entry.copperAmount + lootData.copperAmount
                     entry.timestamp = lootData.timestamp
                     return entry, nil
+                elseif lootData.currencyID and entry.currencyID == lootData.currencyID then
+                    entry.quantity = (entry.quantity or 1) + (lootData.quantity or 1)
+                    entry.timestamp = now
+                    return entry, nil
                 end
 
+                -- Normal item stacking (skip currencies)
                 if not lootData.isXP and not entry.isXP
                     and not lootData.isHonor and not entry.isHonor
+                    and not lootData.currencyID and not entry.currencyID
                     and entry.itemID == lootData.itemID
                     and entry.isSelf == lootData.isSelf then
                     -- Stack quantity in-place

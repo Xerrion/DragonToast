@@ -47,6 +47,7 @@ ns.ElvUISkin = {}
 ns.LootListener = {}
 ns.XPListener = {}
 ns.HonorListener = {}
+ns.CurrencyListener = {}
 ns.MessageBridge = {}
 ns.MailListener = {}
 ns.MinimapIcon = {}
@@ -139,6 +140,11 @@ function Addon:OnEnable()
         ns.HonorListener.Initialize(self)
     end
 
+    -- Initialize Currency listener
+    if ns.CurrencyListener.Initialize then
+        ns.CurrencyListener.Initialize(self)
+    end
+
     -- Initialize mail listener
     if ns.MailListener.Initialize then
         ns.MailListener.Initialize(self)
@@ -164,6 +170,11 @@ function Addon:OnDisable()
     -- Shutdown Honor listener
     if ns.HonorListener.Shutdown then
         ns.HonorListener.Shutdown()
+    end
+
+    -- Shutdown Currency listener
+    if ns.CurrencyListener.Shutdown then
+        ns.CurrencyListener.Shutdown()
     end
 
     -- Shutdown mail listener

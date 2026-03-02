@@ -40,6 +40,7 @@ Listeners\HonorListener_TBC.lua
 Listeners\LootListener_Retail.lua
 Listeners\MailListener_Retail.lua
 Listeners\HonorListener_Retail.lua
+Listeners\CurrencyListener_Retail.lua
 #@end-non-tbc-anniversary@
 
 # Shared listeners

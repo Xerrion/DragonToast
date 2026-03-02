@@ -28,6 +28,7 @@ read_globals = {
     "CreateFrame", "GetTime", "IsInInstance", "UnitName", "UnitClass",
     "UnitFactionGroup",
     "GetItemInfo", "GetItemQualityColor", "C_Timer", "C_Item", "C_Container",
+    "C_CurrencyInfo",
     "GetInboxHeaderInfo", "GetInboxItem", "GetInboxInvoiceInfo", "GetInboxText",
     "TakeInboxItem", "TakeInboxMoney", "AutoLootMailItem",
     "GameTooltip", "UIParent", "PlaySound", "PlaySoundFile",
