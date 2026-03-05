@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- AppearanceTab.lua
--- Appearance settings tab: preset, font, background, border, glow, icon, ElvUI
+-- Appearance settings tab: preset, font, background, border, glow, icon
 --
 -- Supported versions: Retail, MoP Classic, TBC Anniversary, Cata, Classic
 -------------------------------------------------------------------------------
@@ -21,8 +21,6 @@ local table_sort = table.sort
 -------------------------------------------------------------------------------
 
 local dtns
-local W = ns.Widgets
-local LSM = LibStub("LibSharedMedia-3.0")
 
 -------------------------------------------------------------------------------
 -- Constants
@@ -45,7 +43,9 @@ local function AnchorWidget(widget, parent, yOffset)
 end
 
 local function BuildLSMValues(mediaType)
-    local hash = LSM:HashTable(mediaType)
+    local lsm = LibStub("LibSharedMedia-3.0", true)
+    if not lsm then return {} end
+    local hash = lsm:HashTable(mediaType)
     local values = {}
     for name in pairs(hash) do
         values[#values + 1] = { value = name, text = name }
@@ -82,6 +82,7 @@ end
 -------------------------------------------------------------------------------
 
 local function CreatePresetSection(parent, _db, yOffset)
+    local W = ns.Widgets
     local header = W.CreateHeader(parent, "Preset")
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
@@ -103,6 +104,7 @@ local function CreatePresetSection(parent, _db, yOffset)
 end
 
 local function CreateFontSection(parent, db, yOffset)
+    local W = ns.Widgets
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, "Font")
@@ -113,6 +115,7 @@ local function CreateFontSection(parent, db, yOffset)
         label = "Font",
         tooltip = "Font face for toast text",
         values = function() return BuildLSMValues("font") end,
+        mediaType = "font",
         get = function() return db.profile.appearance.fontFace end,
         set = function(value) db.profile.appearance.fontFace = value; NotifyAppearanceChange() end,
     })
@@ -156,6 +159,7 @@ local function CreateFontSection(parent, db, yOffset)
 end
 
 local function CreateBackgroundSection(parent, db, yOffset)
+    local W = ns.Widgets
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, "Background")
@@ -197,6 +201,7 @@ local function CreateBackgroundSection(parent, db, yOffset)
         label = "Background Texture",
         tooltip = "Texture for the toast background",
         values = function() return BuildLSMValues("background") end,
+        mediaType = "background",
         get = function() return db.profile.appearance.backgroundTexture end,
         set = function(value)
             db.profile.appearance.backgroundTexture = value
@@ -210,6 +215,7 @@ local function CreateBackgroundSection(parent, db, yOffset)
 end
 
 local function CreateBorderSection(parent, db, yOffset)
+    local W = ns.Widgets
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, "Border and Glow")
@@ -249,6 +255,7 @@ local function CreateBorderSection(parent, db, yOffset)
         label = "Border Texture",
         tooltip = "Texture for the toast border",
         values = function() return BuildLSMValues("border") end,
+        mediaType = "border",
         get = function() return db.profile.appearance.borderTexture end,
         set = function(value)
             db.profile.appearance.borderTexture = value
@@ -265,7 +272,32 @@ local function CreateBorderSection(parent, db, yOffset)
         set = function(value) db.profile.appearance.qualityGlow = value; NotifyAppearanceChange() end,
     })
     AnchorWidget(qualityGlow, parent, yOffset)
-    yOffset = yOffset - qualityGlow:GetHeight() - SPACING_BETWEEN_WIDGETS
+    yOffset = yOffset - qualityGlow:GetHeight()
+
+    return yOffset
+end
+
+local function CreateGlowingBorderSection(parent, db, yOffset)
+    local W = ns.Widgets
+    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+
+    local header = W.CreateHeader(parent, "Glowing Border")
+    AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+
+    local statusBarTexture = W.CreateDropdown(parent, {
+        label = "Glow Texture",
+        tooltip = "Texture for the glowing border",
+        values = function() return BuildLSMValues("statusbar") end,
+        mediaType = "statusbar",
+        get = function() return db.profile.appearance.statusBarTexture end,
+        set = function(value)
+            db.profile.appearance.statusBarTexture = value
+            NotifyAppearanceChange()
+        end,
+    })
+    AnchorWidget(statusBarTexture, parent, yOffset)
+    yOffset = yOffset - statusBarTexture:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local glowWidth = W.CreateSlider(parent, {
         label = "Glow Width",
@@ -280,30 +312,8 @@ local function CreateBorderSection(parent, db, yOffset)
     return yOffset
 end
 
-local function CreateStatusBarSection(parent, db, yOffset)
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
-
-    local header = W.CreateHeader(parent, "Status Bar")
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
-
-    local statusBarTexture = W.CreateDropdown(parent, {
-        label = "Status Bar Texture",
-        tooltip = "Texture for the toast status bar",
-        values = function() return BuildLSMValues("statusbar") end,
-        get = function() return db.profile.appearance.statusBarTexture end,
-        set = function(value)
-            db.profile.appearance.statusBarTexture = value
-            NotifyAppearanceChange()
-        end,
-    })
-    AnchorWidget(statusBarTexture, parent, yOffset)
-    yOffset = yOffset - statusBarTexture:GetHeight()
-
-    return yOffset
-end
-
 local function CreateIconSection(parent, db, yOffset)
+    local W = ns.Widgets
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, "Icon")
@@ -323,28 +333,6 @@ local function CreateIconSection(parent, db, yOffset)
     return yOffset
 end
 
-local function CreateIntegrationSection(parent, db, yOffset)
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
-
-    local header = W.CreateHeader(parent, "Integration")
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
-
-    local elvuiSkin = W.CreateToggle(parent, {
-        label = "Use ElvUI Skin",
-        tooltip = "Apply ElvUI skinning to toasts when ElvUI is loaded",
-        get = function() return db.profile.elvui.useSkin end,
-        set = function(value)
-            db.profile.elvui.useSkin = value
-            if dtns.ElvUISkin then dtns.ElvUISkin:Apply() end
-        end,
-    })
-    AnchorWidget(elvuiSkin, parent, yOffset)
-    yOffset = yOffset - elvuiSkin:GetHeight()
-
-    return yOffset
-end
-
 -------------------------------------------------------------------------------
 -- Build the Appearance tab content
 -------------------------------------------------------------------------------
@@ -358,9 +346,8 @@ local function CreateContent(parent)
     yOffset = CreateFontSection(parent, db, yOffset)
     yOffset = CreateBackgroundSection(parent, db, yOffset)
     yOffset = CreateBorderSection(parent, db, yOffset)
-    yOffset = CreateStatusBarSection(parent, db, yOffset)
+    yOffset = CreateGlowingBorderSection(parent, db, yOffset)
     yOffset = CreateIconSection(parent, db, yOffset)
-    yOffset = CreateIntegrationSection(parent, db, yOffset)
 
     parent:SetHeight(math_abs(yOffset) + PADDING_BOTTOM)
 end
