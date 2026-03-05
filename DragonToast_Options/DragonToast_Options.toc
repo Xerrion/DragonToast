@@ -1,0 +1,31 @@
+## Interface: 110207, 120001, 120000
+## Interface-BCC: 20505
+## Interface-Mists: 50502, 50503
+## Title: DragonToast Options
+## Notes: Configuration panel for DragonToast
+## Author: Xerrion
+## Version: @project-version@
+## Dependencies: DragonToast
+## LoadOnDemand: 1
+## X-Part-Of: DragonToast
+
+Core.lua
+
+Widgets\Panel.lua
+Widgets\ScrollFrame.lua
+Widgets\TabGroup.lua
+Widgets\Header.lua
+Widgets\Description.lua
+Widgets\Toggle.lua
+Widgets\Slider.lua
+Widgets\Dropdown.lua
+Widgets\ColorPicker.lua
+Widgets\TextInput.lua
+Widgets\Button.lua
+
+Tabs\GeneralTab.lua
+Tabs\FiltersTab.lua
+Tabs\DisplayTab.lua
+Tabs\AnimationTab.lua
+Tabs\AppearanceTab.lua
+Tabs\ProfilesTab.lua
