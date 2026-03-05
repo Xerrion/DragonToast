@@ -28,8 +28,9 @@ local framePool = {}
 local frameCount = 0
 
 --- Build a cache key for backdrop params to skip redundant SetBackdrop calls during stacking
-local function GetBackdropKey(bgFile, edgeFile, edgeSize, inset)
-    return (bgFile or "") .. "|" .. (edgeFile or "") .. "|" .. tostring(edgeSize) .. "|" .. tostring(inset)
+local function GetBackdropKey(bgFile, edgeFile, edgeSize, bgInset)
+    return (bgFile or "") .. "|" .. (edgeFile or "") .. "|" .. tostring(edgeSize) .. "|" .. tostring(-edgeSize)
+        .. "|" .. tostring(bgInset)
 end
 
 -------------------------------------------------------------------------------
@@ -52,7 +53,7 @@ local function ApplyLayout(frame, db, showIcon)
     local borderInset = db.appearance.borderInset or 0
     local glowWidth = db.appearance.glowWidth or 4
     local iconSize = db.appearance.iconSize or 36
-    local contentInset = borderSize > 0 and math.max(borderInset, math.ceil(borderSize / 2)) or 0
+    local contentInset = borderSize > 0 and borderInset or 0
 
     -- Update content frame inset to sit inside the border
     frame.content:ClearAllPoints()
@@ -100,14 +101,14 @@ local function ApplyBackdrop(frame, db, qualityR, qualityG, qualityB)
     local bgFile = LSM:Fetch("background", db.appearance.backgroundTexture or "Solid")
     local edgeFile = borderSize > 0
         and LSM:Fetch("border", db.appearance.borderTexture or "None") or nil
-    local inset = borderSize > 0 and borderInset or 0
-    local backdropKey = GetBackdropKey(bgFile, edgeFile, borderSize, inset)
+    local bgInset = borderSize > 0 and borderInset or 0
+    local backdropKey = GetBackdropKey(bgFile, edgeFile, borderSize, bgInset)
     if frame._backdropKey ~= backdropKey then
         frame:SetBackdrop({
             bgFile = bgFile,
             edgeFile = edgeFile,
             edgeSize = borderSize,
-            insets = { left = inset, right = inset, top = inset, bottom = inset },
+            insets = { left = -borderSize, right = -borderSize, top = -borderSize, bottom = -borderSize },
         })
         frame._backdropKey = backdropKey
     end
@@ -179,7 +180,7 @@ local function CreateToastFrame()
         bgFile = "Interface\\Buttons\\WHITE8x8",
         edgeFile = "Interface\\Buttons\\WHITE8x8",
         edgeSize = 1,
-        insets = { left = 0, right = 0, top = 0, bottom = 0 },
+        insets = { left = -1, right = -1, top = -1, bottom = -1 },
     })
     frame:SetBackdropColor(0.05, 0.05, 0.05, 0.7)
     frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
