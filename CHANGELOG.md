@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [1.11.0](https://github.com/DragonAddons/DragonToast/compare/1.10.2...1.11.0) (2026-03-05)
+
+
+### 🚀 Features
+
+* custom options panel replacing AceConfig ([#107](https://github.com/DragonAddons/DragonToast/issues/107)) ([5d09ee8](https://github.com/DragonAddons/DragonToast/commit/5d09ee8ae2b5cbd3c6fea82c97830faf78ec781d))
+
 ## [1.10.2](https://github.com/DragonAddons/DragonToast/compare/1.10.1...1.10.2) (2026-03-02)
 
 
