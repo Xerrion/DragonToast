@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [1.12.1](https://github.com/DragonAddons/DragonToast/compare/1.12.0...1.12.1) (2026-03-06)
+
+
+### 🐛 Bug Fixes
+
+* correct TOC packager directives ([#112](https://github.com/DragonAddons/DragonToast/issues/112)) ([7ce6c6f](https://github.com/DragonAddons/DragonToast/commit/7ce6c6ff80054de5f90647c410da50c02681f3e0))
+
 ## [1.12.0](https://github.com/DragonAddons/DragonToast/compare/1.11.0...1.12.0) (2026-03-06)
 
 
