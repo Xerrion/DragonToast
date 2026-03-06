@@ -25,6 +25,7 @@ local defaults = {
             showQuestItems = true,
             showXP = true,
             showHonor = true,
+            showReputation = true,
             showMail = true,
         },
 
@@ -106,7 +107,7 @@ local defaults = {
 -- Profile Migration
 -------------------------------------------------------------------------------
 
-local CURRENT_SCHEMA = 5
+local CURRENT_SCHEMA = 6
 
 local DIRECTION_TO_ANIMATION = {
     RIGHT  = "slideInRight",
@@ -187,6 +188,15 @@ local function MigrateProfile(db)
         -- v4 -> v5: mail filter default
         if profile.filters and profile.filters.showMail == nil then
             profile.filters.showMail = true
+        end
+
+        profile.schemaVersion = 5
+    end
+
+    if (profile.schemaVersion or 0) < 6 then
+        -- v5 -> v6: reputation filter default
+        if profile.filters and profile.filters.showReputation == nil then
+            profile.filters.showReputation = true
         end
 
         profile.schemaVersion = CURRENT_SCHEMA

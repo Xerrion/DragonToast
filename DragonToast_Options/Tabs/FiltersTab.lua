@@ -167,7 +167,16 @@ local function CreateCurrencySection(parent, yOffset)
         set = function(value) db.profile.filters.showHonor = value end,
     })
     AnchorWidget(honor, parent, yOffset)
-    yOffset = yOffset - honor:GetHeight()
+    yOffset = yOffset - honor:GetHeight() - SPACING_BETWEEN_WIDGETS
+
+    local reputation = W.CreateToggle(parent, {
+        label = "Show Reputation",
+        tooltip = "Show toasts for reputation gains",
+        get = function() return db.profile.filters.showReputation end,
+        set = function(value) db.profile.filters.showReputation = value end,
+    })
+    AnchorWidget(reputation, parent, yOffset)
+    yOffset = yOffset - reputation:GetHeight()
 
     return yOffset
 end

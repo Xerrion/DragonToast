@@ -36,11 +36,13 @@ Display\ElvUISkin.lua
 Listeners\LootListener_TBC.lua
 Listeners\MailListener_TBC.lua
 Listeners\HonorListener_TBC.lua
+Listeners\ReputationListener_TBC.lua
 #@end-tbc-anniversary@
 #@non-tbc-anniversary@
 Listeners\LootListener_Retail.lua
 Listeners\MailListener_Retail.lua
 Listeners\HonorListener_Retail.lua
+Listeners\ReputationListener_Retail.lua
 Listeners\CurrencyListener_Retail.lua
 #@end-non-tbc-anniversary@
 

@@ -206,6 +206,9 @@ local function FindDuplicate(lootData)
                 return toast, i
             elseif lootData.isHonor and toast.lootData.isHonor then
                 return toast, i
+            elseif lootData.isReputation and toast.lootData.isReputation
+                and toast.lootData.factionName == lootData.factionName then
+                return toast, i
             -- Gold/money stacking
             elseif lootData.copperAmount and toast.lootData.copperAmount then
                 return toast, i
@@ -217,6 +220,7 @@ local function FindDuplicate(lootData)
             -- Normal item stacking (skip currencies -- those stack by currencyID above)
             if not lootData.isXP and not toast.lootData.isXP
                 and not lootData.isHonor and not toast.lootData.isHonor
+                and not lootData.isReputation and not toast.lootData.isReputation
                 and not lootData.currencyID and not toast.lootData.currencyID
                 and toast.lootData.itemID == lootData.itemID
                 and toast.lootData.isSelf == lootData.isSelf then
@@ -242,6 +246,12 @@ local function FindDuplicate(lootData)
                     entry.itemName = "+" .. ns.ToastManager.FormatNumber(entry.honorAmount) .. " Honor"
                     entry.timestamp = now
                     return entry, nil -- nil index signals queued (not active)
+                elseif lootData.isReputation and entry.isReputation
+                    and entry.factionName == lootData.factionName then
+                    entry.reputationAmount = (entry.reputationAmount or 0) + (lootData.reputationAmount or 0)
+                    entry.itemName = "+" .. ns.ToastManager.FormatNumber(entry.reputationAmount) .. " Reputation"
+                    entry.timestamp = now
+                    return entry, nil -- nil index signals queued (not active)
                 elseif entry.copperAmount and lootData.copperAmount then
                     entry.copperAmount = entry.copperAmount + lootData.copperAmount
                     entry.timestamp = lootData.timestamp
@@ -255,6 +265,7 @@ local function FindDuplicate(lootData)
                 -- Normal item stacking (skip currencies)
                 if not lootData.isXP and not entry.isXP
                     and not lootData.isHonor and not entry.isHonor
+                    and not lootData.isReputation and not entry.isReputation
                     and not lootData.currencyID and not entry.currencyID
                     and entry.itemID == lootData.itemID
                     and entry.isSelf == lootData.isSelf then
@@ -299,6 +310,12 @@ local function ShowToast(lootData)
         elseif lootData.isHonor then
             existing.lootData.honorAmount = (existing.lootData.honorAmount or 0) + (lootData.honorAmount or 0)
             existing.lootData.itemName = "+" .. ns.ToastManager.FormatNumber(existing.lootData.honorAmount) .. " Honor"
+            existing.lootData.timestamp = GetTime()
+        elseif lootData.isReputation then
+            existing.lootData.reputationAmount = (existing.lootData.reputationAmount or 0)
+                + (lootData.reputationAmount or 0)
+            existing.lootData.itemName = "+" .. ns.ToastManager.FormatNumber(existing.lootData.reputationAmount)
+                .. " Reputation"
             existing.lootData.timestamp = GetTime()
         elseif existing.lootData.copperAmount and lootData.copperAmount then
             existing.lootData.copperAmount = existing.lootData.copperAmount + lootData.copperAmount
@@ -356,6 +373,7 @@ function ns.ToastManager.QueueToast(lootData)
     if ns.MessageBridge.IsSuppressed()
         and not lootData.isXP
         and not lootData.isHonor
+        and not lootData.isReputation
         and not lootData.isCurrency
         and not lootData.isRollWin then
         return
@@ -452,7 +470,10 @@ function ns.ToastManager.ShowTestToast()
           icon = 894556, id = 99999, isXP = true, xpAmount = 1234 },
         { name = "+150 Honor", quality = 1, level = 0, type = nil, subType = nil,
           icon = ns.HonorListener.GetHonorIcon(), id = 99997, isHonor = true, honorAmount = 150,
-          victimName = "Enemy Player" },
+           victimName = "Enemy Player" },
+        { name = "+250 Reputation", quality = 1, level = 0, type = nil, subType = nil,
+          icon = ns.ReputationListener.GetReputationIcon(), id = 99996, isReputation = true,
+          reputationAmount = 250, factionName = "The Sha'tar" },
     }
 
     local test = testItems[math.random(#testItems)]
@@ -482,6 +503,24 @@ function ns.ToastManager.ShowTestToast()
             victimName = test.victimName,
             itemIcon = test.icon,
             itemName = "+" .. ns.ToastManager.FormatNumber(amount) .. " Honor",
+            itemQuality = test.quality,
+            itemLevel = 0,
+            itemType = nil,
+            itemSubType = nil,
+            quantity = 1,
+            looter = UnitName("player") or "TestPlayer",
+            isSelf = true,
+            isCurrency = false,
+            timestamp = GetTime(),
+        }
+    elseif test.isReputation then
+        local amount = test.reputationAmount + math.random(0, 200)
+        lootData = {
+            isReputation = true,
+            reputationAmount = amount,
+            factionName = test.factionName,
+            itemIcon = test.icon,
+            itemName = "+" .. ns.ToastManager.FormatNumber(amount) .. " Reputation",
             itemQuality = test.quality,
             itemLevel = 0,
             itemType = nil,
@@ -657,6 +696,23 @@ function ns.ToastManager.RunStackTest(testType)
         }
     end
 
+    local function MakeReputationData()
+        return {
+            isReputation = true,
+            reputationAmount = 250,
+            factionName = "The Sha'tar",
+            itemIcon = ns.ReputationListener.GetReputationIcon(),
+            itemName = "+250 Reputation",
+            itemQuality = 1,
+            itemLevel = 0,
+            quantity = 1,
+            looter = UnitName("player") or "TestPlayer",
+            isSelf = true,
+            isCurrency = false,
+            timestamp = GetTime(),
+        }
+    end
+
     local function RunGroup(label, makeFunc)
         ns.Print("[Stack Test] Testing " .. ns.COLOR_WHITE .. label .. ns.COLOR_RESET .. " stacking...")
         FireToast(makeFunc(), 0)
@@ -672,14 +728,17 @@ function ns.ToastManager.RunStackTest(testType)
         RunGroup("gold", MakeGoldData)
     elseif testType == "honor" then
         RunGroup("honor", MakeHonorData)
+    elseif testType == "reputation" or testType == "rep" then
+        RunGroup("reputation", MakeReputationData)
     elseif testType == "all" then
         RunGroup("item", MakeItemData)
         addon:ScheduleTimer(function() RunGroup("XP", MakeXPData) end, 2.0)
         addon:ScheduleTimer(function() RunGroup("gold", MakeGoldData) end, 4.0)
         addon:ScheduleTimer(function() RunGroup("honor", MakeHonorData) end, 6.0)
+        addon:ScheduleTimer(function() RunGroup("reputation", MakeReputationData) end, 8.0)
     else
         ns.Print("Unknown test type: " .. ns.COLOR_WHITE .. (testType or "nil") .. ns.COLOR_RESET)
-        ns.Print("Usage: /dt test [stack|xp|gold|honor|all]")
+        ns.Print("Usage: /dt test [stack|xp|gold|honor|reputation|all]")
         return
     end
 end

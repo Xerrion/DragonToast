@@ -28,6 +28,14 @@ local LSM = LibStub("LibSharedMedia-3.0")
 local framePool = {}
 local frameCount = 0
 
+local function IsLinkableToast(lootData)
+    return lootData
+        and lootData.itemLink
+        and not lootData.isXP
+        and not lootData.isHonor
+        and not lootData.isReputation
+end
+
 --- Build a cache key for backdrop params to skip redundant SetBackdrop calls during stacking
 local function GetBackdropKey(bgFile)
     return bgFile or ""
@@ -285,8 +293,7 @@ local function CreateToastFrame()
     frame:RegisterForClicks("LeftButtonUp")
 
     frame:SetScript("OnClick", function(self)
-        if IsShiftKeyDown() and self.lootData and self.lootData.itemLink
-            and not self.lootData.isXP and not self.lootData.isHonor then
+        if IsShiftKeyDown() and IsLinkableToast(self.lootData) then
             ChatFrame_OpenChat(self.lootData.itemLink)
         else
             if ns.ToastManager.DismissToast then
@@ -296,7 +303,7 @@ local function CreateToastFrame()
     end)
 
     frame:SetScript("OnEnter", function(self)
-        if self.lootData and self.lootData.itemLink and not self.lootData.isXP and not self.lootData.isHonor then
+        if IsLinkableToast(self.lootData) then
             GameTooltip:SetOwner(self, "ANCHOR_LEFT")
             GameTooltip:SetHyperlink(self.lootData.itemLink)
             GameTooltip:Show()
@@ -363,6 +370,8 @@ local function PopulateToast(frame, lootData)
         r, g, b = 1, 0.82, 0
     elseif lootData.isHonor then
         r, g, b = 1, 0.24, 0.17
+    elseif lootData.isReputation then
+        r, g, b = 0.35, 0.85, 0.55
     elseif lootData.itemQuality then
         if ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[lootData.itemQuality] then
             local qc = ITEM_QUALITY_COLORS[lootData.itemQuality]
@@ -381,7 +390,7 @@ local function PopulateToast(frame, lootData)
 
     -- Icon
     if showIcon then
-        frame.icon:SetTexture(lootData.itemIcon)
+        frame.icon:SetTexture(lootData.itemIcon or ns.ListenerUtils.QUESTION_MARK_ICON)
         frame.icon:Show()
     end
 
@@ -421,6 +430,29 @@ local function PopulateToast(frame, lootData)
 
         if lootData.victimName and lootData.victimName ~= "" then
             frame.itemType:SetText(lootData.victimName)
+            frame.itemType:SetTextColor(0.7, 0.7, 0.7)
+            frame.itemType:Show()
+        else
+            frame.itemType:Hide()
+        end
+
+        if db.display.showLooter then
+            frame.looter:SetText("You")
+            frame.looter:SetTextColor(0.3, 1.0, 0.3)
+            frame.looter:Show()
+        else
+            frame.looter:Hide()
+        end
+
+    elseif lootData.isReputation then
+        -- Reputation toast
+        frame.itemName:SetText(lootData.itemName)
+        frame.itemName:SetTextColor(0.35, 0.85, 0.55)
+        frame.quantity:Hide()
+        frame.itemLevel:Hide()
+
+        if lootData.factionName and lootData.factionName ~= "" then
+            frame.itemType:SetText(lootData.factionName)
             frame.itemType:SetTextColor(0.7, 0.7, 0.7)
             frame.itemType:Show()
         else

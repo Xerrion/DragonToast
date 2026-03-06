@@ -12,6 +12,8 @@ local ADDON_NAME, ns = ...
 -------------------------------------------------------------------------------
 
 local print = print
+local string_lower = string.lower
+local string_match = string.match
 
 -------------------------------------------------------------------------------
 -- Quality names for status display
@@ -42,6 +44,7 @@ local function PrintStatus()
     print("  Gold: " .. (db.filters.showGold and "Yes" or "No"))
     print("  Quest Items: " .. (db.filters.showQuestItems and "Yes" or "No"))
     print("  XP Gains: " .. (db.filters.showXP and "Yes" or "No"))
+    print("  Reputation Gains: " .. (db.filters.showReputation and "Yes" or "No"))
     print("  Max Toasts: " .. db.display.maxToasts)
     print("  Growth: " .. db.display.growDirection)
     print("  Animations: " .. (db.animation.enableAnimations and "Yes" or "No"))
@@ -71,6 +74,7 @@ local function PrintHelp()
     print("  " .. ns.COLOR_WHITE .. "/dt test xp" .. ns.COLOR_RESET .. " -- Test XP accumulation")
     print("  " .. ns.COLOR_WHITE .. "/dt test gold" .. ns.COLOR_RESET .. " -- Test gold accumulation")
     print("  " .. ns.COLOR_WHITE .. "/dt test honor" .. ns.COLOR_RESET .. " -- Test honor accumulation")
+    print("  " .. ns.COLOR_WHITE .. "/dt test reputation" .. ns.COLOR_RESET .. " -- Test reputation accumulation")
     print("  " .. ns.COLOR_WHITE .. "/dt test all" .. ns.COLOR_RESET .. " -- Run all stacking tests")
     print("  " .. ns.COLOR_WHITE .. "/dt testmode" .. ns.COLOR_RESET .. " — Toggle continuous test toast generation")
     print("  " .. ns.COLOR_WHITE .. "/dt clear" .. ns.COLOR_RESET .. " — Dismiss all toasts")
@@ -83,8 +87,13 @@ end
 -- Command Router
 -------------------------------------------------------------------------------
 
+local function NormalizeCommand(input)
+    local trimmedInput = string_match(input or "", "^%s*(.-)%s*$")
+    return string_lower(trimmedInput)
+end
+
 function ns.HandleSlashCommand(input)
-    local cmd = (input or ""):lower():trim()
+    local cmd = NormalizeCommand(input)
 
     if cmd == "" then
         -- Toggle addon

@@ -9,10 +9,48 @@ local _, ns = ...
 local Utils = ns.ListenerUtils
 
 -- Cache Lua globals
+local tostring = tostring
 local tonumber = tonumber
 local math_floor = math.floor
 local string_format = string.format
 local table_concat = table.concat
+
+local function BuildLocalizedPattern(globalString, anchor)
+    if not globalString then return nil, nil end
+
+    local pattern = tostring(globalString)
+    local captureOrder = {}
+    local literalPercentToken = "\1LITERAL_PERCENT\2"
+    local stringToken = "\1STRING_CAPTURE\2"
+    local numberToken = "\1NUMBER_CAPTURE\2"
+
+    pattern = pattern:gsub("%%%%", literalPercentToken)
+    pattern = pattern:gsub("%%(%d+)%$([sd])", function(index, placeholderType)
+        captureOrder[#captureOrder + 1] = tonumber(index)
+        if placeholderType == "s" then
+            return stringToken
+        end
+        return numberToken
+    end)
+    pattern = pattern:gsub("%%([sd])", function(placeholderType)
+        captureOrder[#captureOrder + 1] = #captureOrder + 1
+        if placeholderType == "s" then
+            return stringToken
+        end
+        return numberToken
+    end)
+
+    pattern = pattern:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1")
+    pattern = pattern:gsub(stringToken, "(.+)")
+    pattern = pattern:gsub(numberToken, "(%%d+)")
+    pattern = pattern:gsub(literalPercentToken, "%%%%")
+
+    if anchor then
+        pattern = "^" .. pattern .. "$"
+    end
+
+    return pattern, captureOrder
+end
 
 -------------------------------------------------------------------------------
 -- Constants
@@ -30,14 +68,18 @@ Utils.RETRY_INTERVAL = 0.2
 -------------------------------------------------------------------------------
 
 function Utils.BuildPattern(globalString, anchor)
-    if anchor and not globalString then return nil end
-    local pattern = globalString:gsub("([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1")
-    pattern = pattern:gsub("%%%%s", "(.+)")
-    pattern = pattern:gsub("%%%%d", "(%%d+)")
-    if anchor then
-        return "^" .. pattern .. "$"
-    end
+    local pattern = BuildLocalizedPattern(globalString, anchor)
     return pattern
+end
+
+-------------------------------------------------------------------------------
+-- BuildCapturePattern(globalString, anchor)
+-- Like BuildPattern, but also returns placeholder order for localized positional
+-- format strings such as %2$s.
+-------------------------------------------------------------------------------
+
+function Utils.BuildCapturePattern(globalString, anchor)
+    return BuildLocalizedPattern(globalString, anchor)
 end
 
 -------------------------------------------------------------------------------

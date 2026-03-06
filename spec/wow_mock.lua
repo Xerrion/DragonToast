@@ -212,6 +212,10 @@ function M.CreateNamespace()
         GetHonorIcon = function() return 463450 end,
     }
 
+    ns.ReputationListener = {
+        GetReputationIcon = function() return 134400 end,
+    }
+
     -- Mock Addon (Ace3 mixin)
     ns.Addon = {
         db = {
@@ -236,6 +240,9 @@ function M.CreateNamespace()
                     showGold = true,
                     showQuestItems = true,
                     showXP = true,
+                    showHonor = true,
+                    showMail = true,
+                    showReputation = true,
                 },
                 combat = {
                     deferInCombat = false,
