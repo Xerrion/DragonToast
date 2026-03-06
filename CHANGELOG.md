@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [1.12.0](https://github.com/DragonAddons/DragonToast/compare/1.11.0...1.12.0) (2026-03-06)
+
+
+### 🚀 Features
+
+* add reputation gain toasts ([#93](https://github.com/DragonAddons/DragonToast/issues/93)) ([#110](https://github.com/DragonAddons/DragonToast/issues/110)) ([d39ae79](https://github.com/DragonAddons/DragonToast/commit/d39ae79848584d3f0667d80f533f13c819484d7e))
+
 ## [1.11.0](https://github.com/DragonAddons/DragonToast/compare/1.10.2...1.11.0) (2026-03-05)
 
 
