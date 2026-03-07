@@ -17,6 +17,12 @@ local pairs = pairs
 local tonumber = tonumber
 
 -------------------------------------------------------------------------------
+-- Localization
+-------------------------------------------------------------------------------
+
+local L = ns.L
+
+-------------------------------------------------------------------------------
 -- Namespace references
 -------------------------------------------------------------------------------
 
@@ -55,7 +61,7 @@ local function GetEntranceAnimationValues()
     local lib = LibStub("LibAnimate", true)
     if not lib then return {} end
     local names = lib:GetEntranceAnimations()
-    local values = { { value = "none", text = "None" } }
+    local values = { { value = "none", text = L["None"] } }
     for _, name in ipairs(names) do
         values[#values + 1] = { value = name, text = name }
     end
@@ -66,7 +72,7 @@ local function GetExitAnimationValues()
     local lib = LibStub("LibAnimate", true)
     if not lib then return {} end
     local names = lib:GetExitAnimations()
-    local values = { { value = "none", text = "None" } }
+    local values = { { value = "none", text = L["None"] } }
     for _, name in ipairs(names) do
         values[#values + 1] = { value = name, text = name }
     end
@@ -75,9 +81,9 @@ end
 
 local function GetAttentionAnimationValues()
     local lib = LibStub("LibAnimate", true)
-    if not lib then return { { value = "none", text = "None" } } end
+    if not lib then return { { value = "none", text = L["None"] } } end
     local names = lib:GetAttentionAnimations()
-    local values = { { value = "none", text = "None" } }
+    local values = { { value = "none", text = L["None"] } }
     for _, name in ipairs(names) do
         values[#values + 1] = { value = name, text = name }
     end
@@ -99,13 +105,13 @@ local function CreateAnimationSection(parent, yOffset, attentionState)
     local W = ns.Widgets
     local db = dtns.Addon.db
 
-    local header = W.CreateHeader(parent, "Animation")
+    local header = W.CreateHeader(parent, L["Animation"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local enableToggle = W.CreateToggle(parent, {
-        label = "Enable Animations",
-        tooltip = "Enable or disable all toast animations",
+        label = L["Enable Animations"],
+        tooltip = L["Enable or disable all toast animations"],
         get = function() return db.profile.animation.enableAnimations end,
         set = function(value)
             db.profile.animation.enableAnimations = value
@@ -129,13 +135,13 @@ local function CreateEntranceSection(parent, yOffset)
 
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, "Entrance")
+    local header = W.CreateHeader(parent, L["Entrance"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local duration = W.CreateSlider(parent, {
-        label = "Entrance Duration",
-        tooltip = "Duration of the entrance animation in seconds",
+        label = L["Entrance Duration"],
+        tooltip = L["Duration of the entrance animation in seconds"],
         min = 0.1, max = 1.0, step = 0.05,
         get = function() return db.profile.animation.entranceDuration end,
         set = function(value) db.profile.animation.entranceDuration = value end,
@@ -144,8 +150,8 @@ local function CreateEntranceSection(parent, yOffset)
     yOffset = yOffset - duration:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local animation = W.CreateDropdown(parent, {
-        label = "Entrance Animation",
-        tooltip = "Animation style for toast entrance",
+        label = L["Entrance Animation"],
+        tooltip = L["Animation style for toast entrance"],
         values = GetEntranceAnimationValues,
         get = function() return db.profile.animation.entranceAnimation end,
         set = function(value) db.profile.animation.entranceAnimation = value end,
@@ -154,8 +160,8 @@ local function CreateEntranceSection(parent, yOffset)
     yOffset = yOffset - animation:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local distance = W.CreateSlider(parent, {
-        label = "Entrance Distance",
-        tooltip = "Distance in pixels the toast travels during entrance",
+        label = L["Entrance Distance"],
+        tooltip = L["Distance in pixels the toast travels during entrance"],
         min = 50, max = 600, step = 10,
         get = function() return db.profile.animation.entranceDistance end,
         set = function(value) db.profile.animation.entranceDistance = value end,
@@ -172,13 +178,13 @@ local function CreateHoldSection(parent, yOffset)
 
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, "Hold")
+    local header = W.CreateHeader(parent, L["Hold"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local duration = W.CreateSlider(parent, {
-        label = "Hold Duration",
-        tooltip = "How long the toast stays visible before exiting",
+        label = L["Hold Duration"],
+        tooltip = L["How long the toast stays visible before exiting"],
         min = 1.0, max = 15.0, step = 0.5,
         get = function() return db.profile.animation.holdDuration end,
         set = function(value) db.profile.animation.holdDuration = value end,
@@ -195,13 +201,13 @@ local function CreateExitSection(parent, yOffset)
 
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, "Exit")
+    local header = W.CreateHeader(parent, L["Exit"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local duration = W.CreateSlider(parent, {
-        label = "Exit Duration",
-        tooltip = "Duration of the exit animation in seconds",
+        label = L["Exit Duration"],
+        tooltip = L["Duration of the exit animation in seconds"],
         min = 0.1, max = 2.0, step = 0.1,
         get = function() return db.profile.animation.exitDuration end,
         set = function(value) db.profile.animation.exitDuration = value end,
@@ -210,8 +216,8 @@ local function CreateExitSection(parent, yOffset)
     yOffset = yOffset - duration:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local animation = W.CreateDropdown(parent, {
-        label = "Exit Animation",
-        tooltip = "Animation style for toast exit",
+        label = L["Exit Animation"],
+        tooltip = L["Animation style for toast exit"],
         values = GetExitAnimationValues,
         get = function() return db.profile.animation.exitAnimation end,
         set = function(value) db.profile.animation.exitAnimation = value end,
@@ -220,8 +226,8 @@ local function CreateExitSection(parent, yOffset)
     yOffset = yOffset - animation:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local distance = W.CreateSlider(parent, {
-        label = "Exit Distance",
-        tooltip = "Distance in pixels the toast travels during exit",
+        label = L["Exit Distance"],
+        tooltip = L["Distance in pixels the toast travels during exit"],
         min = 50, max = 600, step = 10,
         get = function() return db.profile.animation.exitDistance end,
         set = function(value) db.profile.animation.exitDistance = value end,
@@ -238,13 +244,13 @@ local function CreateSlideSection(parent, yOffset)
 
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, "Slide")
+    local header = W.CreateHeader(parent, L["Slide"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local speed = W.CreateSlider(parent, {
-        label = "Slide Speed",
-        tooltip = "Speed of the slide animation when toasts reposition",
+        label = L["Slide Speed"],
+        tooltip = L["Speed of the slide animation when toasts reposition"],
         min = 0.05, max = 0.5, step = 0.05,
         get = function() return db.profile.animation.slideSpeed end,
         set = function(value) db.profile.animation.slideSpeed = value end,
@@ -261,15 +267,15 @@ local function CreateAttentionSection(parent, yOffset, attentionState)
 
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, "Attention")
+    local header = W.CreateHeader(parent, L["Attention"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local attentionDropdown
 
     attentionDropdown = W.CreateDropdown(parent, {
-        label = "Attention Animation",
-        tooltip = "Animation to draw attention to high-quality items",
+        label = L["Attention Animation"],
+        tooltip = L["Animation to draw attention to high-quality items"],
         values = GetAttentionAnimationValues,
         get = function() return db.profile.animation.attentionAnimation end,
         set = function(value)
@@ -287,8 +293,8 @@ local function CreateAttentionSection(parent, yOffset, attentionState)
         or db.profile.animation.attentionAnimation == "none"
 
     local minQuality = W.CreateDropdown(parent, {
-        label = "Attention Min Quality",
-        tooltip = "Minimum item quality required to trigger the attention animation",
+        label = L["Attention Min Quality"],
+        tooltip = L["Minimum item quality required to trigger the attention animation"],
         values = QUALITY_VALUES,
         get = function() return db.profile.animation.attentionMinQuality end,
         set = function(value) db.profile.animation.attentionMinQuality = tonumber(value) end,
@@ -298,8 +304,8 @@ local function CreateAttentionSection(parent, yOffset, attentionState)
     yOffset = yOffset - minQuality:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local repeatCount = W.CreateSlider(parent, {
-        label = "Attention Repeat Count",
-        tooltip = "Number of times the attention animation repeats",
+        label = L["Attention Repeat Count"],
+        tooltip = L["Number of times the attention animation repeats"],
         min = 1, max = 5, step = 1,
         get = function() return db.profile.animation.attentionRepeatCount end,
         set = function(value) db.profile.animation.attentionRepeatCount = value end,
@@ -309,8 +315,8 @@ local function CreateAttentionSection(parent, yOffset, attentionState)
     yOffset = yOffset - repeatCount:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local delay = W.CreateSlider(parent, {
-        label = "Attention Delay",
-        tooltip = "Delay in seconds before the attention animation starts",
+        label = L["Attention Delay"],
+        tooltip = L["Delay in seconds before the attention animation starts"],
         min = 0, max = 1.0, step = 0.05,
         get = function() return db.profile.animation.attentionDelay end,
         set = function(value) db.profile.animation.attentionDelay = value end,
@@ -350,7 +356,7 @@ end
 ns.Tabs = ns.Tabs or {}
 ns.Tabs[#ns.Tabs + 1] = {
     id = "animation",
-    label = "Animation",
+    label = L["Animation"],
     order = 4,
     createFunc = CreateContent,
 }

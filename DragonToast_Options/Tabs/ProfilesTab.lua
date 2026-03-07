@@ -18,6 +18,12 @@ local StaticPopup_Show = StaticPopup_Show
 local StaticPopupDialogs = StaticPopupDialogs
 
 -------------------------------------------------------------------------------
+-- Localization
+-------------------------------------------------------------------------------
+
+local L = ns.L
+
+-------------------------------------------------------------------------------
 -- Namespace references
 -------------------------------------------------------------------------------
 
@@ -39,9 +45,9 @@ local PADDING_BOTTOM = 20
 -------------------------------------------------------------------------------
 
 StaticPopupDialogs["DRAGONTOAST_OPTIONS_RESET_PROFILE"] = {
-    text = "Are you sure you want to reset the current profile?",
-    button1 = "Reset",
-    button2 = "Cancel",
+    text = L["Are you sure you want to reset the current profile?"],
+    button1 = L["Reset"],
+    button2 = L["Cancel"],
     OnAccept = function()
         dtns.Addon.db:ResetProfile()
     end,
@@ -52,9 +58,9 @@ StaticPopupDialogs["DRAGONTOAST_OPTIONS_RESET_PROFILE"] = {
 }
 
 StaticPopupDialogs["DRAGONTOAST_OPTIONS_DELETE_PROFILE"] = {
-    text = "Are you sure you want to delete the profile \"%s\"?",
-    button1 = "Delete",
-    button2 = "Cancel",
+    text = L["Are you sure you want to delete the profile \"%s\"?"],
+    button1 = L["Delete"],
+    button2 = L["Cancel"],
     OnAccept = function(self)
         local profileName = self.data
         if profileName then
@@ -110,18 +116,18 @@ local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
     local db = dtns.Addon.db
     local newProfileName = ""
 
-    local header = W.CreateHeader(parent, "Current Profile")
+    local header = W.CreateHeader(parent, L["Current Profile"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local desc = W.CreateDescription(parent,
-        "Profiles allow you to save different configurations for different characters.")
+        L["Profiles allow you to save different configurations for different characters."])
     AnchorWidget(desc, parent, yOffset)
     yOffset = yOffset - desc:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local activeDropdown = W.CreateDropdown(parent, {
-        label = "Active Profile",
-        tooltip = "Select the active profile",
+        label = L["Active Profile"],
+        tooltip = L["Select the active profile"],
         values = GetProfileValues,
         get = function() return db:GetCurrentProfile() end,
         set = function(value)
@@ -133,8 +139,8 @@ local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
     yOffset = yOffset - activeDropdown:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local newProfileInput = W.CreateTextInput(parent, {
-        label = "New Profile Name",
-        tooltip = "Enter a name for a new profile",
+        label = L["New Profile Name"],
+        tooltip = L["Enter a name for a new profile"],
         get = function() return "" end,
         set = function(value) newProfileName = value end,
     })
@@ -142,8 +148,8 @@ local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
     yOffset = yOffset - newProfileInput:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local createButton = W.CreateButton(parent, {
-        text = "Create Profile",
-        tooltip = "Create a new profile with the entered name",
+        text = L["Create Profile"],
+        tooltip = L["Create a new profile with the entered name"],
         onClick = function()
             if newProfileName and newProfileName ~= "" then
                 db:SetProfile(newProfileName)
@@ -167,13 +173,13 @@ local function CreateActionsSection(parent, yOffset, refreshAll)
 
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, "Profile Actions")
+    local header = W.CreateHeader(parent, L["Profile Actions"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local copyDropdown = W.CreateDropdown(parent, {
-        label = "Copy From",
-        tooltip = "Copy settings from another profile",
+        label = L["Copy From"],
+        tooltip = L["Copy settings from another profile"],
         values = GetOtherProfileValues,
         get = function() return "" end,
         set = function(value)
@@ -188,8 +194,8 @@ local function CreateActionsSection(parent, yOffset, refreshAll)
     yOffset = yOffset - copyDropdown:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local resetButton = W.CreateButton(parent, {
-        text = "Reset Profile",
-        tooltip = "Reset the current profile to default settings",
+        text = L["Reset Profile"],
+        tooltip = L["Reset the current profile to default settings"],
         onClick = function()
             StaticPopup_Show("DRAGONTOAST_OPTIONS_RESET_PROFILE")
         end,
@@ -198,8 +204,8 @@ local function CreateActionsSection(parent, yOffset, refreshAll)
     yOffset = yOffset - resetButton:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local deleteDropdown = W.CreateDropdown(parent, {
-        label = "Delete Profile",
-        tooltip = "Delete a profile",
+        label = L["Delete Profile"],
+        tooltip = L["Delete a profile"],
         values = GetOtherProfileValues,
         get = function() return "" end,
         set = function(value)
@@ -262,7 +268,7 @@ end
 ns.Tabs = ns.Tabs or {}
 ns.Tabs[#ns.Tabs + 1] = {
     id = "profiles",
-    label = "Profiles",
+    label = L["Profiles"],
     order = 6,
     createFunc = CreateContent,
 }

@@ -19,7 +19,9 @@ local GetCoinTextureString = GetCoinTextureString
 local UIParent = UIParent
 local STANDARD_TEXT_FONT = STANDARD_TEXT_FONT
 local math_ceil = math.ceil
+local string_format = string.format
 local LSM = LibStub("LibSharedMedia-3.0")
+local L = ns.L
 
 -------------------------------------------------------------------------------
 -- Frame Pool
@@ -414,7 +416,7 @@ local function PopulateToast(frame, lootData)
         end
 
         if db.display.showLooter then
-            frame.looter:SetText("You")
+            frame.looter:SetText(L["You"])
             frame.looter:SetTextColor(0.3, 1.0, 0.3)
             frame.looter:Show()
         else
@@ -437,7 +439,7 @@ local function PopulateToast(frame, lootData)
         end
 
         if db.display.showLooter then
-            frame.looter:SetText("You")
+            frame.looter:SetText(L["You"])
             frame.looter:SetTextColor(0.3, 1.0, 0.3)
             frame.looter:Show()
         else
@@ -460,7 +462,7 @@ local function PopulateToast(frame, lootData)
         end
 
         if db.display.showLooter then
-            frame.looter:SetText("You")
+            frame.looter:SetText(L["You"])
             frame.looter:SetTextColor(0.3, 1.0, 0.3)
             frame.looter:Show()
         else
@@ -491,7 +493,7 @@ local function PopulateToast(frame, lootData)
         -- Item level
         if db.display.showItemLevel and lootData.itemLevel and lootData.itemLevel > 0
             and not lootData.isCurrency then
-            frame.itemLevel:SetText("ilvl " .. lootData.itemLevel)
+            frame.itemLevel:SetText(string_format(L["ilvl %s"], lootData.itemLevel))
             frame.itemLevel:Show()
         else
             frame.itemLevel:Hide()
@@ -513,7 +515,7 @@ local function PopulateToast(frame, lootData)
         -- Looter
         if db.display.showLooter and lootData.looter then
             if lootData.isSelf then
-                frame.looter:SetText("You")
+                frame.looter:SetText(L["You"])
                 frame.looter:SetTextColor(0.3, 1.0, 0.3)
             else
                 frame.looter:SetText(lootData.looter)

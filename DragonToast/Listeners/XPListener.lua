@@ -15,7 +15,9 @@ local Utils = ns.ListenerUtils
 local GetTime = GetTime
 local UnitName = UnitName
 local tonumber = tonumber
+local string_format = string.format
 local string_match = string.match
+local L = ns.L
 
 
 -------------------------------------------------------------------------------
@@ -153,13 +155,13 @@ local function OnChatMsgCombatXPGain(_event, text)
         xpAmount = xpAmount,
         mobName = mobName,
         itemIcon = XP_ICON,
-        itemName = "+" .. ns.FormatNumber(xpAmount) .. " XP",
+        itemName = string_format(L["+%s XP"], ns.FormatNumber(xpAmount)),
         itemQuality = XP_QUALITY,
         itemLevel = 0,
         itemType = nil,
         itemSubType = nil,
         quantity = 1,
-        looter = UnitName("player") or "You",
+        looter = UnitName("player") or L["You"],
         isSelf = true,
         isCurrency = false,
         timestamp = GetTime(),

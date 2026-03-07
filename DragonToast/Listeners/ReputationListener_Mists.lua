@@ -25,7 +25,9 @@ local Utils = ns.ListenerUtils
 local GetTime = GetTime
 local UnitName = UnitName
 local tonumber = tonumber
+local string_format = string.format
 local string_match = string.match
+local L = ns.L
 
 -------------------------------------------------------------------------------
 -- Constants
@@ -101,13 +103,13 @@ local function OnChatMsgCombatFactionChange(_event, text)
         reputationAmount = reputationAmount,
         factionName = factionName,
         itemIcon = REPUTATION_ICON_FALLBACK,
-        itemName = "+" .. ns.FormatNumber(reputationAmount) .. " Reputation",
+        itemName = string_format(L["+%s Reputation"], ns.FormatNumber(reputationAmount)),
         itemQuality = REPUTATION_QUALITY,
         itemLevel = 0,
         itemType = nil,
         itemSubType = nil,
         quantity = 1,
-        looter = UnitName("player") or "You",
+        looter = UnitName("player") or L["You"],
         isSelf = true,
         isCurrency = false,
         timestamp = GetTime(),

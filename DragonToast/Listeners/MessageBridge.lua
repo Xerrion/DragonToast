@@ -17,6 +17,7 @@ local tonumber = tonumber
 local type = type
 local next = next
 local wipe = wipe
+local L = ns.L
 
 -------------------------------------------------------------------------------
 -- Module
@@ -123,16 +124,16 @@ end
 
 -- Map numeric roll types to display names
 local rollTypeNames = {
-    [0] = "Pass",
-    [1] = "Need",
-    [2] = "Greed",
-    [3] = "Disenchant",
-    [4] = "Transmog",
+    [0] = L["Pass"],
+    [1] = L["Need"],
+    [2] = L["Greed"],
+    [3] = L["Disenchant"],
+    [4] = L["Transmog"],
 }
 
 local function BuildRollWonToast(rollData)
     -- Build human-readable roll display (e.g. "Need (87)")
-    local rollTypeName = rollTypeNames[rollData.rollType] or "Roll"
+    local rollTypeName = rollTypeNames[rollData.rollType] or L["Roll"]
     local rollDisplay = rollTypeName
     if rollData.rollValue then
         rollDisplay = rollTypeName .. " (" .. rollData.rollValue .. ")"
@@ -142,14 +143,14 @@ local function BuildRollWonToast(rollData)
         isRollWin = true,
         itemLink = rollData.itemLink,
         itemID = rollData.itemID or (rollData.itemLink and tonumber(rollData.itemLink:match("item:(%d+)"))),
-        itemName = rollData.itemName or UNKNOWN or "Unknown",
+        itemName = rollData.itemName or UNKNOWN or L["Unknown"],
         itemQuality = rollData.itemQuality or 1,
         itemIcon = rollData.itemIcon,
         itemLevel = 0,
         itemType = rollDisplay,
         itemSubType = nil,
         quantity = rollData.quantity or 1,
-        looter = rollData.winnerName or UnitName("player") or "You",
+        looter = rollData.winnerName or UnitName("player") or L["You"],
         isSelf = rollData.isSelf ~= false, -- default true for backward compat
         isCurrency = false,
         timestamp = GetTime(),
