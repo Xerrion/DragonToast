@@ -66,7 +66,8 @@ end
 
 local function PrintHelp()
     print(ns.COLOR_GOLD .. "--- DragonToast Commands ---" .. ns.COLOR_RESET)
-    print("  " .. ns.COLOR_WHITE .. "/dt" .. ns.COLOR_RESET .. " — Toggle addon on/off")
+    print("  " .. ns.COLOR_WHITE .. "/dt" .. ns.COLOR_RESET .. " — Show this help")
+    print("  " .. ns.COLOR_WHITE .. "/dt toggle" .. ns.COLOR_RESET .. " — Toggle addon on/off")
     print("  " .. ns.COLOR_WHITE .. "/dt config" .. ns.COLOR_RESET .. " — Open settings panel")
     print("  " .. ns.COLOR_WHITE .. "/dt lock" .. ns.COLOR_RESET .. " — Toggle anchor lock (drag to move)")
     print("  " .. ns.COLOR_WHITE .. "/dt test" .. ns.COLOR_RESET .. " — Show a test toast")
@@ -92,20 +93,28 @@ local function NormalizeCommand(input)
     return string_lower(trimmedInput)
 end
 
+local function ToggleAddon()
+    local db = ns.Addon.db.profile
+    db.enabled = not db.enabled
+
+    if db.enabled then
+        ns.Addon:OnEnable()
+        ns.Print("Addon " .. ns.COLOR_GREEN .. "enabled" .. ns.COLOR_RESET)
+        return
+    end
+
+    ns.Addon:OnDisable()
+    ns.Print("Addon " .. ns.COLOR_RED .. "disabled" .. ns.COLOR_RESET)
+end
+
 function ns.HandleSlashCommand(input)
     local cmd = NormalizeCommand(input)
 
     if cmd == "" then
-        -- Toggle addon
-        local db = ns.Addon.db.profile
-        db.enabled = not db.enabled
-        if db.enabled then
-            ns.Addon:OnEnable()
-            ns.Print("Addon " .. ns.COLOR_GREEN .. "enabled" .. ns.COLOR_RESET)
-        else
-            ns.Addon:OnDisable()
-            ns.Print("Addon " .. ns.COLOR_RED .. "disabled" .. ns.COLOR_RESET)
-        end
+        PrintHelp()
+
+    elseif cmd == "toggle" then
+        ToggleAddon()
 
     elseif cmd == "config" or cmd == "options" or cmd == "settings" then
         -- Open options panel

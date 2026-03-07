@@ -57,19 +57,28 @@
 
 ## ⌨️ Commands
 
-All commands use the `/dt` prefix (or the full `/dragontoast`):
+Use `/dt` or `/dragontoast`.
 
-| Command         | Description                             |
-|:----------------|:----------------------------------------|
-| `/dt`           | Toggle addon on/off                     |
-| `/dt config`    | Open settings panel                     |
-| `/dt lock`      | Toggle anchor lock (drag to reposition) |
-| `/dt test`      | Show a test toast                       |
-| `/dt testmode`  | Toggle continuous test toasts           |
-| `/dt clear`     | Dismiss all active toasts               |
-| `/dt reset`     | Reset anchor position to default        |
-| `/dt status`    | Show current settings                   |
-| `/dt help`      | Show available commands                 |
+Typing `/dt` by itself shows the help list. Use `/dt toggle` if you want to enable or disable the addon.
+
+| Command | What it does |
+|:--------|:-------------|
+| `/dt` | Show the help list |
+| `/dt help` | Show the help list |
+| `/dt toggle` | Turn DragonToast on or off |
+| `/dt config` | Open the settings panel |
+| `/dt lock` | Lock or unlock the toast anchor so you can move it |
+| `/dt test` | Show a single test toast |
+| `/dt test stack` | Test item stacking with rapid item toasts |
+| `/dt test xp` | Test XP stacking |
+| `/dt test gold` | Test gold stacking |
+| `/dt test honor` | Test honor stacking |
+| `/dt test reputation` | Test reputation stacking |
+| `/dt test all` | Run all stacking tests |
+| `/dt testmode` | Toggle continuous test toasts |
+| `/dt clear` | Dismiss all active toasts |
+| `/dt reset` | Reset the toast anchor to its default position |
+| `/dt status` | Show your current DragonToast settings |
 
 ## ⚙️ Configuration
 
