@@ -1,25 +1,22 @@
 -------------------------------------------------------------------------------
--- LootListener_Retail.lua
--- Retail loot event parsing (also used by MoP Classic)
+-- LootListener_Mists.lua
+-- MoP Classic loot event parsing
 --
--- Supported versions: Retail, MoP Classic
+-- Supported versions: MoP Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
-local Utils = ns.ListenerUtils
 
 -------------------------------------------------------------------------------
--- Version guard: only run on Retail or MoP Classic
+-- Version guard: only run on MoP Classic
 -------------------------------------------------------------------------------
 
 local WOW_PROJECT_ID = WOW_PROJECT_ID
-local WOW_PROJECT_MAINLINE = WOW_PROJECT_MAINLINE
 local WOW_PROJECT_MISTS_CLASSIC = WOW_PROJECT_MISTS_CLASSIC
 
-if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
-    and WOW_PROJECT_ID ~= WOW_PROJECT_MISTS_CLASSIC then
-    return
-end
+if WOW_PROJECT_ID ~= WOW_PROJECT_MISTS_CLASSIC then return end
+
+local Utils = ns.ListenerUtils
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -193,11 +190,11 @@ end
 function ns.LootListener.Initialize(addon)
     addon:RegisterEvent("CHAT_MSG_LOOT", OnChatMsgLoot)
     addon:RegisterEvent("CHAT_MSG_MONEY", OnChatMsgMoney)
-    ns.DebugPrint("Retail Loot Listener initialized")
+    ns.DebugPrint("Mists Loot Listener initialized")
 end
 
 function ns.LootListener.Shutdown()
     ns.Addon:UnregisterEvent("CHAT_MSG_LOOT")
     ns.Addon:UnregisterEvent("CHAT_MSG_MONEY")
-    ns.DebugPrint("Retail Loot Listener shut down")
+    ns.DebugPrint("Mists Loot Listener shut down")
 end

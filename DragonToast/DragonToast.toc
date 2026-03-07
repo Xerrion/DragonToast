@@ -46,11 +46,11 @@ Listeners\ReputationListener_Retail.lua
 Listeners\CurrencyListener_Retail.lua
 #@end-retail@
 #@version-mists@
-Listeners\LootListener_Retail.lua
-Listeners\MailListener_Retail.lua
-Listeners\HonorListener_Retail.lua
-Listeners\ReputationListener_Retail.lua
-Listeners\CurrencyListener_Retail.lua
+Listeners\LootListener_Mists.lua
+Listeners\MailListener_Mists.lua
+Listeners\HonorListener_Mists.lua
+Listeners\ReputationListener_Mists.lua
+Listeners\CurrencyListener_Mists.lua
 #@end-version-mists@
 
 # Shared listeners

@@ -413,6 +413,33 @@ describe("ToastManager", function()
             assert.equal(5, T.activeToasts[1].lootData.quantity)
         end)
 
+        it("keeps stacked active toasts in their current slot", function()
+            T.ShowToast(makeItemData({ itemID = 111, quantity = 1 }))
+            local olderToast = T.activeToasts[1]
+
+            T.ShowToast(makeItemData({ itemID = 222, quantity = 1 }))
+            local newerToast = T.activeToasts[1]
+
+            T.ShowToast(makeItemData({ itemID = 111, quantity = 2 }))
+
+            assert.equal(2, #T.activeToasts)
+            assert.equal(newerToast, T.activeToasts[1])
+            assert.equal(olderToast, T.activeToasts[2])
+            assert.equal(3, T.activeToasts[2].lootData.quantity)
+        end)
+
+        it("does not stack onto exiting active toasts", function()
+            T.ShowToast(makeItemData({ itemID = 111, quantity = 1 }))
+            T.activeToasts[1]._isExiting = true
+            T.activeToasts[1]._phase = "exit"
+
+            T.ShowToast(makeItemData({ itemID = 111, quantity = 2 }))
+
+            assert.equal(2, #T.activeToasts)
+            assert.equal(2, T.activeToasts[1].lootData.quantity)
+            assert.equal(1, T.activeToasts[2].lootData.quantity)
+        end)
+
         it("early returns for queue duplicates", function()
             ns.Addon.db.profile.display.maxToasts = 0
             T.ShowToast(makeXPData({ xpAmount = 100 }))

@@ -2,12 +2,16 @@ package-as: DragonToast
 enable-toc-creation: yes
 manual-changelog: .release/CHANGELOG.md
 
+move-folders:
+    DragonToast/DragonToast: DragonToast
+    DragonToast/DragonToast_Options: DragonToast_Options
+
 externals:
-  Libs/Ace3: https://repos.wowace.com/wow/ace3/trunk
-  Libs/LibDataBroker-1.1: https://github.com/tekkub/libdatabroker-1-1
-  Libs/LibDBIcon-1.0: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
-  Libs/LibSharedMedia-3.0: https://repos.wowace.com/wow/libsharedmedia-3-0/trunk/LibSharedMedia-3.0
-  Libs/LibAnimate: https://github.com/Xerrion/LibAnimate
+  DragonToast/Libs/Ace3: https://repos.wowace.com/wow/ace3/trunk
+  DragonToast/Libs/LibDataBroker-1.1: https://github.com/tekkub/libdatabroker-1-1
+  DragonToast/Libs/LibDBIcon-1.0: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
+  DragonToast/Libs/LibSharedMedia-3.0: https://repos.wowace.com/wow/libsharedmedia-3-0/trunk/LibSharedMedia-3.0
+  DragonToast/Libs/LibAnimate: https://github.com/Xerrion/LibAnimate
 
 ignore:
   - ".git*"
@@ -21,6 +25,3 @@ ignore:
   - spec/
   - scripts/
   - "Assets/*logo*"
-
-move-folders:
-    DragonToast/DragonToast_Options: DragonToast_Options

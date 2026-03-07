@@ -1,25 +1,22 @@
 -------------------------------------------------------------------------------
--- CurrencyListener_Retail.lua
+-- CurrencyListener_Mists.lua
 -- Currency gain toast notifications with proper icon lookup
 --
--- Supported versions: Retail, MoP Classic
+-- Supported versions: MoP Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
-local Utils = ns.ListenerUtils
 
 -------------------------------------------------------------------------------
--- Version guard: only run on Retail or MoP Classic
+-- Version guard: only run on MoP Classic
 -------------------------------------------------------------------------------
 
 local WOW_PROJECT_ID = WOW_PROJECT_ID
-local WOW_PROJECT_MAINLINE = WOW_PROJECT_MAINLINE
 local WOW_PROJECT_MISTS_CLASSIC = WOW_PROJECT_MISTS_CLASSIC
 
-if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
-    and WOW_PROJECT_ID ~= WOW_PROJECT_MISTS_CLASSIC then
-    return
-end
+if WOW_PROJECT_ID ~= WOW_PROJECT_MISTS_CLASSIC then return end
+
+local Utils = ns.ListenerUtils
 
 -------------------------------------------------------------------------------
 -- Cached WoW API

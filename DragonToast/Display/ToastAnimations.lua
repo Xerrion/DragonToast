@@ -154,37 +154,12 @@ end
 -------------------------------------------------------------------------------
 -- Update lifecycle for duplicate/stacking items
 --
--- Restarts from the attention-or-hold phase when possible, giving visual
--- feedback and resetting the hold timer without replaying the entrance.
+-- Preserve the current lifecycle. Active duplicate stacks update content only
+-- so older toasts do not gain extra lifetime or replay animations.
 -------------------------------------------------------------------------------
 
-function ns.ToastAnimations.UpdateLifecycle(frame, lootData)
-    local db = ns.Addon.db.profile
-
-    -- No-animation mode: just reset the hold timer
-    if not db.animation.enableAnimations then
-        if frame._noAnimTimer then
-            ns.Addon:CancelTimer(frame._noAnimTimer)
-        end
-        frame._noAnimTimer = ns.Addon:ScheduleTimer(function()
-            frame._noAnimTimer = nil
-            frame._phase = nil
-            OnToastFinished(frame)
-        end, db.animation.holdDuration)
-        return
-    end
-
-    -- If exiting, no phase, or still in entrance: full restart
-    if frame._isExiting or frame._phase == nil or frame._phase == "entrance" then
-        ns.ToastAnimations.PlayLifecycle(frame, lootData)
-        return
-    end
-
-    -- In attention or hold: stop current animation, restart from attention
-    frame._isExiting = false
-    lib:Stop(frame)
-    RestoreLogicalAnchor(frame)
-    PlayAttentionOrHold(frame, db, lootData, function() OnToastFinished(frame) end)
+function ns.ToastAnimations.UpdateLifecycle(frame, _lootData)
+    if frame._isExiting or frame._phase == nil then return end
 end
 
 -------------------------------------------------------------------------------

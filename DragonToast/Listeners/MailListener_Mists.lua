@@ -1,25 +1,22 @@
 -------------------------------------------------------------------------------
--- MailListener_Retail.lua
+-- MailListener_Mists.lua
 -- Mailbox item and gold collection toast notifications
 --
--- Supported versions: Retail, MoP Classic
+-- Supported versions: MoP Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
-local Utils = ns.ListenerUtils
 
 -------------------------------------------------------------------------------
--- Version guard: only run on Retail or MoP Classic
+-- Version guard: only run on MoP Classic
 -------------------------------------------------------------------------------
 
 local WOW_PROJECT_ID = WOW_PROJECT_ID
-local WOW_PROJECT_MAINLINE = WOW_PROJECT_MAINLINE
 local WOW_PROJECT_MISTS_CLASSIC = WOW_PROJECT_MISTS_CLASSIC
 
-if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
-    and WOW_PROJECT_ID ~= WOW_PROJECT_MISTS_CLASSIC then
-    return
-end
+if WOW_PROJECT_ID ~= WOW_PROJECT_MISTS_CLASSIC then return end
+
+local Utils = ns.ListenerUtils
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -323,7 +320,7 @@ function ns.MailListener.Initialize(addon)
     addon:RegisterEvent("MAIL_SUCCESS", function() OnMailSuccess() end)
     addon:RegisterEvent("MAIL_FAILED", function() OnMailFailed() end)
 
-    ns.DebugPrint("Retail Mail Listener initialized")
+    ns.DebugPrint("Mists Mail Listener initialized")
 end
 
 function ns.MailListener.Shutdown()
@@ -335,5 +332,5 @@ function ns.MailListener.Shutdown()
     isMailboxOpen = false
     QueueReset(pendingTakes)
 
-    ns.DebugPrint("Retail Mail Listener shut down")
+    ns.DebugPrint("Mists Mail Listener shut down")
 end

@@ -200,7 +200,7 @@ local function FindDuplicate(lootData)
 
     -- Search active toasts first
     for i, toast in ipairs(activeToasts) do
-        if toast.lootData and (now - toast.lootData.timestamp) < DUPLICATE_WINDOW then
+        if not toast._isExiting and toast.lootData and (now - toast.lootData.timestamp) < DUPLICATE_WINDOW then
             -- XP/honor toast stacking: merge consecutive XP or honor gains
             if lootData.isXP and toast.lootData.isXP then
                 return toast, i
@@ -325,7 +325,7 @@ local function ShowToast(lootData)
             existing.lootData.quantity = (existing.lootData.quantity or 1) + (lootData.quantity or 1)
         end
         ns.ToastFrame.Populate(existing, existing.lootData)
-        -- Update the running lifecycle without restarting from scratch
+        -- Preserve the current lifecycle - stacked active toasts only update content.
         ns.ToastAnimations.UpdateLifecycle(existing, existing.lootData)
         return
     end
