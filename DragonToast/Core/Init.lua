@@ -36,6 +36,13 @@ ns.QUALITY_COLORS = {
 }
 
 -------------------------------------------------------------------------------
+-- Localization
+-------------------------------------------------------------------------------
+
+ns.L = LibStub("AceLocale-3.0"):GetLocale(ADDON_NAME)
+local L = ns.L
+
+-------------------------------------------------------------------------------
 -- Namespace sub-tables (populated by other files)
 -------------------------------------------------------------------------------
 
@@ -120,7 +127,7 @@ function Addon:OnInitialize()
         ns.MinimapIcon.Initialize()
     end
 
-    ns.Print("Loaded. Type " .. ns.COLOR_WHITE .. "/dt help" .. ns.COLOR_RESET .. " for commands.")
+    ns.Print(L["Loaded. Type /dt help for commands."])
 end
 
 function Addon:OnEnable()

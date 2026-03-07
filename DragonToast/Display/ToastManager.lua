@@ -18,6 +18,8 @@ local UnitName = UnitName
 local UIParent = UIParent
 local CreateFrame = CreateFrame
 local LSM = LibStub("LibSharedMedia-3.0")
+local L = ns.L
+local string_format = string.format
 
 -------------------------------------------------------------------------------
 -- State
@@ -98,7 +100,7 @@ local function CreateAnchorFrame()
 
     local dragText = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     dragText:SetPoint("CENTER")
-    dragText:SetText("Drag to move")
+    dragText:SetText(L["Drag to move"])
 
     overlay:SetScript("OnMouseDown", function(_self, button)
         if button == "LeftButton" then
@@ -238,18 +240,19 @@ local function FindDuplicate(lootData)
                 if lootData.isXP and entry.isXP then
                     -- Stack XP in-place
                     entry.xpAmount = (entry.xpAmount or 0) + (lootData.xpAmount or 0)
-                    entry.itemName = "+" .. ns.ToastManager.FormatNumber(entry.xpAmount) .. " XP"
+                    entry.itemName = string_format(L["+%s XP"], ns.ToastManager.FormatNumber(entry.xpAmount))
                     entry.timestamp = now
                     return entry, nil -- nil index signals queued (not active)
                 elseif lootData.isHonor and entry.isHonor then
                     entry.honorAmount = (entry.honorAmount or 0) + (lootData.honorAmount or 0)
-                    entry.itemName = "+" .. ns.ToastManager.FormatNumber(entry.honorAmount) .. " Honor"
+                    entry.itemName = string_format(L["+%s Honor"], ns.ToastManager.FormatNumber(entry.honorAmount))
                     entry.timestamp = now
                     return entry, nil -- nil index signals queued (not active)
                 elseif lootData.isReputation and entry.isReputation
                     and entry.factionName == lootData.factionName then
                     entry.reputationAmount = (entry.reputationAmount or 0) + (lootData.reputationAmount or 0)
-                    entry.itemName = "+" .. ns.ToastManager.FormatNumber(entry.reputationAmount) .. " Reputation"
+                    entry.itemName = string_format(L["+%s Reputation"],
+                        ns.ToastManager.FormatNumber(entry.reputationAmount))
                     entry.timestamp = now
                     return entry, nil -- nil index signals queued (not active)
                 elseif entry.copperAmount and lootData.copperAmount then
@@ -305,17 +308,19 @@ local function ShowToast(lootData)
         if lootData.isXP then
             -- Stack XP: sum amounts and update display name
             existing.lootData.xpAmount = (existing.lootData.xpAmount or 0) + (lootData.xpAmount or 0)
-            existing.lootData.itemName = "+" .. ns.ToastManager.FormatNumber(existing.lootData.xpAmount) .. " XP"
+            existing.lootData.itemName = string_format(L["+%s XP"],
+                ns.ToastManager.FormatNumber(existing.lootData.xpAmount))
             existing.lootData.timestamp = GetTime()
         elseif lootData.isHonor then
             existing.lootData.honorAmount = (existing.lootData.honorAmount or 0) + (lootData.honorAmount or 0)
-            existing.lootData.itemName = "+" .. ns.ToastManager.FormatNumber(existing.lootData.honorAmount) .. " Honor"
+            existing.lootData.itemName = string_format(L["+%s Honor"],
+                ns.ToastManager.FormatNumber(existing.lootData.honorAmount))
             existing.lootData.timestamp = GetTime()
         elseif lootData.isReputation then
             existing.lootData.reputationAmount = (existing.lootData.reputationAmount or 0)
                 + (lootData.reputationAmount or 0)
-            existing.lootData.itemName = "+" .. ns.ToastManager.FormatNumber(existing.lootData.reputationAmount)
-                .. " Reputation"
+            existing.lootData.itemName = string_format(L["+%s Reputation"],
+                ns.ToastManager.FormatNumber(existing.lootData.reputationAmount))
             existing.lootData.timestamp = GetTime()
         elseif existing.lootData.copperAmount and lootData.copperAmount then
             existing.lootData.copperAmount = existing.lootData.copperAmount + lootData.copperAmount
@@ -486,7 +491,7 @@ function ns.ToastManager.ShowTestToast()
             xpAmount = amount,
             mobName = (math.random(2) == 1) and "Test Creature" or nil,
             itemIcon = test.icon,
-            itemName = "+" .. ns.ToastManager.FormatNumber(amount) .. " XP",
+            itemName = string_format(L["+%s XP"], ns.ToastManager.FormatNumber(amount)),
             itemQuality = test.quality,
             itemLevel = 0,
             quantity = 1,
@@ -502,7 +507,7 @@ function ns.ToastManager.ShowTestToast()
             honorAmount = amount,
             victimName = test.victimName,
             itemIcon = test.icon,
-            itemName = "+" .. ns.ToastManager.FormatNumber(amount) .. " Honor",
+            itemName = string_format(L["+%s Honor"], ns.ToastManager.FormatNumber(amount)),
             itemQuality = test.quality,
             itemLevel = 0,
             itemType = nil,
@@ -520,7 +525,7 @@ function ns.ToastManager.ShowTestToast()
             reputationAmount = amount,
             factionName = test.factionName,
             itemIcon = test.icon,
-            itemName = "+" .. ns.ToastManager.FormatNumber(amount) .. " Reputation",
+            itemName = string_format(L["+%s Reputation"], ns.ToastManager.FormatNumber(amount)),
             itemQuality = test.quality,
             itemLevel = 0,
             itemType = nil,
@@ -649,7 +654,7 @@ function ns.ToastManager.RunStackTest(testType)
             isXP = true,
             xpAmount = 500,
             itemIcon = 894556,
-            itemName = "+500 XP",
+            itemName = string_format(L["+%s XP"], ns.ToastManager.FormatNumber(500)),
             itemQuality = 1,
             itemLevel = 0,
             quantity = 1,
@@ -685,7 +690,7 @@ function ns.ToastManager.RunStackTest(testType)
             honorAmount = 100,
             victimName = "Enemy Player",
             itemIcon = ns.HonorListener.GetHonorIcon(),
-            itemName = "+100 Honor",
+            itemName = string_format(L["+%s Honor"], ns.ToastManager.FormatNumber(100)),
             itemQuality = 1,
             itemLevel = 0,
             quantity = 1,
@@ -702,7 +707,7 @@ function ns.ToastManager.RunStackTest(testType)
             reputationAmount = 250,
             factionName = "The Sha'tar",
             itemIcon = ns.ReputationListener.GetReputationIcon(),
-            itemName = "+250 Reputation",
+            itemName = string_format(L["+%s Reputation"], ns.ToastManager.FormatNumber(250)),
             itemQuality = 1,
             itemLevel = 0,
             quantity = 1,

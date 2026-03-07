@@ -30,6 +30,8 @@ local GetItemInfo = GetItemInfo
 local GetTime = GetTime
 local UnitName = UnitName
 local hooksecurefunc = hooksecurefunc
+local string_format = string.format
+local L = ns.L
 
 -------------------------------------------------------------------------------
 -- Module table
@@ -84,17 +86,17 @@ local function GetMailSourceLabel(index)
     if isInvoice then
         local invoiceType = GetInboxInvoiceInfo(index)
         if invoiceType == "buyer" then
-            return "Auction Won"
+            return L["Auction Won"]
         elseif invoiceType == "seller" or invoiceType == "seller_temp_invoice" then
-            return "Auction Sale"
+            return L["Auction Sale"]
         end
     end
 
     local _, _, sender = GetInboxHeaderInfo(index)
     if sender and sender ~= "" then
-        return "Mail - " .. sender
+        return string_format(L["Mail - %s"], sender)
     end
-    return "Mail"
+    return L["Mail"]
 end
 
 -------------------------------------------------------------------------------

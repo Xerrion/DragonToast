@@ -7,7 +7,6 @@
 ## Version: @project-version@
 ## Dependencies: DragonToast
 ## LoadOnDemand: 1
-## X-Part-Of: DragonToast
 
 Core.lua
 

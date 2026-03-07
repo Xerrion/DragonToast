@@ -15,6 +15,12 @@ local math_abs = math.abs
 local tonumber = tonumber
 
 -------------------------------------------------------------------------------
+-- Localization
+-------------------------------------------------------------------------------
+
+local L = ns.L
+
+-------------------------------------------------------------------------------
 -- Namespace references
 -------------------------------------------------------------------------------
 
@@ -57,13 +63,13 @@ local function CreateQualitySection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
 
-    local header = W.CreateHeader(parent, "Loot Quality")
+    local header = W.CreateHeader(parent, L["Loot Quality"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local minQuality = W.CreateDropdown(parent, {
-        label = "Minimum Quality",
-        tooltip = "Only show toasts for items of this quality or higher",
+        label = L["Minimum Quality"],
+        tooltip = L["Only show toasts for items of this quality or higher"],
         values = QUALITY_VALUES,
         get = function() return db.profile.filters.minQuality end,
         set = function(value) db.profile.filters.minQuality = tonumber(value) end,
@@ -80,13 +86,13 @@ local function CreateSourcesSection(parent, yOffset)
 
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, "Loot Sources")
+    local header = W.CreateHeader(parent, L["Loot Sources"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local selfLoot = W.CreateToggle(parent, {
-        label = "Show Self Loot",
-        tooltip = "Show toasts when you loot items",
+        label = L["Show Self Loot"],
+        tooltip = L["Show toasts when you loot items"],
         get = function() return db.profile.filters.showSelfLoot end,
         set = function(value) db.profile.filters.showSelfLoot = value end,
     })
@@ -94,8 +100,8 @@ local function CreateSourcesSection(parent, yOffset)
     yOffset = yOffset - selfLoot:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local groupLoot = W.CreateToggle(parent, {
-        label = "Show Group Loot",
-        tooltip = "Show toasts when group members receive loot",
+        label = L["Show Group Loot"],
+        tooltip = L["Show toasts when group members receive loot"],
         get = function() return db.profile.filters.showGroupLoot end,
         set = function(value) db.profile.filters.showGroupLoot = value end,
     })
@@ -103,8 +109,8 @@ local function CreateSourcesSection(parent, yOffset)
     yOffset = yOffset - groupLoot:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local questItems = W.CreateToggle(parent, {
-        label = "Show Quest Items",
-        tooltip = "Show toasts for quest item pickups",
+        label = L["Show Quest Items"],
+        tooltip = L["Show toasts for quest item pickups"],
         get = function() return db.profile.filters.showQuestItems end,
         set = function(value) db.profile.filters.showQuestItems = value end,
     })
@@ -112,8 +118,8 @@ local function CreateSourcesSection(parent, yOffset)
     yOffset = yOffset - questItems:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local mail = W.CreateToggle(parent, {
-        label = "Show Mail",
-        tooltip = "Show toasts for mail attachments",
+        label = L["Show Mail"],
+        tooltip = L["Show toasts for mail attachments"],
         get = function() return db.profile.filters.showMail end,
         set = function(value) db.profile.filters.showMail = value end,
     })
@@ -129,13 +135,13 @@ local function CreateCurrencySection(parent, yOffset)
 
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, "Currency and Rewards")
+    local header = W.CreateHeader(parent, L["Currency and Rewards"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local gold = W.CreateToggle(parent, {
-        label = "Show Gold",
-        tooltip = "Show toasts for gold gains",
+        label = L["Show Gold"],
+        tooltip = L["Show toasts for gold gains"],
         get = function() return db.profile.filters.showGold end,
         set = function(value) db.profile.filters.showGold = value end,
     })
@@ -143,8 +149,8 @@ local function CreateCurrencySection(parent, yOffset)
     yOffset = yOffset - gold:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local currency = W.CreateToggle(parent, {
-        label = "Show Currency",
-        tooltip = "Show toasts for currency gains",
+        label = L["Show Currency"],
+        tooltip = L["Show toasts for currency gains"],
         get = function() return db.profile.filters.showCurrency end,
         set = function(value) db.profile.filters.showCurrency = value end,
     })
@@ -152,8 +158,8 @@ local function CreateCurrencySection(parent, yOffset)
     yOffset = yOffset - currency:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local xp = W.CreateToggle(parent, {
-        label = "Show XP",
-        tooltip = "Show toasts for experience gains",
+        label = L["Show XP"],
+        tooltip = L["Show toasts for experience gains"],
         get = function() return db.profile.filters.showXP end,
         set = function(value) db.profile.filters.showXP = value end,
     })
@@ -161,8 +167,8 @@ local function CreateCurrencySection(parent, yOffset)
     yOffset = yOffset - xp:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local honor = W.CreateToggle(parent, {
-        label = "Show Honor",
-        tooltip = "Show toasts for honor gains",
+        label = L["Show Honor"],
+        tooltip = L["Show toasts for honor gains"],
         get = function() return db.profile.filters.showHonor end,
         set = function(value) db.profile.filters.showHonor = value end,
     })
@@ -170,8 +176,8 @@ local function CreateCurrencySection(parent, yOffset)
     yOffset = yOffset - honor:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local reputation = W.CreateToggle(parent, {
-        label = "Show Reputation",
-        tooltip = "Show toasts for reputation gains",
+        label = L["Show Reputation"],
+        tooltip = L["Show toasts for reputation gains"],
         get = function() return db.profile.filters.showReputation end,
         set = function(value) db.profile.filters.showReputation = value end,
     })
@@ -203,7 +209,7 @@ end
 ns.Tabs = ns.Tabs or {}
 ns.Tabs[#ns.Tabs + 1] = {
     id = "filters",
-    label = "Filters",
+    label = L["Filters"],
     order = 2,
     createFunc = CreateContent,
 }

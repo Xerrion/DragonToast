@@ -21,7 +21,9 @@ local GetTime = GetTime
 local UnitName = UnitName
 local UnitFactionGroup = UnitFactionGroup
 local tonumber = tonumber
+local string_format = string.format
 local string_match = string.match
+local L = ns.L
 
 
 -------------------------------------------------------------------------------
@@ -111,13 +113,13 @@ local function OnChatMsgCombatHonorGain(_event, text)
         honorAmount = honorAmount,
         victimName = victimName,
         itemIcon = HONOR_ICON,
-        itemName = "+" .. ns.FormatNumber(honorAmount) .. " Honor",
+        itemName = string_format(L["+%s Honor"], ns.FormatNumber(honorAmount)),
         itemQuality = HONOR_QUALITY,
         itemLevel = 0,
         itemType = nil,
         itemSubType = nil,
         quantity = 1,
-        looter = UnitName("player") or "You",
+        looter = UnitName("player") or L["You"],
         isSelf = true,
         isCurrency = false,
         timestamp = GetTime(),

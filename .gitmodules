@@ -1,9 +1,6 @@
 [submodule "DragonToast/Libs/Ace3"]
 	path = DragonToast/Libs/Ace3
 	url = https://github.com/WoWUIDev/Ace3.git
-[submodule "DragonToast/Libs/LibAnimate"]
-	path = DragonToast/Libs/LibAnimate
-	url = https://github.com/Xerrion/LibAnimate.git
 [submodule "DragonToast/Libs/LibDataBroker-1.1"]
 	path = DragonToast/Libs/LibDataBroker-1.1
 	url = https://github.com/tekkub/libdatabroker-1-1.git
@@ -13,3 +10,6 @@
 [submodule "DragonToast/Libs/LibSharedMedia-3.0"]
 	path = DragonToast/Libs/LibSharedMedia-3.0
 	url = https://github.com/wowace-clone/LibSharedMedia-3.0.git
+[submodule "DragonToast/Libs/LibAnimate"]
+	path = DragonToast/Libs/LibAnimate
+	url = https://github.com/Xerrion/LibAnimate.git

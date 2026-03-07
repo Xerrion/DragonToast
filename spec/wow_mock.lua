@@ -276,6 +276,13 @@ function M.CreateNamespace()
         RegisterEvent = function() end,
     }
 
+    -- Mock AceLocale (identity passthrough: L["key"] returns "key")
+    ns.L = setmetatable({}, {
+        __index = function(_, key)
+            return key
+        end,
+    })
+
     return ns
 end
 

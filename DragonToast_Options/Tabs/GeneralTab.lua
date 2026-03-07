@@ -17,6 +17,12 @@ local table_insert = table.insert
 local pairs = pairs
 
 -------------------------------------------------------------------------------
+-- Localization
+-------------------------------------------------------------------------------
+
+local L = ns.L
+
+-------------------------------------------------------------------------------
 -- Namespace references
 -------------------------------------------------------------------------------
 
@@ -50,7 +56,7 @@ local function BuildSoundValues()
         values[#values + 1] = { value = name, text = name }
     end
     table_sort(values, function(a, b) return a.text < b.text end)
-    table_insert(values, 1, { value = "None", text = "None" })
+    table_insert(values, 1, { value = "None", text = L["None"] })
     return values
 end
 
@@ -62,13 +68,13 @@ local function CreateCoreSection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
 
-    local header = W.CreateHeader(parent, "Core Settings")
+    local header = W.CreateHeader(parent, L["Core Settings"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local enableToggle = W.CreateToggle(parent, {
-        label = "Enable DragonToast",
-        tooltip = "Enable or disable the addon",
+        label = L["Enable DragonToast"],
+        tooltip = L["Enable or disable the addon"],
         get = function() return db.profile.enabled end,
         set = function(value)
             db.profile.enabled = value
@@ -83,8 +89,8 @@ local function CreateCoreSection(parent, yOffset)
     yOffset = yOffset - enableToggle:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local minimapToggle = W.CreateToggle(parent, {
-        label = "Show Minimap Icon",
-        tooltip = "Toggle the minimap button",
+        label = L["Show Minimap Icon"],
+        tooltip = L["Toggle the minimap button"],
         get = function() return not db.profile.minimap.hide end,
         set = function(value)
             db.profile.minimap.hide = not value
@@ -95,8 +101,8 @@ local function CreateCoreSection(parent, yOffset)
     yOffset = yOffset - minimapToggle:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local deferToggle = W.CreateToggle(parent, {
-        label = "Defer in Combat",
-        tooltip = "Queue toasts during combat and show them when combat ends",
+        label = L["Defer in Combat"],
+        tooltip = L["Queue toasts during combat and show them when combat ends"],
         get = function() return db.profile.combat.deferInCombat end,
         set = function(value) db.profile.combat.deferInCombat = value end,
     })
@@ -112,15 +118,15 @@ local function CreateSoundSection(parent, yOffset)
 
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, "Sound")
+    local header = W.CreateHeader(parent, L["Sound"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local soundDropdown
 
     local soundToggle = W.CreateToggle(parent, {
-        label = "Enable Sound",
-        tooltip = "Play a sound when a toast appears",
+        label = L["Enable Sound"],
+        tooltip = L["Play a sound when a toast appears"],
         get = function() return db.profile.sound.enabled end,
         set = function(value)
             db.profile.sound.enabled = value
@@ -131,8 +137,8 @@ local function CreateSoundSection(parent, yOffset)
     yOffset = yOffset - soundToggle:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     soundDropdown = W.CreateDropdown(parent, {
-        label = "Sound",
-        tooltip = "Sound to play with each toast",
+        label = L["Sound"],
+        tooltip = L["Sound to play with each toast"],
         values = BuildSoundValues,
         get = function() return db.profile.sound.soundFile end,
         set = function(value) db.profile.sound.soundFile = value end,
@@ -150,29 +156,29 @@ local function CreateTestingSection(parent, yOffset)
 
     yOffset = yOffset - SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, "Testing")
+    local header = W.CreateHeader(parent, L["Testing"])
     AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
 
     local testButton = W.CreateButton(parent, {
-        text = "Show Test Toast",
-        tooltip = "Display a test toast notification",
+        text = L["Show Test Toast"],
+        tooltip = L["Display a test toast notification"],
         onClick = function() dtns.ToastManager:ShowTestToast() end,
     })
     AnchorWidget(testButton, parent, yOffset)
     yOffset = yOffset - testButton:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local clearButton = W.CreateButton(parent, {
-        text = "Clear Toasts",
-        tooltip = "Remove all active toasts",
+        text = L["Clear Toasts"],
+        tooltip = L["Remove all active toasts"],
         onClick = function() dtns.ToastManager:ClearAll() end,
     })
     AnchorWidget(clearButton, parent, yOffset)
     yOffset = yOffset - clearButton:GetHeight() - SPACING_BETWEEN_WIDGETS
 
     local testModeToggle = W.CreateToggle(parent, {
-        label = "Test Mode",
-        tooltip = "Continuously show random test toasts",
+        label = L["Test Mode"],
+        tooltip = L["Continuously show random test toasts"],
         get = function() return dtns.ToastManager:IsTestModeActive() end,
         set = function(value)
             if value then
@@ -210,7 +216,7 @@ end
 ns.Tabs = ns.Tabs or {}
 ns.Tabs[#ns.Tabs + 1] = {
     id = "general",
-    label = "General",
+    label = L["General"],
     order = 1,
     createFunc = CreateContent,
 }
