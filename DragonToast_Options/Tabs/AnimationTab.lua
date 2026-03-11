@@ -6,12 +6,12 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local LDF = _G.LibDragonFramework
 
 -------------------------------------------------------------------------------
 -- Cached globals
 -------------------------------------------------------------------------------
 
-local math_abs = math.abs
 local ipairs = ipairs
 local pairs = pairs
 local tonumber = tonumber
@@ -29,15 +29,8 @@ local L = ns.L
 local dtns
 
 -------------------------------------------------------------------------------
--- Constants
+-- Static dropdown values
 -------------------------------------------------------------------------------
-
-local PADDING_SIDE = 10
-local PADDING_TOP = -10
-local SPACING_AFTER_HEADER = 8
-local SPACING_BETWEEN_WIDGETS = 6
-local SPACING_BETWEEN_SECTIONS = 16
-local PADDING_BOTTOM = 20
 
 local QUALITY_VALUES = {
     { value = 0, text = "|cff9d9d9dPoor|r" },
@@ -51,11 +44,6 @@ local QUALITY_VALUES = {
 -------------------------------------------------------------------------------
 -- Helpers
 -------------------------------------------------------------------------------
-
-local function AnchorWidget(widget, parent, yOffset)
-    widget:SetPoint("TOPLEFT", parent, "TOPLEFT", PADDING_SIDE, yOffset)
-    widget:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -PADDING_SIDE, yOffset)
-end
 
 local function GetEntranceAnimationValues()
     local lib = LibStub("LibAnimate", true)
@@ -101,15 +89,12 @@ end
 -- Section builders
 -------------------------------------------------------------------------------
 
-local function CreateAnimationSection(parent, yOffset, attentionState)
-    local W = ns.Widgets
+local function CreateAnimationSection(parent, attentionState)
     local db = dtns.Addon.db
+    local section = LDF.CreateSection(parent, L["Animation"])
+    local stack = LDF.CreateStackLayout(section.content, "vertical")
 
-    local header = W.CreateHeader(parent, L["Animation"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
-
-    local enableToggle = W.CreateToggle(parent, {
+    local enableToggle = LDF.CreateToggle(section.content, {
         label = L["Enable Animations"],
         tooltip = L["Enable or disable all toast animations"],
         get = function() return db.profile.animation.enableAnimations end,
@@ -121,159 +106,116 @@ local function CreateAnimationSection(parent, yOffset, attentionState)
             end
         end,
     })
-    AnchorWidget(enableToggle, parent, yOffset)
-    yOffset = yOffset - enableToggle:GetHeight()
+    stack:AddChild(enableToggle)
 
     attentionState.enableToggle = enableToggle
 
-    return yOffset
+    return section
 end
 
-local function CreateEntranceSection(parent, yOffset)
-    local W = ns.Widgets
+local function CreateEntranceSection(parent)
     local db = dtns.Addon.db
+    local section = LDF.CreateSection(parent, L["Entrance"], { collapsible = true })
+    local stack = LDF.CreateStackLayout(section.content, "vertical")
 
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
-
-    local header = W.CreateHeader(parent, L["Entrance"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
-
-    local duration = W.CreateSlider(parent, {
+    stack:AddChild(LDF.CreateSlider(section.content, {
         label = L["Entrance Duration"],
         tooltip = L["Duration of the entrance animation in seconds"],
         min = 0.1, max = 1.0, step = 0.05,
         get = function() return db.profile.animation.entranceDuration end,
         set = function(value) db.profile.animation.entranceDuration = value end,
-    })
-    AnchorWidget(duration, parent, yOffset)
-    yOffset = yOffset - duration:GetHeight() - SPACING_BETWEEN_WIDGETS
+    }))
 
-    local animation = W.CreateDropdown(parent, {
+    stack:AddChild(LDF.CreateDropdown(section.content, {
         label = L["Entrance Animation"],
         tooltip = L["Animation style for toast entrance"],
         values = GetEntranceAnimationValues,
         get = function() return db.profile.animation.entranceAnimation end,
         set = function(value) db.profile.animation.entranceAnimation = value end,
-    })
-    AnchorWidget(animation, parent, yOffset)
-    yOffset = yOffset - animation:GetHeight() - SPACING_BETWEEN_WIDGETS
+    }))
 
-    local distance = W.CreateSlider(parent, {
+    stack:AddChild(LDF.CreateSlider(section.content, {
         label = L["Entrance Distance"],
         tooltip = L["Distance in pixels the toast travels during entrance"],
         min = 50, max = 600, step = 10,
         get = function() return db.profile.animation.entranceDistance end,
         set = function(value) db.profile.animation.entranceDistance = value end,
-    })
-    AnchorWidget(distance, parent, yOffset)
-    yOffset = yOffset - distance:GetHeight()
+    }))
 
-    return yOffset
+    return section
 end
 
-local function CreateHoldSection(parent, yOffset)
-    local W = ns.Widgets
+local function CreateHoldSection(parent)
     local db = dtns.Addon.db
+    local section = LDF.CreateSection(parent, L["Hold"], { collapsible = true })
+    local stack = LDF.CreateStackLayout(section.content, "vertical")
 
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
-
-    local header = W.CreateHeader(parent, L["Hold"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
-
-    local duration = W.CreateSlider(parent, {
+    stack:AddChild(LDF.CreateSlider(section.content, {
         label = L["Hold Duration"],
         tooltip = L["How long the toast stays visible before exiting"],
         min = 1.0, max = 15.0, step = 0.5,
         get = function() return db.profile.animation.holdDuration end,
         set = function(value) db.profile.animation.holdDuration = value end,
-    })
-    AnchorWidget(duration, parent, yOffset)
-    yOffset = yOffset - duration:GetHeight()
+    }))
 
-    return yOffset
+    return section
 end
 
-local function CreateExitSection(parent, yOffset)
-    local W = ns.Widgets
+local function CreateExitSection(parent)
     local db = dtns.Addon.db
+    local section = LDF.CreateSection(parent, L["Exit"], { collapsible = true })
+    local stack = LDF.CreateStackLayout(section.content, "vertical")
 
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
-
-    local header = W.CreateHeader(parent, L["Exit"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
-
-    local duration = W.CreateSlider(parent, {
+    stack:AddChild(LDF.CreateSlider(section.content, {
         label = L["Exit Duration"],
         tooltip = L["Duration of the exit animation in seconds"],
         min = 0.1, max = 2.0, step = 0.1,
         get = function() return db.profile.animation.exitDuration end,
         set = function(value) db.profile.animation.exitDuration = value end,
-    })
-    AnchorWidget(duration, parent, yOffset)
-    yOffset = yOffset - duration:GetHeight() - SPACING_BETWEEN_WIDGETS
+    }))
 
-    local animation = W.CreateDropdown(parent, {
+    stack:AddChild(LDF.CreateDropdown(section.content, {
         label = L["Exit Animation"],
         tooltip = L["Animation style for toast exit"],
         values = GetExitAnimationValues,
         get = function() return db.profile.animation.exitAnimation end,
         set = function(value) db.profile.animation.exitAnimation = value end,
-    })
-    AnchorWidget(animation, parent, yOffset)
-    yOffset = yOffset - animation:GetHeight() - SPACING_BETWEEN_WIDGETS
+    }))
 
-    local distance = W.CreateSlider(parent, {
+    stack:AddChild(LDF.CreateSlider(section.content, {
         label = L["Exit Distance"],
         tooltip = L["Distance in pixels the toast travels during exit"],
         min = 50, max = 600, step = 10,
         get = function() return db.profile.animation.exitDistance end,
         set = function(value) db.profile.animation.exitDistance = value end,
-    })
-    AnchorWidget(distance, parent, yOffset)
-    yOffset = yOffset - distance:GetHeight()
+    }))
 
-    return yOffset
+    return section
 end
 
-local function CreateSlideSection(parent, yOffset)
-    local W = ns.Widgets
+local function CreateSlideSection(parent)
     local db = dtns.Addon.db
+    local section = LDF.CreateSection(parent, L["Slide"], { collapsible = true })
+    local stack = LDF.CreateStackLayout(section.content, "vertical")
 
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
-
-    local header = W.CreateHeader(parent, L["Slide"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
-
-    local speed = W.CreateSlider(parent, {
+    stack:AddChild(LDF.CreateSlider(section.content, {
         label = L["Slide Speed"],
         tooltip = L["Speed of the slide animation when toasts reposition"],
         min = 0.05, max = 0.5, step = 0.05,
         get = function() return db.profile.animation.slideSpeed end,
         set = function(value) db.profile.animation.slideSpeed = value end,
-    })
-    AnchorWidget(speed, parent, yOffset)
-    yOffset = yOffset - speed:GetHeight()
+    }))
 
-    return yOffset
+    return section
 end
 
-local function CreateAttentionSection(parent, yOffset, attentionState)
-    local W = ns.Widgets
+local function CreateAttentionSection(parent, attentionState)
     local db = dtns.Addon.db
-
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
-
-    local header = W.CreateHeader(parent, L["Attention"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    local section = LDF.CreateSection(parent, L["Attention"], { collapsible = true })
+    local stack = LDF.CreateStackLayout(section.content, "vertical")
 
     local attentionDropdown
-
-    attentionDropdown = W.CreateDropdown(parent, {
+    attentionDropdown = LDF.CreateDropdown(section.content, {
         label = L["Attention Animation"],
         tooltip = L["Animation to draw attention to high-quality items"],
         values = GetAttentionAnimationValues,
@@ -284,50 +226,46 @@ local function CreateAttentionSection(parent, yOffset, attentionState)
                 attentionState.widgets)
         end,
     })
-    AnchorWidget(attentionDropdown, parent, yOffset)
-    yOffset = yOffset - attentionDropdown:GetHeight() - SPACING_BETWEEN_WIDGETS
+    stack:AddChild(attentionDropdown)
 
     attentionState.dropdown = attentionDropdown
 
     local initialDisabled = not db.profile.animation.enableAnimations
         or db.profile.animation.attentionAnimation == "none"
 
-    local minQuality = W.CreateDropdown(parent, {
+    local minQuality = LDF.CreateDropdown(section.content, {
         label = L["Attention Min Quality"],
         tooltip = L["Minimum item quality required to trigger the attention animation"],
         values = QUALITY_VALUES,
         get = function() return db.profile.animation.attentionMinQuality end,
         set = function(value) db.profile.animation.attentionMinQuality = tonumber(value) end,
+        disabled = initialDisabled,
     })
-    AnchorWidget(minQuality, parent, yOffset)
-    if initialDisabled then minQuality:SetDisabled(true) end
-    yOffset = yOffset - minQuality:GetHeight() - SPACING_BETWEEN_WIDGETS
+    stack:AddChild(minQuality)
 
-    local repeatCount = W.CreateSlider(parent, {
+    local repeatCount = LDF.CreateSlider(section.content, {
         label = L["Attention Repeat Count"],
         tooltip = L["Number of times the attention animation repeats"],
         min = 1, max = 5, step = 1,
         get = function() return db.profile.animation.attentionRepeatCount end,
         set = function(value) db.profile.animation.attentionRepeatCount = value end,
+        disabled = initialDisabled,
     })
-    AnchorWidget(repeatCount, parent, yOffset)
-    if initialDisabled then repeatCount:SetDisabled(true) end
-    yOffset = yOffset - repeatCount:GetHeight() - SPACING_BETWEEN_WIDGETS
+    stack:AddChild(repeatCount)
 
-    local delay = W.CreateSlider(parent, {
+    local delay = LDF.CreateSlider(section.content, {
         label = L["Attention Delay"],
         tooltip = L["Delay in seconds before the attention animation starts"],
         min = 0, max = 1.0, step = 0.05,
         get = function() return db.profile.animation.attentionDelay end,
         set = function(value) db.profile.animation.attentionDelay = value end,
+        disabled = initialDisabled,
     })
-    AnchorWidget(delay, parent, yOffset)
-    if initialDisabled then delay:SetDisabled(true) end
-    yOffset = yOffset - delay:GetHeight()
+    stack:AddChild(delay)
 
     attentionState.widgets = { minQuality, repeatCount, delay }
 
-    return yOffset
+    return section
 end
 
 -------------------------------------------------------------------------------
@@ -336,17 +274,15 @@ end
 
 local function CreateContent(parent)
     dtns = ns.dtns
-    local yOffset = PADDING_TOP
     local attentionState = {}
+    local stack = LDF.CreateStackLayout(parent, "vertical")
 
-    yOffset = CreateAnimationSection(parent, yOffset, attentionState)
-    yOffset = CreateEntranceSection(parent, yOffset)
-    yOffset = CreateHoldSection(parent, yOffset)
-    yOffset = CreateExitSection(parent, yOffset)
-    yOffset = CreateSlideSection(parent, yOffset)
-    yOffset = CreateAttentionSection(parent, yOffset, attentionState)
-
-    parent:SetHeight(math_abs(yOffset) + PADDING_BOTTOM)
+    stack:AddChild(CreateAnimationSection(parent, attentionState))
+    stack:AddChild(CreateEntranceSection(parent))
+    stack:AddChild(CreateHoldSection(parent))
+    stack:AddChild(CreateExitSection(parent))
+    stack:AddChild(CreateSlideSection(parent))
+    stack:AddChild(CreateAttentionSection(parent, attentionState))
 end
 
 -------------------------------------------------------------------------------

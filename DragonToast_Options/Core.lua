@@ -7,6 +7,8 @@
 
 local ADDON_NAME, ns = ...
 
+local LDF = _G.LibDragonFramework
+
 -------------------------------------------------------------------------------
 -- Localization
 -------------------------------------------------------------------------------
@@ -14,16 +16,9 @@ local ADDON_NAME, ns = ...
 ns.L = LibStub("AceLocale-3.0"):GetLocale("DragonToast")
 
 -------------------------------------------------------------------------------
--- Cached WoW API
+-- Tab registry (populated by subsequent files)
 -------------------------------------------------------------------------------
 
-local tinsert = table.insert
-
--------------------------------------------------------------------------------
--- Widget and tab registries (populated by subsequent files)
--------------------------------------------------------------------------------
-
-ns.Widgets = {}
 ns.Tabs = {}
 
 -------------------------------------------------------------------------------
@@ -60,15 +55,14 @@ local function CreateOptionsPanel()
         return
     end
 
-    local panel = ns.Widgets.CreatePanel("DragonToastOptionsFrame", 800, 600)
+    local panel = LDF.CreateWindow({
+        name = "DragonToastOptionsFrame",
+        title = "DragonToast",
+        width = 800,
+        height = 600,
+    })
 
-    -- Tab group below title bar
-    tabGroup = ns.Widgets.CreateTabGroup(panel, ns.Tabs)
-    tabGroup:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, -32)
-    tabGroup:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -8, 8)
-
-    -- ESC-closable
-    tinsert(UISpecialFrames, "DragonToastOptionsFrame")
+    tabGroup = LDF.CreateTabGroup(panel.content, ns.Tabs)
 
     optionsPanel = panel
 end

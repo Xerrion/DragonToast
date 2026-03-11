@@ -8,19 +8,9 @@
 ## Dependencies: DragonToast
 ## LoadOnDemand: 1
 
-Core.lua
+Libs\embeds.xml
 
-Widgets\Panel.lua
-Widgets\ScrollFrame.lua
-Widgets\TabGroup.lua
-Widgets\Header.lua
-Widgets\Description.lua
-Widgets\Toggle.lua
-Widgets\Slider.lua
-Widgets\Dropdown.lua
-Widgets\ColorPicker.lua
-Widgets\TextInput.lua
-Widgets\Button.lua
+Core.lua
 
 Tabs\GeneralTab.lua
 Tabs\FiltersTab.lua

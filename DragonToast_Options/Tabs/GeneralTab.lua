@@ -6,15 +6,15 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local LDF = _G.LibDragonFramework
 
 -------------------------------------------------------------------------------
 -- Cached globals
 -------------------------------------------------------------------------------
 
-local math_abs = math.abs
+local pairs = pairs
 local table_sort = table.sort
 local table_insert = table.insert
-local pairs = pairs
 
 -------------------------------------------------------------------------------
 -- Localization
@@ -30,24 +30,8 @@ local dtns
 local LSM = LibStub("LibSharedMedia-3.0")
 
 -------------------------------------------------------------------------------
--- Constants
--------------------------------------------------------------------------------
-
-local PADDING_SIDE = 10
-local PADDING_TOP = -10
-local SPACING_AFTER_HEADER = 8
-local SPACING_BETWEEN_WIDGETS = 6
-local SPACING_BETWEEN_SECTIONS = 16
-local PADDING_BOTTOM = 20
-
--------------------------------------------------------------------------------
 -- Helpers
 -------------------------------------------------------------------------------
-
-local function AnchorWidget(widget, parent, yOffset)
-    widget:SetPoint("TOPLEFT", parent, "TOPLEFT", PADDING_SIDE, yOffset)
-    widget:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -PADDING_SIDE, yOffset)
-end
 
 local function BuildSoundValues()
     local sounds = LSM:HashTable("sound")
@@ -64,15 +48,12 @@ end
 -- Section builders
 -------------------------------------------------------------------------------
 
-local function CreateCoreSection(parent, yOffset)
-    local W = ns.Widgets
+local function CreateCoreSection(parent)
     local db = dtns.Addon.db
+    local section = LDF.CreateSection(parent, L["Core Settings"])
+    local stack = LDF.CreateStackLayout(section.content, "vertical")
 
-    local header = W.CreateHeader(parent, L["Core Settings"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
-
-    local enableToggle = W.CreateToggle(parent, {
+    stack:AddChild(LDF.CreateToggle(section.content, {
         label = L["Enable DragonToast"],
         tooltip = L["Enable or disable the addon"],
         get = function() return db.profile.enabled end,
@@ -84,11 +65,9 @@ local function CreateCoreSection(parent, yOffset)
                 dtns.Addon:OnDisable()
             end
         end,
-    })
-    AnchorWidget(enableToggle, parent, yOffset)
-    yOffset = yOffset - enableToggle:GetHeight() - SPACING_BETWEEN_WIDGETS
+    }))
 
-    local minimapToggle = W.CreateToggle(parent, {
+    stack:AddChild(LDF.CreateToggle(section.content, {
         label = L["Show Minimap Icon"],
         tooltip = L["Toggle the minimap button"],
         get = function() return not db.profile.minimap.hide end,
@@ -96,35 +75,26 @@ local function CreateCoreSection(parent, yOffset)
             db.profile.minimap.hide = not value
             dtns.MinimapIcon:SetShown(value)
         end,
-    })
-    AnchorWidget(minimapToggle, parent, yOffset)
-    yOffset = yOffset - minimapToggle:GetHeight() - SPACING_BETWEEN_WIDGETS
+    }))
 
-    local deferToggle = W.CreateToggle(parent, {
+    stack:AddChild(LDF.CreateToggle(section.content, {
         label = L["Defer in Combat"],
         tooltip = L["Queue toasts during combat and show them when combat ends"],
         get = function() return db.profile.combat.deferInCombat end,
         set = function(value) db.profile.combat.deferInCombat = value end,
-    })
-    AnchorWidget(deferToggle, parent, yOffset)
-    yOffset = yOffset - deferToggle:GetHeight()
+    }))
 
-    return yOffset
+    return section
 end
 
-local function CreateSoundSection(parent, yOffset)
-    local W = ns.Widgets
+local function CreateSoundSection(parent)
     local db = dtns.Addon.db
-
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
-
-    local header = W.CreateHeader(parent, L["Sound"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    local section = LDF.CreateSection(parent, L["Sound"])
+    local stack = LDF.CreateStackLayout(section.content, "vertical")
 
     local soundDropdown
 
-    local soundToggle = W.CreateToggle(parent, {
+    local soundToggle = LDF.CreateToggle(section.content, {
         label = L["Enable Sound"],
         tooltip = L["Play a sound when a toast appears"],
         get = function() return db.profile.sound.enabled end,
@@ -133,10 +103,9 @@ local function CreateSoundSection(parent, yOffset)
             if soundDropdown then soundDropdown:SetDisabled(not value) end
         end,
     })
-    AnchorWidget(soundToggle, parent, yOffset)
-    yOffset = yOffset - soundToggle:GetHeight() - SPACING_BETWEEN_WIDGETS
+    stack:AddChild(soundToggle)
 
-    soundDropdown = W.CreateDropdown(parent, {
+    soundDropdown = LDF.CreateDropdown(section.content, {
         label = L["Sound"],
         tooltip = L["Sound to play with each toast"],
         values = BuildSoundValues,
@@ -144,39 +113,28 @@ local function CreateSoundSection(parent, yOffset)
         set = function(value) db.profile.sound.soundFile = value end,
         disabled = not db.profile.sound.enabled,
     })
-    AnchorWidget(soundDropdown, parent, yOffset)
-    if not db.profile.sound.enabled then soundDropdown:SetDisabled(true) end
-    yOffset = yOffset - soundDropdown:GetHeight()
+    stack:AddChild(soundDropdown)
 
-    return yOffset
+    return section
 end
 
-local function CreateTestingSection(parent, yOffset)
-    local W = ns.Widgets
+local function CreateTestingSection(parent)
+    local section = LDF.CreateSection(parent, L["Testing"])
+    local stack = LDF.CreateStackLayout(section.content, "vertical")
 
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
-
-    local header = W.CreateHeader(parent, L["Testing"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
-
-    local testButton = W.CreateButton(parent, {
+    stack:AddChild(LDF.CreateButton(section.content, {
         text = L["Show Test Toast"],
         tooltip = L["Display a test toast notification"],
         onClick = function() dtns.ToastManager:ShowTestToast() end,
-    })
-    AnchorWidget(testButton, parent, yOffset)
-    yOffset = yOffset - testButton:GetHeight() - SPACING_BETWEEN_WIDGETS
+    }))
 
-    local clearButton = W.CreateButton(parent, {
+    stack:AddChild(LDF.CreateButton(section.content, {
         text = L["Clear Toasts"],
         tooltip = L["Remove all active toasts"],
         onClick = function() dtns.ToastManager:ClearAll() end,
-    })
-    AnchorWidget(clearButton, parent, yOffset)
-    yOffset = yOffset - clearButton:GetHeight() - SPACING_BETWEEN_WIDGETS
+    }))
 
-    local testModeToggle = W.CreateToggle(parent, {
+    stack:AddChild(LDF.CreateToggle(section.content, {
         label = L["Test Mode"],
         tooltip = L["Continuously show random test toasts"],
         get = function() return dtns.ToastManager:IsTestModeActive() end,
@@ -187,11 +145,9 @@ local function CreateTestingSection(parent, yOffset)
                 dtns.ToastManager:StopTestMode()
             end
         end,
-    })
-    AnchorWidget(testModeToggle, parent, yOffset)
-    yOffset = yOffset - testModeToggle:GetHeight()
+    }))
 
-    return yOffset
+    return section
 end
 
 -------------------------------------------------------------------------------
@@ -200,13 +156,10 @@ end
 
 local function CreateContent(parent)
     dtns = ns.dtns
-    local yOffset = PADDING_TOP
-
-    yOffset = CreateCoreSection(parent, yOffset)
-    yOffset = CreateSoundSection(parent, yOffset)
-    yOffset = CreateTestingSection(parent, yOffset)
-
-    parent:SetHeight(math_abs(yOffset) + PADDING_BOTTOM)
+    local stack = LDF.CreateStackLayout(parent, "vertical")
+    stack:AddChild(CreateCoreSection(parent))
+    stack:AddChild(CreateSoundSection(parent))
+    stack:AddChild(CreateTestingSection(parent))
 end
 
 -------------------------------------------------------------------------------
