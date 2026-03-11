@@ -150,55 +150,6 @@ Version-specific files load via BigWigsMods packager comment directives in the T
 
 ---
 
-## Options UI (DragonToast_Options)
-
-DragonToast_Options is a standalone addon that provides the config window. It depends on `DragonToast` and `LibDragonFramework` (declared in the TOC `## Dependencies` line).
-
-### LibDragonFramework (LDF)
-
-All options UI is built with **LibDragonFramework** (LDF), not bespoke widgets or AceGUI. LDF is embedded via `Libs/embeds.xml` in the main DragonToast addon and available globally:
-
-```lua
-local LDF = _G.LibDragonFramework
-```
-
-- **Do not** use `ns.Widgets` - that pattern is removed.
-- **Do not** create manual widget code - use LDF factory functions.
-- The old `Widgets/` directory no longer exists.
-
-### LDF Patterns
-
-Tab files follow a consistent pattern:
-
-1. Create sections with `LDF.CreateSection(parent, label)` or `LDF.CreateSection(parent, label, { collapsible = true })`
-2. Create a stack layout inside each section: `LDF.CreateStackLayout(section.content, "vertical")`
-3. Add widgets via `stack:AddChild(LDF.CreateToggle(...))`, `LDF.CreateSlider(...)`, `LDF.CreateDropdown(...)`, `LDF.CreateColorPicker(...)`, `LDF.CreateDescription(...)`, `LDF.CreateTextInput(...)`, `LDF.CreateButton(...)`, etc.
-4. All LDF widgets support `SetDisabled(state)` for conditional enable/disable
-
-### Collapsible Sections
-
-Several tabs use collapsible sections (`{ collapsible = true }`):
-
-| Tab | Collapsible Sections |
-|-----|---------------------|
-| Display | Content, Padding |
-| Animation | Entrance, Hold, Exit, Slide, Attention |
-| Appearance | Font, Background, Border and Glow, Glowing Border |
-
-### Tab Files
-
-| File | Purpose |
-|------|---------|
-| `Core.lua` | Config window frame, tab bar, tab switching |
-| `Tabs/GeneralTab.lua` | Enable/disable, minimap icon, ElvUI skin |
-| `Tabs/DisplayTab.lua` | Layout, toast size, content toggles, padding |
-| `Tabs/AnimationTab.lua` | Entrance/hold/exit/slide/attention animation settings |
-| `Tabs/AppearanceTab.lua` | Font, background, border, glow, icon size |
-| `Tabs/FiltersTab.lua` | Loot quality, loot sources, currency/rewards |
-| `Tabs/ProfilesTab.lua` | Profile selection, copy, delete |
-
----
-
 ## Toast Lifecycle
 
 1. Loot event -> `LootListener` / `XPListener` parses and calls `ToastManager.QueueToast(lootData)`
