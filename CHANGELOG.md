@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [1.14.0](https://github.com/DragonAddons/DragonToast/compare/1.13.0...1.14.0) (2026-03-11)
+
+
+### 🚀 Features
+
+* migrate options panels to LibDragonFramework ([#118](https://github.com/DragonAddons/DragonToast/issues/118)) ([63be74b](https://github.com/DragonAddons/DragonToast/commit/63be74bed097db547b2c77dbae03062778f2666e))
+
 ## [1.13.0](https://github.com/DragonAddons/DragonToast/compare/1.12.1...1.13.0) (2026-03-07)
 
 
