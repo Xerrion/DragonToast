@@ -12,3 +12,6 @@ Libs/*
 !Libs/LibDBIcon-1.0
 !Libs/LibSharedMedia-3.0
 !Libs/embeds.xml
+
+# Release.sh
+release.sh
