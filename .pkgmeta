@@ -24,3 +24,4 @@ ignore:
   - "*spec/"
   - "*scripts/"
   - "*Assets/"
+  - generate_sound.py
