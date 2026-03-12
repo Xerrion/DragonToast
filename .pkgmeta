@@ -22,6 +22,6 @@ ignore:
   - "*.png"
   - release-please-config.json
   - .release-please-manifest.json
-  - spec/
+  - *spec/
   - scripts/
   - "Assets/*logo*"
