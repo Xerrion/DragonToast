@@ -45,19 +45,19 @@ Display\ToastManager.lua
 Display\ElvUISkin.lua
 
 # Version-specific listeners
-#@tbc-anniversary@
+#@version-bcc@
 Listeners\LootListener_TBC.lua
 Listeners\MailListener_TBC.lua
 Listeners\HonorListener_TBC.lua
 Listeners\ReputationListener_TBC.lua
-#@end-tbc-anniversary@
-#@retail@
+#@end-version-bcc@
+#@version-retail@
 Listeners\LootListener_Retail.lua
 Listeners\MailListener_Retail.lua
 Listeners\HonorListener_Retail.lua
 Listeners\ReputationListener_Retail.lua
 Listeners\CurrencyListener_Retail.lua
-#@end-retail@
+#@end-version-retail@
 #@version-mists@
 Listeners\LootListener_Mists.lua
 Listeners\MailListener_Mists.lua
