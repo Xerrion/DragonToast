@@ -107,8 +107,6 @@ local defaults = {
 -- Profile Migration
 -------------------------------------------------------------------------------
 
-local CURRENT_SCHEMA = 6
-
 local DIRECTION_TO_ANIMATION = {
     RIGHT  = "slideInRight",
     LEFT   = "slideInLeft",
@@ -165,41 +163,24 @@ local function MigrateProfile(db)
         profile.schemaVersion = 2
     end
 
-    if (profile.schemaVersion or 0) < 3 then
-        -- v2 -> v3: gold display format default
-        profile.display = profile.display or {}
-        if profile.display.goldFormat == nil then
-            profile.display.goldFormat = defaults.profile.display.goldFormat
+    -- Simple single-field migrations (v3+)
+    local SIMPLE_MIGRATIONS = {
+        { version = 3, section = "display", key = "goldFormat", default = defaults.profile.display.goldFormat },
+        { version = 4, section = "filters", key = "showHonor", default = true },
+        { version = 5, section = "filters", key = "showMail", default = true },
+        { version = 6, section = "filters", key = "showReputation", default = true },
+    }
+
+    for _, migration in ipairs(SIMPLE_MIGRATIONS) do
+        if profile.schemaVersion < migration.version then
+            if not profile[migration.section] then
+                profile[migration.section] = {}
+            end
+            if profile[migration.section][migration.key] == nil then
+                profile[migration.section][migration.key] = migration.default
+            end
+            profile.schemaVersion = migration.version
         end
-
-        profile.schemaVersion = 3
-    end
-
-    if (profile.schemaVersion or 0) < 4 then
-        -- v3 -> v4: honor filter default
-        if profile.filters and profile.filters.showHonor == nil then
-            profile.filters.showHonor = true
-        end
-
-        profile.schemaVersion = 4
-    end
-
-    if (profile.schemaVersion or 0) < 5 then
-        -- v4 -> v5: mail filter default
-        if profile.filters and profile.filters.showMail == nil then
-            profile.filters.showMail = true
-        end
-
-        profile.schemaVersion = 5
-    end
-
-    if (profile.schemaVersion or 0) < 6 then
-        -- v5 -> v6: reputation filter default
-        if profile.filters and profile.filters.showReputation == nil then
-            profile.filters.showReputation = true
-        end
-
-        profile.schemaVersion = CURRENT_SCHEMA
     end
 end
 

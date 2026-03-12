@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local WC = ns.WidgetConstants
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -20,7 +21,6 @@ local math_max = math.max
 
 local SCROLLBAR_WIDTH = 14
 local SCROLL_STEP = 20
-local WHITE8x8 = "Interface\\Buttons\\WHITE8x8"
 
 -------------------------------------------------------------------------------
 -- Scrollbar value changed handler (shared, avoids per-instance closures)
@@ -94,7 +94,7 @@ function ns.Widgets.CreateScrollFrame(parent)
     bar:SetMinMaxValues(0, 0)
     bar:SetValue(0)
     bar:SetValueStep(SCROLL_STEP)
-    bar:SetBackdrop({ bgFile = WHITE8x8 })
+    bar:SetBackdrop({ bgFile = WC.WHITE8x8 })
     bar:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
 
     -- Thumb texture

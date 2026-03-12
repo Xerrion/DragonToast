@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local WC = ns.WidgetConstants
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -21,13 +22,8 @@ local table_sort = table.sort
 -- Constants
 -------------------------------------------------------------------------------
 
-local FONT_PATH = "Fonts\\FRIZQT__.TTF"
 local FONT_SIZE = 12
 local LABEL_FONT_SIZE = 11
-local WHITE8x8 = "Interface\\Buttons\\WHITE8x8"
-local WHITE_COLOR = { 1, 1, 1 }
-local GRAY_COLOR = { 0.7, 0.7, 0.7 }
-local DISABLED_COLOR = { 0.5, 0.5, 0.5 }
 
 local PREVIEW_WIDTH = 40
 local PREVIEW_HEIGHT = 14
@@ -99,7 +95,7 @@ local function ResetButtonPreview(btn)
     btn._text:ClearAllPoints()
     btn._text:SetPoint("LEFT", btn, "LEFT", 6, 0)
     btn._text:SetPoint("RIGHT", btn, "RIGHT", -6, 0)
-    btn._text:SetFont(FONT_PATH, FONT_SIZE, "")
+    btn._text:SetFont(WC.FONT_PATH, FONT_SIZE, "")
 end
 
 local function ApplyTexturePreview(btn, lsm, mediaType, value)
@@ -153,7 +149,7 @@ local function UpdateSelectedPreview(dropdown, opts, value)
         dropdown._selectedText:ClearAllPoints()
         dropdown._selectedText:SetPoint("LEFT", dropdown._button, "LEFT", 6, 0)
         dropdown._selectedText:SetPoint("RIGHT", dropdown._button, "RIGHT", -20, 0)
-        dropdown._selectedText:SetFont(FONT_PATH, FONT_SIZE, "")
+        dropdown._selectedText:SetFont(WC.FONT_PATH, FONT_SIZE, "")
         return
     end
 
@@ -189,6 +185,34 @@ local function UpdateSelectedPreview(dropdown, opts, value)
 end
 
 -------------------------------------------------------------------------------
+-- Create a single item button for the dropdown list
+-------------------------------------------------------------------------------
+
+local function CreateItemButton(listContent)
+    local btn = CreateFrame("Button", nil, listContent)
+    btn:SetHeight(ITEM_HEIGHT)
+
+    local text = btn:CreateFontString(nil, "OVERLAY")
+    text:SetFont(WC.FONT_PATH, FONT_SIZE, "")
+    text:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
+    text:SetPoint("LEFT", btn, "LEFT", 6, 0)
+    text:SetPoint("RIGHT", btn, "RIGHT", -6, 0)
+    text:SetJustifyH("LEFT")
+    btn._text = text
+
+    local hl = btn:CreateTexture(nil, "HIGHLIGHT")
+    hl:SetAllPoints()
+    hl:SetColorTexture(HIGHLIGHT_COLOR[1], HIGHLIGHT_COLOR[2], HIGHLIGHT_COLOR[3], HIGHLIGHT_COLOR[4])
+
+    btn._selected = btn:CreateTexture(nil, "BACKGROUND")
+    btn._selected:SetAllPoints()
+    btn._selected:SetColorTexture(SELECTED_COLOR[1], SELECTED_COLOR[2], SELECTED_COLOR[3], SELECTED_COLOR[4])
+    btn._selected:Hide()
+
+    return btn
+end
+
+-------------------------------------------------------------------------------
 -- Build item buttons inside the list content frame
 -------------------------------------------------------------------------------
 
@@ -208,30 +232,7 @@ local function BuildListItems(dropdown, opts)
     for i, entry in ipairs(values) do
         local btn = dropdown._itemButtons[i]
         if not btn then
-            btn = CreateFrame("Button", nil, listContent)
-            btn:SetHeight(ITEM_HEIGHT)
-
-            local text = btn:CreateFontString(nil, "OVERLAY")
-            text:SetFont(FONT_PATH, FONT_SIZE, "")
-            text:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
-            text:SetPoint("LEFT", btn, "LEFT", 6, 0)
-            text:SetPoint("RIGHT", btn, "RIGHT", -6, 0)
-            text:SetJustifyH("LEFT")
-            btn._text = text
-
-            local hl = btn:CreateTexture(nil, "HIGHLIGHT")
-            hl:SetAllPoints()
-            hl:SetColorTexture(
-                HIGHLIGHT_COLOR[1], HIGHLIGHT_COLOR[2], HIGHLIGHT_COLOR[3], HIGHLIGHT_COLOR[4]
-            )
-
-            btn._selected = btn:CreateTexture(nil, "BACKGROUND")
-            btn._selected:SetAllPoints()
-            btn._selected:SetColorTexture(
-                SELECTED_COLOR[1], SELECTED_COLOR[2], SELECTED_COLOR[3], SELECTED_COLOR[4]
-            )
-            btn._selected:Hide()
-
+            btn = CreateItemButton(listContent)
             dropdown._itemButtons[i] = btn
         end
 
@@ -312,7 +313,7 @@ local function CreateListFrame(dropdown)
     listFrame:SetPoint("TOPRIGHT", dropdown._button, "BOTTOMRIGHT", 0, -1)
     listFrame:SetFrameStrata("FULLSCREEN")
     listFrame:SetFrameLevel(200)
-    listFrame:SetBackdrop({ bgFile = WHITE8x8, edgeFile = WHITE8x8, edgeSize = 1 })
+    listFrame:SetBackdrop({ bgFile = WC.WHITE8x8, edgeFile = WC.WHITE8x8, edgeSize = 1 })
     listFrame:SetBackdropColor(LIST_BG_COLOR[1], LIST_BG_COLOR[2], LIST_BG_COLOR[3], LIST_BG_COLOR[4])
     listFrame:SetBackdropBorderColor(BORDER_COLOR[1], BORDER_COLOR[2], BORDER_COLOR[3], BORDER_COLOR[4])
     listFrame:Hide()
@@ -338,8 +339,8 @@ function ns.Widgets.CreateDropdown(parent, opts)
 
     -- Label
     local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont(FONT_PATH, LABEL_FONT_SIZE, "")
-    label:SetTextColor(GRAY_COLOR[1], GRAY_COLOR[2], GRAY_COLOR[3])
+    label:SetFont(WC.FONT_PATH, LABEL_FONT_SIZE, "")
+    label:SetTextColor(WC.GRAY_COLOR[1], WC.GRAY_COLOR[2], WC.GRAY_COLOR[3])
     label:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
     label:SetText(opts.label or "")
 
@@ -347,15 +348,15 @@ function ns.Widgets.CreateDropdown(parent, opts)
     local button = CreateFrame("Button", nil, frame, "BackdropTemplate")
     button:SetSize(BUTTON_WIDTH, BUTTON_HEIGHT)
     button:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, -16)
-    button:SetBackdrop({ bgFile = WHITE8x8, edgeFile = WHITE8x8, edgeSize = 1 })
+    button:SetBackdrop({ bgFile = WC.WHITE8x8, edgeFile = WC.WHITE8x8, edgeSize = 1 })
     button:SetBackdropColor(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], BG_COLOR[4])
     button:SetBackdropBorderColor(BORDER_COLOR[1], BORDER_COLOR[2], BORDER_COLOR[3], BORDER_COLOR[4])
     frame._button = button
 
     -- Selected text
     local selectedText = button:CreateFontString(nil, "OVERLAY")
-    selectedText:SetFont(FONT_PATH, FONT_SIZE, "")
-    selectedText:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+    selectedText:SetFont(WC.FONT_PATH, FONT_SIZE, "")
+    selectedText:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
     selectedText:SetPoint("LEFT", button, "LEFT", 6, 0)
     selectedText:SetPoint("RIGHT", button, "RIGHT", -20, 0)
     selectedText:SetJustifyH("LEFT")
@@ -363,8 +364,8 @@ function ns.Widgets.CreateDropdown(parent, opts)
 
     -- Arrow indicator
     local arrow = button:CreateFontString(nil, "OVERLAY")
-    arrow:SetFont(FONT_PATH, FONT_SIZE, "")
-    arrow:SetTextColor(GRAY_COLOR[1], GRAY_COLOR[2], GRAY_COLOR[3])
+    arrow:SetFont(WC.FONT_PATH, FONT_SIZE, "")
+    arrow:SetTextColor(WC.GRAY_COLOR[1], WC.GRAY_COLOR[2], WC.GRAY_COLOR[3])
     arrow:SetPoint("RIGHT", button, "RIGHT", -6, 0)
     arrow:SetText("v")
 
@@ -390,34 +391,34 @@ function ns.Widgets.CreateDropdown(parent, opts)
     UpdateSelectedPreview(frame, opts, initKey)
 
     -- Public API
-    function frame:GetValue()
+    function frame.GetValue(_)
         return opts.get and opts.get() or nil
     end
 
-    function frame:SetValue(v)
+    function frame.SetValue(_, v)
         if opts.set then opts.set(v) end
         local vals = ResolveValues(opts)
         selectedText:SetText(FindDisplayText(vals, v))
         UpdateSelectedPreview(frame, opts, v)
     end
 
-    function frame:SetDisabled(state)
+    function frame.SetDisabled(_, state)
         disabled = state
         if disabled then
-            label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
-            selectedText:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
-            arrow:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
+            label:SetTextColor(WC.DISABLED_COLOR[1], WC.DISABLED_COLOR[2], WC.DISABLED_COLOR[3])
+            selectedText:SetTextColor(WC.DISABLED_COLOR[1], WC.DISABLED_COLOR[2], WC.DISABLED_COLOR[3])
+            arrow:SetTextColor(WC.DISABLED_COLOR[1], WC.DISABLED_COLOR[2], WC.DISABLED_COLOR[3])
             button:SetAlpha(0.5)
             CloseActiveDropdown()
         else
-            label:SetTextColor(GRAY_COLOR[1], GRAY_COLOR[2], GRAY_COLOR[3])
-            selectedText:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
-            arrow:SetTextColor(GRAY_COLOR[1], GRAY_COLOR[2], GRAY_COLOR[3])
+            label:SetTextColor(WC.GRAY_COLOR[1], WC.GRAY_COLOR[2], WC.GRAY_COLOR[3])
+            selectedText:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
+            arrow:SetTextColor(WC.GRAY_COLOR[1], WC.GRAY_COLOR[2], WC.GRAY_COLOR[3])
             button:SetAlpha(1)
         end
     end
 
-    function frame:Refresh()
+    function frame.Refresh(_)
         local vals = ResolveValues(opts)
         local key = opts.get and opts.get() or nil
         selectedText:SetText(FindDisplayText(vals, key))

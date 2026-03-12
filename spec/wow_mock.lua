@@ -93,21 +93,21 @@ local function CreateMockFrame()
         return self._size.h
     end
 
-    function frame:SetMovable() end
-    function frame:SetClampedToScreen() end
-    function frame:EnableMouse() end
-    function frame:StartMoving() end
-    function frame:StopMovingOrSizing() end
-    function frame:SetFrameStrata() end
+    function frame.SetMovable(_) end
+    function frame.SetClampedToScreen(_) end
+    function frame.EnableMouse(_) end
+    function frame.StartMoving(_) end
+    function frame.StopMovingOrSizing(_) end
+    function frame.SetFrameStrata(_) end
 
-    function frame:CreateTexture()
+    function frame.CreateTexture(_)
         return {
             SetAllPoints = function() end,
             SetColorTexture = function() end,
         }
     end
 
-    function frame:CreateFontString()
+    function frame.CreateFontString(_)
         return {
             SetPoint = function() end,
             SetText = function() end,
@@ -178,7 +178,9 @@ function M.CreateNamespace()
     end
 
     -- Initialize sub-tables
+    ns.QueueUtils = {}
     ns.ToastManager = {}
+    ns.TestToasts = {}
 
     -- Mock ToastFrame
     ns.ToastFrame = {
@@ -267,7 +269,7 @@ function M.CreateNamespace()
             },
         },
         ScheduleRepeatingTimer = function() return {} end,
-        ScheduleTimer = function(self, func, _delay)
+        ScheduleTimer = function(_, func, _)
             -- In tests, execute immediately (no real timer)
             if func then func() end
             return {}
@@ -291,6 +293,14 @@ end
 -------------------------------------------------------------------------------
 
 function M.LoadToastManager(ns)
+    -- Load QueueUtils dependency first
+    local queuePath = "DragonToast/Core/QueueUtils.lua"
+    local queueChunk, queueErr = loadfile(queuePath)
+    if not queueChunk then
+        error("Failed to load " .. queuePath .. ": " .. (queueErr or "unknown error"))
+    end
+    queueChunk("DragonToast", ns)
+
     local path = "DragonToast/Display/ToastManager.lua"
     local chunk, err = loadfile(path)
     if not chunk then

@@ -38,8 +38,8 @@ function ns.MinimapIcon.Initialize()
             if button == "LeftButton" then
                 if IsShiftKeyDown() then
                     -- Shift-left: test toast
-                    if ns.ToastManager.ShowTestToast then
-                        ns.ToastManager.ShowTestToast()
+                    if ns.TestToasts.ShowTestToast then
+                        ns.TestToasts.ShowTestToast()
                     end
                 else
                     -- Left-click: toggle config

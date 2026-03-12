@@ -14,11 +14,11 @@ local ADDON_NAME, ns = ...
 local GetTime = GetTime
 local InCombatLockdown = InCombatLockdown
 local PlaySoundFile = PlaySoundFile
-local UnitName = UnitName
 local UIParent = UIParent
 local CreateFrame = CreateFrame
 local LSM = LibStub("LibSharedMedia-3.0")
 local L = ns.L
+local QueueUtils = ns.QueueUtils
 local string_format = string.format
 
 -------------------------------------------------------------------------------
@@ -26,8 +26,8 @@ local string_format = string.format
 -------------------------------------------------------------------------------
 
 local activeToasts = {}                        -- currently visible toast frames (ordered, [1] = newest)
-local toastQueue = { first = 1, last = 0 }     -- overflow queue (FIFO, O(1) push/pop)
-local combatQueue = { first = 1, last = 0 }    -- deferred-during-combat queue (FIFO, O(1) push/pop)
+local toastQueue = QueueUtils.New()            -- overflow queue (FIFO, O(1) push/pop)
+local combatQueue = QueueUtils.New()           -- deferred-during-combat queue (FIFO, O(1) push/pop)
 local anchorFrame = nil    -- invisible anchor frame for positioning
 local isInitialized = false
 
@@ -38,33 +38,102 @@ local isInitialized = false
 local TOAST_SPACING = 4    -- pixels between toasts
 local DUPLICATE_WINDOW = 2 -- seconds to consider same item a duplicate
 
--------------------------------------------------------------------------------
--- Queue Helpers (O(1) push / pop / size)
--------------------------------------------------------------------------------
+local DUPLICATE_KIND_ITEM = "item"
+local DUPLICATE_KIND_XP = "xp"
+local DUPLICATE_KIND_HONOR = "honor"
+local DUPLICATE_KIND_REPUTATION = "reputation"
+local DUPLICATE_KIND_GOLD = "gold"
+local DUPLICATE_KIND_CURRENCY = "currency"
+local ANCHOR_FRAME_SIZE = 1
+local DRAG_OVERLAY_WIDTH = 120
+local DRAG_OVERLAY_HEIGHT = 20
+local DRAG_OVERLAY_COLOR = { r = 1, g = 0.82, b = 0, a = 0.5 }
+local DEFAULT_ANCHOR_POINT = "RIGHT"
+local DEFAULT_ANCHOR_X = -20
+local DEFAULT_ANCHOR_Y = 0
 
-local function QueuePush(queue, item)
-    queue.last = queue.last + 1
-    queue[queue.last] = item
+local function IsRecentLoot(timestamp, now)
+    return timestamp and (now - timestamp) < DUPLICATE_WINDOW
 end
 
-local function QueuePop(queue)
-    if queue.first > queue.last then return nil end
-    local item = queue[queue.first]
-    queue[queue.first] = nil
-    queue.first = queue.first + 1
-    return item
-end
-
-local function QueueSize(queue)
-    return queue.last - queue.first + 1
-end
-
-local function QueueReset(queue)
-    for i = queue.first, queue.last do
-        queue[i] = nil
+local function GetDuplicateKind(existingLootData, incomingLootData)
+    if incomingLootData.isXP and existingLootData.isXP then
+        return DUPLICATE_KIND_XP
     end
-    queue.first = 1
-    queue.last = 0
+
+    if incomingLootData.isHonor and existingLootData.isHonor then
+        return DUPLICATE_KIND_HONOR
+    end
+
+    if incomingLootData.isReputation and existingLootData.isReputation
+        and existingLootData.factionName == incomingLootData.factionName then
+        return DUPLICATE_KIND_REPUTATION
+    end
+
+    if incomingLootData.copperAmount and existingLootData.copperAmount then
+        return DUPLICATE_KIND_GOLD
+    end
+
+    if incomingLootData.currencyID and existingLootData.currencyID == incomingLootData.currencyID then
+        return DUPLICATE_KIND_CURRENCY
+    end
+
+    if not incomingLootData.isXP and not existingLootData.isXP
+        and not incomingLootData.isHonor and not existingLootData.isHonor
+        and not incomingLootData.isReputation and not existingLootData.isReputation
+        and not incomingLootData.currencyID and not existingLootData.currencyID
+        and existingLootData.itemID == incomingLootData.itemID
+        and existingLootData.isSelf == incomingLootData.isSelf then
+        return DUPLICATE_KIND_ITEM
+    end
+
+    return nil
+end
+
+local function ApplyDuplicateStack(targetLootData, incomingLootData, duplicateKind, timestamp)
+    if duplicateKind == DUPLICATE_KIND_XP then
+        targetLootData.xpAmount = (targetLootData.xpAmount or 0) + (incomingLootData.xpAmount or 0)
+        targetLootData.itemName = string_format(L["+%s XP"], ns.ToastManager.FormatNumber(targetLootData.xpAmount))
+    elseif duplicateKind == DUPLICATE_KIND_HONOR then
+        targetLootData.honorAmount = (targetLootData.honorAmount or 0) + (incomingLootData.honorAmount or 0)
+        targetLootData.itemName = string_format(L["+%s Honor"],
+            ns.ToastManager.FormatNumber(targetLootData.honorAmount))
+    elseif duplicateKind == DUPLICATE_KIND_REPUTATION then
+        targetLootData.reputationAmount = (targetLootData.reputationAmount or 0)
+            + (incomingLootData.reputationAmount or 0)
+        targetLootData.itemName = string_format(L["+%s Reputation"],
+            ns.ToastManager.FormatNumber(targetLootData.reputationAmount))
+    elseif duplicateKind == DUPLICATE_KIND_GOLD then
+        targetLootData.copperAmount = targetLootData.copperAmount + incomingLootData.copperAmount
+    elseif duplicateKind == DUPLICATE_KIND_CURRENCY then
+        targetLootData.quantity = (targetLootData.quantity or 1) + (incomingLootData.quantity or 1)
+    elseif duplicateKind == DUPLICATE_KIND_ITEM then
+        targetLootData.quantity = (targetLootData.quantity or 1) + (incomingLootData.quantity or 1)
+    end
+
+    if timestamp then
+        targetLootData.timestamp = timestamp
+    end
+end
+
+local function GetQueuedStackTimestamp(duplicateKind, incomingLootData, now)
+    if duplicateKind == DUPLICATE_KIND_ITEM then
+        return nil
+    end
+
+    if duplicateKind == DUPLICATE_KIND_GOLD then
+        return incomingLootData.timestamp
+    end
+
+    return now
+end
+
+local function GetActiveStackTimestamp(duplicateKind)
+    if duplicateKind == DUPLICATE_KIND_ITEM or duplicateKind == DUPLICATE_KIND_CURRENCY then
+        return nil
+    end
+
+    return GetTime()
 end
 
 -------------------------------------------------------------------------------
@@ -76,7 +145,7 @@ local function CreateAnchorFrame()
 
     -- Invisible 1x1 positioning reference -- never shown, never resized
     anchorFrame = CreateFrame("Frame", "DragonToastAnchor", UIParent)
-    anchorFrame:SetSize(1, 1)
+    anchorFrame:SetSize(ANCHOR_FRAME_SIZE, ANCHOR_FRAME_SIZE)
     anchorFrame:SetMovable(true)
     anchorFrame:SetClampedToScreen(true)
 
@@ -87,7 +156,7 @@ local function CreateAnchorFrame()
 
     -- Visual drag overlay (child of anchor, HIGH strata so it renders above toasts)
     local overlay = CreateFrame("Frame", nil, anchorFrame)
-    overlay:SetSize(120, 20)
+    overlay:SetSize(DRAG_OVERLAY_WIDTH, DRAG_OVERLAY_HEIGHT)
     overlay:SetPoint("CENTER", anchorFrame, "CENTER")
     overlay:SetFrameStrata("HIGH")
     overlay:SetMovable(true)
@@ -96,13 +165,13 @@ local function CreateAnchorFrame()
 
     local dragBg = overlay:CreateTexture(nil, "BACKGROUND")
     dragBg:SetAllPoints()
-    dragBg:SetColorTexture(1, 0.82, 0, 0.5) -- gold
+    dragBg:SetColorTexture(DRAG_OVERLAY_COLOR.r, DRAG_OVERLAY_COLOR.g, DRAG_OVERLAY_COLOR.b, DRAG_OVERLAY_COLOR.a)
 
     local dragText = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     dragText:SetPoint("CENTER")
     dragText:SetText(L["Drag to move"])
 
-    overlay:SetScript("OnMouseDown", function(_self, button)
+    overlay:SetScript("OnMouseDown", function(_, button)
         if button == "LeftButton" then
             anchorFrame:StartMoving()
         end
@@ -202,31 +271,10 @@ local function FindDuplicate(lootData)
 
     -- Search active toasts first
     for i, toast in ipairs(activeToasts) do
-        if not toast._isExiting and toast.lootData and (now - toast.lootData.timestamp) < DUPLICATE_WINDOW then
-            -- XP/honor toast stacking: merge consecutive XP or honor gains
-            if lootData.isXP and toast.lootData.isXP then
-                return toast, i
-            elseif lootData.isHonor and toast.lootData.isHonor then
-                return toast, i
-            elseif lootData.isReputation and toast.lootData.isReputation
-                and toast.lootData.factionName == lootData.factionName then
-                return toast, i
-            -- Gold/money stacking
-            elseif lootData.copperAmount and toast.lootData.copperAmount then
-                return toast, i
-            -- Currency stacking by currencyID
-            elseif lootData.currencyID and toast.lootData.currencyID == lootData.currencyID then
-                return toast, i
-            end
-
-            -- Normal item stacking (skip currencies -- those stack by currencyID above)
-            if not lootData.isXP and not toast.lootData.isXP
-                and not lootData.isHonor and not toast.lootData.isHonor
-                and not lootData.isReputation and not toast.lootData.isReputation
-                and not lootData.currencyID and not toast.lootData.currencyID
-                and toast.lootData.itemID == lootData.itemID
-                and toast.lootData.isSelf == lootData.isSelf then
-                return toast, i
+        if not toast._isExiting and toast.lootData and IsRecentLoot(toast.lootData.timestamp, now) then
+            local duplicateKind = GetDuplicateKind(toast.lootData, lootData)
+            if duplicateKind then
+                return toast, i, duplicateKind
             end
         end
     end
@@ -236,45 +284,12 @@ local function FindDuplicate(lootData)
     for _, queue in ipairs(queues) do
         for idx = queue.first, queue.last do
             local entry = queue[idx]
-            if entry and (now - entry.timestamp) < DUPLICATE_WINDOW then
-                if lootData.isXP and entry.isXP then
-                    -- Stack XP in-place
-                    entry.xpAmount = (entry.xpAmount or 0) + (lootData.xpAmount or 0)
-                    entry.itemName = string_format(L["+%s XP"], ns.ToastManager.FormatNumber(entry.xpAmount))
-                    entry.timestamp = now
-                    return entry, nil -- nil index signals queued (not active)
-                elseif lootData.isHonor and entry.isHonor then
-                    entry.honorAmount = (entry.honorAmount or 0) + (lootData.honorAmount or 0)
-                    entry.itemName = string_format(L["+%s Honor"], ns.ToastManager.FormatNumber(entry.honorAmount))
-                    entry.timestamp = now
-                    return entry, nil -- nil index signals queued (not active)
-                elseif lootData.isReputation and entry.isReputation
-                    and entry.factionName == lootData.factionName then
-                    entry.reputationAmount = (entry.reputationAmount or 0) + (lootData.reputationAmount or 0)
-                    entry.itemName = string_format(L["+%s Reputation"],
-                        ns.ToastManager.FormatNumber(entry.reputationAmount))
-                    entry.timestamp = now
-                    return entry, nil -- nil index signals queued (not active)
-                elseif entry.copperAmount and lootData.copperAmount then
-                    entry.copperAmount = entry.copperAmount + lootData.copperAmount
-                    entry.timestamp = lootData.timestamp
-                    return entry, nil
-                elseif lootData.currencyID and entry.currencyID == lootData.currencyID then
-                    entry.quantity = (entry.quantity or 1) + (lootData.quantity or 1)
-                    entry.timestamp = now
-                    return entry, nil
-                end
-
-                -- Normal item stacking (skip currencies)
-                if not lootData.isXP and not entry.isXP
-                    and not lootData.isHonor and not entry.isHonor
-                    and not lootData.isReputation and not entry.isReputation
-                    and not lootData.currencyID and not entry.currencyID
-                    and entry.itemID == lootData.itemID
-                    and entry.isSelf == lootData.isSelf then
-                    -- Stack quantity in-place
-                    entry.quantity = (entry.quantity or 1) + (lootData.quantity or 1)
-                    return entry, nil
+            if entry and IsRecentLoot(entry.timestamp, now) then
+                local duplicateKind = GetDuplicateKind(entry, lootData)
+                if duplicateKind then
+                    local timestamp = GetQueuedStackTimestamp(duplicateKind, lootData, now)
+                    ApplyDuplicateStack(entry, lootData, duplicateKind, timestamp)
+                    return entry, nil, duplicateKind -- nil index signals queued (not active)
                 end
             end
         end
@@ -284,12 +299,10 @@ local function FindDuplicate(lootData)
 end
 
 -------------------------------------------------------------------------------
--- Utilities (delegates to shared ns.FormatNumber)
+-- Utilities
 -------------------------------------------------------------------------------
 
-ns.ToastManager.FormatNumber = function(num)
-    return ns.FormatNumber(num)
-end
+ns.ToastManager.FormatNumber = ns.FormatNumber
 
 -------------------------------------------------------------------------------
 -- Display a Toast
@@ -299,36 +312,13 @@ local function ShowToast(lootData)
     local db = ns.Addon.db.profile
 
     -- Check for duplicate
-    local existing, activeIndex = FindDuplicate(lootData)
+    local existing, activeIndex, duplicateKind = FindDuplicate(lootData)
     if existing then
         -- nil activeIndex means the duplicate was found in a pending queue
         -- and has already been updated in-place by FindDuplicate
         if activeIndex == nil then return end
 
-        if lootData.isXP then
-            -- Stack XP: sum amounts and update display name
-            existing.lootData.xpAmount = (existing.lootData.xpAmount or 0) + (lootData.xpAmount or 0)
-            existing.lootData.itemName = string_format(L["+%s XP"],
-                ns.ToastManager.FormatNumber(existing.lootData.xpAmount))
-            existing.lootData.timestamp = GetTime()
-        elseif lootData.isHonor then
-            existing.lootData.honorAmount = (existing.lootData.honorAmount or 0) + (lootData.honorAmount or 0)
-            existing.lootData.itemName = string_format(L["+%s Honor"],
-                ns.ToastManager.FormatNumber(existing.lootData.honorAmount))
-            existing.lootData.timestamp = GetTime()
-        elseif lootData.isReputation then
-            existing.lootData.reputationAmount = (existing.lootData.reputationAmount or 0)
-                + (lootData.reputationAmount or 0)
-            existing.lootData.itemName = string_format(L["+%s Reputation"],
-                ns.ToastManager.FormatNumber(existing.lootData.reputationAmount))
-            existing.lootData.timestamp = GetTime()
-        elseif existing.lootData.copperAmount and lootData.copperAmount then
-            existing.lootData.copperAmount = existing.lootData.copperAmount + lootData.copperAmount
-            existing.lootData.timestamp = GetTime()
-        else
-            -- Increment quantity on existing toast
-            existing.lootData.quantity = (existing.lootData.quantity or 1) + (lootData.quantity or 1)
-        end
+        ApplyDuplicateStack(existing.lootData, lootData, duplicateKind, GetActiveStackTimestamp(duplicateKind))
         ns.ToastFrame.Populate(existing, existing.lootData)
         -- Preserve the current lifecycle - stacked active toasts only update content.
         ns.ToastAnimations.UpdateLifecycle(existing, existing.lootData)
@@ -338,7 +328,7 @@ local function ShowToast(lootData)
     -- Check max visible
     if #activeToasts >= db.display.maxToasts then
         -- Queue for later
-        QueuePush(toastQueue, lootData)
+        QueueUtils.Push(toastQueue, lootData)
         return
     end
 
@@ -364,6 +354,8 @@ local function ShowToast(lootData)
     end
 end
 
+ns.ToastManager.ShowToast = ShowToast
+
 -------------------------------------------------------------------------------
 -- Queue Management
 -------------------------------------------------------------------------------
@@ -386,7 +378,7 @@ function ns.ToastManager.QueueToast(lootData)
 
     -- Combat deferral
     if db.combat.deferInCombat and InCombatLockdown() then
-        QueuePush(combatQueue, lootData)
+        QueueUtils.Push(combatQueue, lootData)
         return
     end
 
@@ -395,15 +387,15 @@ end
 
 function ns.ToastManager.FlushQueue()
     -- Process overflow queue
-    while QueueSize(toastQueue) > 0 and #activeToasts < ns.Addon.db.profile.display.maxToasts do
-        local lootData = QueuePop(toastQueue)
+    while QueueUtils.Size(toastQueue) > 0 and #activeToasts < ns.Addon.db.profile.display.maxToasts do
+        local lootData = QueueUtils.Pop(toastQueue)
         ShowToast(lootData)
     end
 end
 
 local function FlushCombatQueue()
-    while QueueSize(combatQueue) > 0 do
-        local lootData = QueuePop(combatQueue)
+    while QueueUtils.Size(combatQueue) > 0 do
+        local lootData = QueueUtils.Pop(combatQueue)
         ns.ToastManager.QueueToast(lootData)
     end
 end
@@ -437,315 +429,15 @@ function ns.ToastManager.OnToastFinished(toast)
 end
 
 function ns.ToastManager.ClearAll()
-    ns.ToastManager.StopTestMode()
+    ns.TestToasts.StopTestMode()
     -- Cancel all animations and hide all toasts
     for _, toast in ipairs(activeToasts) do
         ns.ToastAnimations.StopAll(toast)
         ns.ToastFrame.Release(toast)
     end
     wipe(activeToasts)
-    QueueReset(toastQueue)
-    QueueReset(combatQueue)
-end
-
--------------------------------------------------------------------------------
--- Test Toast
--------------------------------------------------------------------------------
-
-local testCounter = 0
-
-function ns.ToastManager.ShowTestToast()
-    testCounter = testCounter + 1
-
-    -- Create a fake loot entry for testing
-    local testItems = {
-        { name = "Warglaive of Azzinoth", quality = 5, level = 156, type = "Weapon", subType = "Sword",
-          icon = 135562, id = 32837 },
-        { name = "Bulwark of Azzinoth", quality = 4, level = 154, type = "Armor", subType = "Shield",
-          icon = 132351, id = 32375 },
-        { name = "Tier 6 Helm Token", quality = 4, level = 154, type = "Miscellaneous", subType = "Junk",
-          icon = 134240, id = 31097 },
-        { name = "Nethervoid Cloak", quality = 4, level = 141, type = "Armor", subType = "Cloth",
-          icon = 133772, id = 32331 },
-        { name = "Pattern: Sunfire Robe", quality = 4, level = 75, type = "Recipe", subType = "Tailoring",
-          icon = 132744, id = 32754 },
-        { name = "Gold Loot", quality = 1, level = 0, type = "Currency", subType = "Gold",
-          icon = 133784, id = 99998, isMoney = true, copperAmount = 12345 },
-        { name = "+1,234 XP", quality = 1, level = 0, type = nil, subType = nil,
-          icon = 894556, id = 99999, isXP = true, xpAmount = 1234 },
-        { name = "+150 Honor", quality = 1, level = 0, type = nil, subType = nil,
-          icon = ns.HonorListener.GetHonorIcon(), id = 99997, isHonor = true, honorAmount = 150,
-           victimName = "Enemy Player" },
-        { name = "+250 Reputation", quality = 1, level = 0, type = nil, subType = nil,
-          icon = ns.ReputationListener.GetReputationIcon(), id = 99996, isReputation = true,
-          reputationAmount = 250, factionName = "The Sha'tar" },
-    }
-
-    local test = testItems[math.random(#testItems)]
-
-    local lootData
-    if test.isXP then
-        local amount = test.xpAmount + math.random(0, 500)
-        lootData = {
-            isXP = true,
-            xpAmount = amount,
-            mobName = (math.random(2) == 1) and "Test Creature" or nil,
-            itemIcon = test.icon,
-            itemName = string_format(L["+%s XP"], ns.ToastManager.FormatNumber(amount)),
-            itemQuality = test.quality,
-            itemLevel = 0,
-            quantity = 1,
-            looter = UnitName("player") or "TestPlayer",
-            isSelf = true,
-            isCurrency = false,
-            timestamp = GetTime(),
-        }
-    elseif test.isHonor then
-        local amount = test.honorAmount + math.random(0, 100)
-        lootData = {
-            isHonor = true,
-            honorAmount = amount,
-            victimName = test.victimName,
-            itemIcon = test.icon,
-            itemName = string_format(L["+%s Honor"], ns.ToastManager.FormatNumber(amount)),
-            itemQuality = test.quality,
-            itemLevel = 0,
-            itemType = nil,
-            itemSubType = nil,
-            quantity = 1,
-            looter = UnitName("player") or "TestPlayer",
-            isSelf = true,
-            isCurrency = false,
-            timestamp = GetTime(),
-        }
-    elseif test.isReputation then
-        local amount = test.reputationAmount + math.random(0, 200)
-        lootData = {
-            isReputation = true,
-            reputationAmount = amount,
-            factionName = test.factionName,
-            itemIcon = test.icon,
-            itemName = string_format(L["+%s Reputation"], ns.ToastManager.FormatNumber(amount)),
-            itemQuality = test.quality,
-            itemLevel = 0,
-            itemType = nil,
-            itemSubType = nil,
-            quantity = 1,
-            looter = UnitName("player") or "TestPlayer",
-            isSelf = true,
-            isCurrency = false,
-            timestamp = GetTime(),
-        }
-    elseif test.isMoney then
-        lootData = {
-            itemLink = nil,
-            itemID = nil,
-            copperAmount = test.copperAmount,
-            itemName = GetCoinTextureString(test.copperAmount),
-            itemQuality = test.quality,
-            itemLevel = test.level,
-            itemType = test.type,
-            itemSubType = test.subType,
-            itemIcon = test.icon,
-            quantity = 1,
-            looter = UnitName("player") or "TestPlayer",
-            isSelf = true,
-            isCurrency = true,
-            timestamp = GetTime(),
-        }
-    else
-        lootData = {
-            itemLink = "|cff" .. (test.quality == 5 and "ff8000" or "a335ee") .. "|Hitem:" .. test.id
-                .. "::::::::70::::::|h[" .. test.name .. "]|h|r" .. testCounter,
-            itemID = test.id,
-            itemName = test.name,
-            itemQuality = test.quality,
-            itemLevel = test.level,
-            itemType = test.type,
-            itemSubType = test.subType,
-            itemIcon = test.icon,
-            quantity = math.random(1, 3),
-            looter = UnitName("player") or "TestPlayer",
-            isSelf = true,
-            isCurrency = false,
-            timestamp = GetTime(),
-        }
-    end
-
-    ShowToast(lootData)
-end
-
--------------------------------------------------------------------------------
--- Test Mode (continuous toast generation)
--------------------------------------------------------------------------------
-
-local testModeTimer = nil
-
-function ns.ToastManager.IsTestModeActive()
-    return testModeTimer ~= nil
-end
-
-function ns.ToastManager.StartTestMode()
-    if testModeTimer then return end -- already running
-
-    -- Fire one immediately
-    ns.ToastManager.ShowTestToast()
-
-    -- Schedule repeating timer
-    testModeTimer = ns.Addon:ScheduleRepeatingTimer(function()
-        ns.ToastManager.ShowTestToast()
-    end, 1.5)
-
-    ns.Print("Test mode " .. ns.COLOR_GREEN .. "started" .. ns.COLOR_RESET .. " — toasts will keep appearing.")
-end
-
-function ns.ToastManager.StopTestMode()
-    if not testModeTimer then return end
-
-    ns.Addon:CancelTimer(testModeTimer)
-    testModeTimer = nil
-
-    ns.Print("Test mode " .. ns.COLOR_RED .. "stopped" .. ns.COLOR_RESET)
-end
-
-function ns.ToastManager.ToggleTestMode()
-    if testModeTimer then
-        ns.ToastManager.StopTestMode()
-    else
-        ns.ToastManager.StartTestMode()
-    end
-end
-
--------------------------------------------------------------------------------
--- Stack Test Commands (in-game verification)
--------------------------------------------------------------------------------
-
-function ns.ToastManager.RunStackTest(testType)
-    local addon = ns.Addon
-
-    local function FireToast(lootData, delay)
-        if delay and delay > 0 then
-            addon:ScheduleTimer(function() ShowToast(lootData) end, delay)
-        else
-            ShowToast(lootData)
-        end
-    end
-
-    local function MakeItemData()
-        return {
-            itemLink = "|cffa335ee|Hitem:32837::::::::70::::::|h[Warglaive of Azzinoth]|h|r",
-            itemID = 32837,
-            itemName = "Warglaive of Azzinoth",
-            itemQuality = 5,
-            itemLevel = 156,
-            itemType = "Weapon",
-            itemSubType = "Sword",
-            itemIcon = 135562,
-            quantity = 1,
-            looter = UnitName("player") or "TestPlayer",
-            isSelf = true,
-            isCurrency = false,
-            timestamp = GetTime(),
-        }
-    end
-
-    local function MakeXPData()
-        return {
-            isXP = true,
-            xpAmount = 500,
-            itemIcon = 894556,
-            itemName = string_format(L["+%s XP"], ns.ToastManager.FormatNumber(500)),
-            itemQuality = 1,
-            itemLevel = 0,
-            quantity = 1,
-            looter = UnitName("player") or "TestPlayer",
-            isSelf = true,
-            isCurrency = false,
-            timestamp = GetTime(),
-        }
-    end
-
-    local function MakeGoldData()
-        return {
-            itemLink = nil,
-            itemID = nil,
-            copperAmount = 50000,
-            itemName = GetCoinTextureString(50000),
-            itemQuality = 1,
-            itemLevel = 0,
-            itemType = "Currency",
-            itemSubType = "Gold",
-            itemIcon = 133784,
-            quantity = 1,
-            looter = UnitName("player") or "TestPlayer",
-            isSelf = true,
-            isCurrency = true,
-            timestamp = GetTime(),
-        }
-    end
-
-    local function MakeHonorData()
-        return {
-            isHonor = true,
-            honorAmount = 100,
-            victimName = "Enemy Player",
-            itemIcon = ns.HonorListener.GetHonorIcon(),
-            itemName = string_format(L["+%s Honor"], ns.ToastManager.FormatNumber(100)),
-            itemQuality = 1,
-            itemLevel = 0,
-            quantity = 1,
-            looter = UnitName("player") or "TestPlayer",
-            isSelf = true,
-            isCurrency = false,
-            timestamp = GetTime(),
-        }
-    end
-
-    local function MakeReputationData()
-        return {
-            isReputation = true,
-            reputationAmount = 250,
-            factionName = "The Sha'tar",
-            itemIcon = ns.ReputationListener.GetReputationIcon(),
-            itemName = string_format(L["+%s Reputation"], ns.ToastManager.FormatNumber(250)),
-            itemQuality = 1,
-            itemLevel = 0,
-            quantity = 1,
-            looter = UnitName("player") or "TestPlayer",
-            isSelf = true,
-            isCurrency = false,
-            timestamp = GetTime(),
-        }
-    end
-
-    local function RunGroup(label, makeFunc)
-        ns.Print("[Stack Test] Testing " .. ns.COLOR_WHITE .. label .. ns.COLOR_RESET .. " stacking...")
-        FireToast(makeFunc(), 0)
-        FireToast(makeFunc(), 0.3)
-        FireToast(makeFunc(), 0.6)
-    end
-
-    if testType == "item" or testType == "stack" then
-        RunGroup("item", MakeItemData)
-    elseif testType == "xp" then
-        RunGroup("XP", MakeXPData)
-    elseif testType == "gold" then
-        RunGroup("gold", MakeGoldData)
-    elseif testType == "honor" then
-        RunGroup("honor", MakeHonorData)
-    elseif testType == "reputation" or testType == "rep" then
-        RunGroup("reputation", MakeReputationData)
-    elseif testType == "all" then
-        RunGroup("item", MakeItemData)
-        addon:ScheduleTimer(function() RunGroup("XP", MakeXPData) end, 2.0)
-        addon:ScheduleTimer(function() RunGroup("gold", MakeGoldData) end, 4.0)
-        addon:ScheduleTimer(function() RunGroup("honor", MakeHonorData) end, 6.0)
-        addon:ScheduleTimer(function() RunGroup("reputation", MakeReputationData) end, 8.0)
-    else
-        ns.Print("Unknown test type: " .. ns.COLOR_WHITE .. (testType or "nil") .. ns.COLOR_RESET)
-        ns.Print("Usage: /dt test [stack|xp|gold|honor|reputation|all]")
-        return
-    end
+    QueueUtils.Reset(toastQueue)
+    QueueUtils.Reset(combatQueue)
 end
 
 -------------------------------------------------------------------------------
@@ -781,10 +473,10 @@ end
 
 function ns.ToastManager.ResetAnchor()
     local db = ns.Addon.db.profile
-    db.display.anchorPoint = "RIGHT"
-    db.display.anchorX = -20
-    db.display.anchorY = 0
-    ns.ToastManager.SetAnchor("RIGHT", -20, 0)
+    db.display.anchorPoint = DEFAULT_ANCHOR_POINT
+    db.display.anchorX = DEFAULT_ANCHOR_X
+    db.display.anchorY = DEFAULT_ANCHOR_Y
+    ns.ToastManager.SetAnchor(DEFAULT_ANCHOR_POINT, DEFAULT_ANCHOR_X, DEFAULT_ANCHOR_Y)
     ns.Print("Anchor position reset to default.")
 end
 
@@ -800,7 +492,7 @@ function ns.ToastManager.Initialize()
 
     -- Register for combat end to flush deferred queue
     ns.Addon:RegisterEvent("PLAYER_REGEN_ENABLED", function()
-        if QueueSize(combatQueue) > 0 then
+        if QueueUtils.Size(combatQueue) > 0 then
             FlushCombatQueue()
         end
     end)
@@ -820,10 +512,10 @@ ns.ToastManager._test = {
     -- Internal functions
     FindDuplicate = FindDuplicate,
     ShowToast = ShowToast,
-    QueuePush = QueuePush,
-    QueuePop = QueuePop,
-    QueueSize = QueueSize,
-    QueueReset = QueueReset,
+    QueuePush = QueueUtils.Push,
+    QueuePop = QueueUtils.Pop,
+    QueueSize = QueueUtils.Size,
+    QueueReset = QueueUtils.Reset,
     GetToastPosition = GetToastPosition,
     FlushCombatQueue = FlushCombatQueue,
     -- Constants

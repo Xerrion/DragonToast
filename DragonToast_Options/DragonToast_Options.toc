@@ -10,6 +10,7 @@
 
 Core.lua
 
+Widgets\WidgetConstants.lua
 Widgets\Panel.lua
 Widgets\ScrollFrame.lua
 Widgets\TabGroup.lua
@@ -21,6 +22,8 @@ Widgets\Dropdown.lua
 Widgets\ColorPicker.lua
 Widgets\TextInput.lua
 Widgets\Button.lua
+
+LayoutConstants.lua
 
 Tabs\GeneralTab.lua
 Tabs\FiltersTab.lua

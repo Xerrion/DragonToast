@@ -3,6 +3,7 @@ max_line_length = 120
 codes = true
 exclude_files = {
     "DragonToast/Libs/",
+    ".release/",
 }
 
 ignore = {
@@ -87,7 +88,7 @@ files["DragonToast/"] = {
         "COMBATLOG_HONORAWARD",
 
         -- LoadOnDemand
-        "C_AddOns", "IsAddOnLoaded", "LoadAddOn", "DragonToast_Options",
+        "_G", "C_AddOns", "DragonToast_Options",
 
         -- ElvUI
         "ElvUI",

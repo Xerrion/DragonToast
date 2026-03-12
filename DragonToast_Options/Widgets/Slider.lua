@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local WC = ns.WidgetConstants
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -23,14 +24,9 @@ local format = string.format
 -- Constants
 -------------------------------------------------------------------------------
 
-local FONT_PATH = "Fonts\\FRIZQT__.TTF"
 local LABEL_FONT_SIZE = 12
 local VALUE_FONT_SIZE = 11
 local MIN_MAX_FONT_SIZE = 10
-local WHITE_COLOR = { 1, 1, 1 }
-local GRAY_COLOR = { 0.7, 0.7, 0.7 }
-local DISABLED_COLOR = { 0.5, 0.5, 0.5 }
-local WHITE8x8 = "Interface\\Buttons\\WHITE8x8"
 local THUMB_TEXTURE = "Interface\\Buttons\\UI-SliderBar-Button-Horizontal"
 local EDITBOX_WIDTH = 50
 local FRAME_HEIGHT = 55
@@ -75,8 +71,8 @@ local function CreateCustomSlider(parent)
     local slider = CreateFrame("Slider", nil, parent, "BackdropTemplate")
     slider:SetHeight(SLIDER_HEIGHT)
     slider:SetBackdrop({
-        bgFile = WHITE8x8,
-        edgeFile = WHITE8x8,
+        bgFile = WC.WHITE8x8,
+        edgeFile = WC.WHITE8x8,
         edgeSize = 1,
     })
     slider:SetBackdropColor(TRACK_BG[1], TRACK_BG[2], TRACK_BG[3], TRACK_BG[4])
@@ -107,62 +103,30 @@ local function CreateSliderFrame(parent)
 end
 
 -------------------------------------------------------------------------------
--- Factory: CreateSlider
+-- Update editbox display from a numeric value
 -------------------------------------------------------------------------------
 
-function ns.Widgets.CreateSlider(parent, opts)
-    local frame = CreateFrame("Frame", nil, parent)
-    frame:SetHeight(FRAME_HEIGHT)
+local function UpdateEditBoxText(editBox, value, opts)
+    editBox:SetText(FormatValue(value, opts))
+end
 
-    local disabled = false
-    local minVal = opts.min or 0
-    local maxVal = opts.max or 100
-    local step = opts.step or 1
-    local currentValue = minVal
+-------------------------------------------------------------------------------
+-- Create the editable value input box
+-------------------------------------------------------------------------------
 
-    -- Label at top
-    local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont(FONT_PATH, LABEL_FONT_SIZE, "")
-    label:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
-    label:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
-    label:SetText(opts.label or "")
-
-    -- Slider below label
-    local slider = CreateSliderFrame(frame)
-    slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -4)
-    slider:SetPoint("RIGHT", frame, "RIGHT", -(EDITBOX_WIDTH + 8), 0)
-    slider:SetMinMaxValues(minVal, maxVal)
-    slider:SetValueStep(step)
-    slider:SetObeyStepOnDrag(true)
-    slider:SetOrientation("HORIZONTAL")
-
-    -- Min label (bottom-left of slider)
-    local minLabel = frame:CreateFontString(nil, "OVERLAY")
-    minLabel:SetFont(FONT_PATH, MIN_MAX_FONT_SIZE, "")
-    minLabel:SetTextColor(GRAY_COLOR[1], GRAY_COLOR[2], GRAY_COLOR[3])
-    minLabel:SetPoint("TOPLEFT", slider, "BOTTOMLEFT", 0, -1)
-    minLabel:SetText(FormatValue(minVal, opts))
-
-    -- Max label (bottom-right of slider)
-    local maxLabel = frame:CreateFontString(nil, "OVERLAY")
-    maxLabel:SetFont(FONT_PATH, MIN_MAX_FONT_SIZE, "")
-    maxLabel:SetTextColor(GRAY_COLOR[1], GRAY_COLOR[2], GRAY_COLOR[3])
-    maxLabel:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT", 0, -1)
-    maxLabel:SetText(FormatValue(maxVal, opts))
-
-    -- EditBox for typed value entry
-    local editBox = CreateFrame("EditBox", nil, frame, "BackdropTemplate")
+local function CreateValueEditBox(parent, slider)
+    local editBox = CreateFrame("EditBox", nil, parent, "BackdropTemplate")
     editBox:SetSize(EDITBOX_WIDTH, 20)
     editBox:SetPoint("LEFT", slider, "RIGHT", 8, 0)
     editBox:SetBackdrop({
-        bgFile = WHITE8x8,
-        edgeFile = WHITE8x8,
+        bgFile = WC.WHITE8x8,
+        edgeFile = WC.WHITE8x8,
         edgeSize = 1,
     })
     editBox:SetBackdropColor(0.1, 0.1, 0.1, 0.9)
     editBox:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
-    editBox:SetFont(FONT_PATH, VALUE_FONT_SIZE, "")
-    editBox:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+    editBox:SetFont(WC.FONT_PATH, VALUE_FONT_SIZE, "")
+    editBox:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
     editBox:SetJustifyH("CENTER")
     editBox:SetAutoFocus(false)
     editBox:SetMaxLetters(10)
@@ -172,100 +136,160 @@ function ns.Widgets.CreateSlider(parent, opts)
         self:ClearFocus()
     end)
 
-    -- Track whether slider update is internal to avoid feedback loops
-    local isInternal = false
+    return editBox
+end
 
-    -- Update the editbox text from a value
-    local function UpdateEditBoxText(value)
-        editBox:SetText(FormatValue(value, opts))
-    end
+-------------------------------------------------------------------------------
+-- Create the label, slider track, min/max labels, and editbox UI elements
+-------------------------------------------------------------------------------
 
-    -- Slider OnValueChanged
+local function CreateSliderElements(frame, opts, state)
+    -- Label at top
+    local label = frame:CreateFontString(nil, "OVERLAY")
+    label:SetFont(WC.FONT_PATH, LABEL_FONT_SIZE, "")
+    label:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
+    label:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+    label:SetText(opts.label or "")
+
+    -- Slider below label
+    local slider = CreateSliderFrame(frame)
+    slider:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -4)
+    slider:SetPoint("RIGHT", frame, "RIGHT", -(EDITBOX_WIDTH + 8), 0)
+    slider:SetMinMaxValues(state.minVal, state.maxVal)
+    slider:SetValueStep(state.step)
+    slider:SetObeyStepOnDrag(true)
+    slider:SetOrientation("HORIZONTAL")
+
+    -- Min label (bottom-left of slider)
+    local minLabel = frame:CreateFontString(nil, "OVERLAY")
+    minLabel:SetFont(WC.FONT_PATH, MIN_MAX_FONT_SIZE, "")
+    minLabel:SetTextColor(WC.GRAY_COLOR[1], WC.GRAY_COLOR[2], WC.GRAY_COLOR[3])
+    minLabel:SetPoint("TOPLEFT", slider, "BOTTOMLEFT", 0, -1)
+    minLabel:SetText(FormatValue(state.minVal, opts))
+
+    -- Max label (bottom-right of slider)
+    local maxLabel = frame:CreateFontString(nil, "OVERLAY")
+    maxLabel:SetFont(WC.FONT_PATH, MIN_MAX_FONT_SIZE, "")
+    maxLabel:SetTextColor(WC.GRAY_COLOR[1], WC.GRAY_COLOR[2], WC.GRAY_COLOR[3])
+    maxLabel:SetPoint("TOPRIGHT", slider, "BOTTOMRIGHT", 0, -1)
+    maxLabel:SetText(FormatValue(state.maxVal, opts))
+
+    local editBox = CreateValueEditBox(frame, slider)
+
+    return label, slider, editBox
+end
+
+-------------------------------------------------------------------------------
+-- Wire up OnValueChanged, OnEnterPressed, OnEscapePressed handlers
+-------------------------------------------------------------------------------
+
+local function SetupSliderEvents(slider, editBox, opts, state)
     slider:SetScript("OnValueChanged", function(_, value)
-        local rounded = RoundToStep(value, step)
-        currentValue = rounded
-        if not isInternal then
-            UpdateEditBoxText(rounded)
+        local rounded = RoundToStep(value, state.step)
+        state.currentValue = rounded
+        if not state.isInternal then
+            UpdateEditBoxText(editBox, rounded, opts)
             if opts.set then opts.set(rounded) end
         end
     end)
 
-    -- EditBox OnEnterPressed
     editBox:SetScript("OnEnterPressed", function(self)
         local text = self:GetText()
-        -- Strip percent sign if present
         text = text:gsub("%%", "")
         local parsed = tonumber(text)
         if parsed then
             if opts.isPercent then parsed = parsed / 100 end
-            parsed = Clamp(RoundToStep(parsed, step), minVal, maxVal)
-            isInternal = true
+            parsed = Clamp(RoundToStep(parsed, state.step), state.minVal, state.maxVal)
+            state.isInternal = true
             slider:SetValue(parsed)
-            isInternal = false
-            currentValue = parsed
-            UpdateEditBoxText(parsed)
+            state.isInternal = false
+            state.currentValue = parsed
+            UpdateEditBoxText(editBox, parsed, opts)
             if opts.set then opts.set(parsed) end
         else
-            UpdateEditBoxText(currentValue)
+            UpdateEditBoxText(editBox, state.currentValue, opts)
         end
         self:ClearFocus()
     end)
 
-    -- EditBox OnEscapePressed: revert
     editBox:SetScript("OnEscapePressed", function(self)
-        UpdateEditBoxText(currentValue)
+        UpdateEditBoxText(editBox, state.currentValue, opts)
         self:ClearFocus()
     end)
+end
 
-    -- Initialize
-    if opts.get then
-        currentValue = opts.get() or minVal
-    end
-    isInternal = true
-    slider:SetValue(currentValue)
-    isInternal = false
-    UpdateEditBoxText(currentValue)
+-------------------------------------------------------------------------------
+-- Attach public API methods to the frame (GetValue, SetValue, SetDisabled, Refresh)
+-------------------------------------------------------------------------------
 
-    -- Public API
-    function frame:GetValue()
-        return currentValue
+local function AttachSliderAPI(frame, slider, editBox, label, opts, state)
+    function frame.GetValue(_)
+        return state.currentValue
     end
 
-    function frame:SetValue(v)
-        local clamped = Clamp(RoundToStep(v, step), minVal, maxVal)
-        currentValue = clamped
-        isInternal = true
+    function frame.SetValue(_, v)
+        local clamped = Clamp(RoundToStep(v, state.step), state.minVal, state.maxVal)
+        state.currentValue = clamped
+        state.isInternal = true
         slider:SetValue(clamped)
-        isInternal = false
-        UpdateEditBoxText(clamped)
+        state.isInternal = false
+        UpdateEditBoxText(editBox, clamped, opts)
     end
 
-    function frame:SetDisabled(state)
-        disabled = state
-        slider:EnableMouse(not disabled)
-        editBox:EnableMouse(not disabled)
-        if disabled then
-            label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
+    function frame.SetDisabled(_, isDisabled)
+        state.disabled = isDisabled
+        slider:EnableMouse(not state.disabled)
+        editBox:EnableMouse(not state.disabled)
+        if state.disabled then
+            label:SetTextColor(WC.DISABLED_COLOR[1], WC.DISABLED_COLOR[2], WC.DISABLED_COLOR[3])
             slider:SetAlpha(0.5)
             editBox:SetAlpha(0.5)
         else
-            label:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+            label:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
             slider:SetAlpha(1)
             editBox:SetAlpha(1)
         end
     end
 
-    function frame:Refresh()
+    function frame.Refresh(_)
         if opts.get then
-            local v = opts.get() or minVal
-            local clamped = Clamp(RoundToStep(v, step), minVal, maxVal)
-            currentValue = clamped
-            isInternal = true
+            local v = opts.get() or state.minVal
+            local clamped = Clamp(RoundToStep(v, state.step), state.minVal, state.maxVal)
+            state.currentValue = clamped
+            state.isInternal = true
             slider:SetValue(clamped)
-            isInternal = false
-            UpdateEditBoxText(clamped)
+            state.isInternal = false
+            UpdateEditBoxText(editBox, clamped, opts)
         end
     end
+end
+
+-------------------------------------------------------------------------------
+-- Factory: CreateSlider
+-------------------------------------------------------------------------------
+
+function ns.Widgets.CreateSlider(parent, opts)
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetHeight(FRAME_HEIGHT)
+
+    local state = {
+        currentValue = (opts.get and opts.get()) or opts.min or 0,
+        isInternal = false,
+        disabled = false,
+        minVal = opts.min or 0,
+        maxVal = opts.max or 100,
+        step = opts.step or 1,
+    }
+
+    local label, slider, editBox = CreateSliderElements(frame, opts, state)
+    SetupSliderEvents(slider, editBox, opts, state)
+    AttachSliderAPI(frame, slider, editBox, label, opts, state)
+
+    -- Initialize slider position and editbox text
+    state.isInternal = true
+    slider:SetValue(state.currentValue)
+    state.isInternal = false
+    UpdateEditBoxText(editBox, state.currentValue, opts)
 
     frame._slider = slider
     frame._editBox = editBox

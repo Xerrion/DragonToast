@@ -32,6 +32,7 @@ Locales\zhTW.lua
 Core\Init.lua
 Core\Media.lua
 Core\ListenerUtils.lua
+Core\QueueUtils.lua
 Core\Presets.lua
 Core\Config.lua
 Core\ConfigWindow.lua
@@ -42,7 +43,15 @@ Core\SlashCommands.lua
 Display\ToastFrame.lua
 Display\ToastAnimations.lua
 Display\ToastManager.lua
+Display\TestToasts.lua
 Display\ElvUISkin.lua
+
+# Shared listener implementations
+Listeners\ReputationListener_Shared.lua
+Listeners\HonorListener_Shared.lua
+Listeners\CurrencyListener_Shared.lua
+Listeners\MailListener_Shared.lua
+Listeners\LootListener_Shared.lua
 
 # Version-specific listeners
 #@version-bcc@

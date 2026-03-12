@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local LC = ns.LayoutConstants
 
 -------------------------------------------------------------------------------
 -- Cached globals
@@ -26,17 +27,6 @@ local L = ns.L
 local dtns
 
 -------------------------------------------------------------------------------
--- Constants
--------------------------------------------------------------------------------
-
-local PADDING_SIDE = 10
-local PADDING_TOP = -10
-local SPACING_AFTER_HEADER = 8
-local SPACING_BETWEEN_WIDGETS = 6
-local SPACING_BETWEEN_SECTIONS = 16
-local PADDING_BOTTOM = 20
-
--------------------------------------------------------------------------------
 -- Static dropdown values
 -------------------------------------------------------------------------------
 
@@ -52,15 +42,6 @@ local GOLD_FORMAT_VALUES = {
 }
 
 -------------------------------------------------------------------------------
--- Helpers
--------------------------------------------------------------------------------
-
-local function AnchorWidget(widget, parent, yOffset)
-    widget:SetPoint("TOPLEFT", parent, "TOPLEFT", PADDING_SIDE, yOffset)
-    widget:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -PADDING_SIDE, yOffset)
-end
-
--------------------------------------------------------------------------------
 -- Section builders
 -------------------------------------------------------------------------------
 
@@ -69,8 +50,8 @@ local function CreateLayoutSection(parent, yOffset)
     local db = dtns.Addon.db
 
     local header = W.CreateHeader(parent, L["Layout"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local maxToasts = W.CreateSlider(parent, {
         label = L["Max Toasts"],
@@ -79,8 +60,8 @@ local function CreateLayoutSection(parent, yOffset)
         get = function() return db.profile.display.maxToasts end,
         set = function(value) db.profile.display.maxToasts = value end,
     })
-    AnchorWidget(maxToasts, parent, yOffset)
-    yOffset = yOffset - maxToasts:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(maxToasts, parent, yOffset)
+    yOffset = yOffset - maxToasts:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local growDirection = W.CreateDropdown(parent, {
         label = L["Grow Direction"],
@@ -92,8 +73,8 @@ local function CreateLayoutSection(parent, yOffset)
             dtns.ToastManager:UpdatePositions()
         end,
     })
-    AnchorWidget(growDirection, parent, yOffset)
-    yOffset = yOffset - growDirection:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(growDirection, parent, yOffset)
+    yOffset = yOffset - growDirection:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local spacing = W.CreateSlider(parent, {
         label = L["Spacing"],
@@ -105,7 +86,7 @@ local function CreateLayoutSection(parent, yOffset)
             dtns.ToastManager:UpdateLayout()
         end,
     })
-    AnchorWidget(spacing, parent, yOffset)
+    LC.AnchorWidget(spacing, parent, yOffset)
     yOffset = yOffset - spacing:GetHeight()
 
     return yOffset
@@ -115,11 +96,11 @@ local function CreateSizeSection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
 
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Toast Size"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local toastWidth = W.CreateSlider(parent, {
         label = L["Toast Width"],
@@ -131,8 +112,8 @@ local function CreateSizeSection(parent, yOffset)
             dtns.ToastManager:UpdateLayout()
         end,
     })
-    AnchorWidget(toastWidth, parent, yOffset)
-    yOffset = yOffset - toastWidth:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(toastWidth, parent, yOffset)
+    yOffset = yOffset - toastWidth:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local toastHeight = W.CreateSlider(parent, {
         label = L["Toast Height"],
@@ -144,7 +125,7 @@ local function CreateSizeSection(parent, yOffset)
             dtns.ToastManager:UpdateLayout()
         end,
     })
-    AnchorWidget(toastHeight, parent, yOffset)
+    LC.AnchorWidget(toastHeight, parent, yOffset)
     yOffset = yOffset - toastHeight:GetHeight()
 
     return yOffset
@@ -154,11 +135,11 @@ local function CreateContentSection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
 
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Content"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local showIcon = W.CreateToggle(parent, {
         label = L["Show Icon"],
@@ -169,8 +150,8 @@ local function CreateContentSection(parent, yOffset)
             dtns.ToastManager:UpdateLayout()
         end,
     })
-    AnchorWidget(showIcon, parent, yOffset)
-    yOffset = yOffset - showIcon:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(showIcon, parent, yOffset)
+    yOffset = yOffset - showIcon:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local showItemLevel = W.CreateToggle(parent, {
         label = L["Show Item Level"],
@@ -178,8 +159,8 @@ local function CreateContentSection(parent, yOffset)
         get = function() return db.profile.display.showItemLevel end,
         set = function(value) db.profile.display.showItemLevel = value end,
     })
-    AnchorWidget(showItemLevel, parent, yOffset)
-    yOffset = yOffset - showItemLevel:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(showItemLevel, parent, yOffset)
+    yOffset = yOffset - showItemLevel:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local showItemType = W.CreateToggle(parent, {
         label = L["Show Item Type"],
@@ -187,8 +168,8 @@ local function CreateContentSection(parent, yOffset)
         get = function() return db.profile.display.showItemType end,
         set = function(value) db.profile.display.showItemType = value end,
     })
-    AnchorWidget(showItemType, parent, yOffset)
-    yOffset = yOffset - showItemType:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(showItemType, parent, yOffset)
+    yOffset = yOffset - showItemType:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local showQuantity = W.CreateToggle(parent, {
         label = L["Show Quantity"],
@@ -196,8 +177,8 @@ local function CreateContentSection(parent, yOffset)
         get = function() return db.profile.display.showQuantity end,
         set = function(value) db.profile.display.showQuantity = value end,
     })
-    AnchorWidget(showQuantity, parent, yOffset)
-    yOffset = yOffset - showQuantity:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(showQuantity, parent, yOffset)
+    yOffset = yOffset - showQuantity:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local showLooter = W.CreateToggle(parent, {
         label = L["Show Looter"],
@@ -205,8 +186,8 @@ local function CreateContentSection(parent, yOffset)
         get = function() return db.profile.display.showLooter end,
         set = function(value) db.profile.display.showLooter = value end,
     })
-    AnchorWidget(showLooter, parent, yOffset)
-    yOffset = yOffset - showLooter:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(showLooter, parent, yOffset)
+    yOffset = yOffset - showLooter:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local goldFormat = W.CreateDropdown(parent, {
         label = L["Gold Format"],
@@ -215,7 +196,7 @@ local function CreateContentSection(parent, yOffset)
         get = function() return db.profile.display.goldFormat end,
         set = function(value) db.profile.display.goldFormat = value end,
     })
-    AnchorWidget(goldFormat, parent, yOffset)
+    LC.AnchorWidget(goldFormat, parent, yOffset)
     yOffset = yOffset - goldFormat:GetHeight()
 
     return yOffset
@@ -225,11 +206,11 @@ local function CreatePaddingSection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
 
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Padding"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local vertPadding = W.CreateSlider(parent, {
         label = L["Vertical Padding"],
@@ -241,8 +222,8 @@ local function CreatePaddingSection(parent, yOffset)
             dtns.ToastManager:UpdateLayout()
         end,
     })
-    AnchorWidget(vertPadding, parent, yOffset)
-    yOffset = yOffset - vertPadding:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(vertPadding, parent, yOffset)
+    yOffset = yOffset - vertPadding:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local horzPadding = W.CreateSlider(parent, {
         label = L["Horizontal Padding"],
@@ -254,7 +235,7 @@ local function CreatePaddingSection(parent, yOffset)
             dtns.ToastManager:UpdateLayout()
         end,
     })
-    AnchorWidget(horzPadding, parent, yOffset)
+    LC.AnchorWidget(horzPadding, parent, yOffset)
     yOffset = yOffset - horzPadding:GetHeight()
 
     return yOffset
@@ -263,11 +244,11 @@ end
 local function CreateAnchorSection(parent, yOffset)
     local W = ns.Widgets
 
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Anchor"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local unlockAnchor = W.CreateToggle(parent, {
         label = L["Unlock Anchor"],
@@ -278,8 +259,8 @@ local function CreateAnchorSection(parent, yOffset)
         end,
         set = function() dtns.ToastManager:ToggleLock() end,
     })
-    AnchorWidget(unlockAnchor, parent, yOffset)
-    yOffset = yOffset - unlockAnchor:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(unlockAnchor, parent, yOffset)
+    yOffset = yOffset - unlockAnchor:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local resetButton = W.CreateButton(parent, {
         text = L["Reset Position"],
@@ -289,7 +270,7 @@ local function CreateAnchorSection(parent, yOffset)
             dtns.Print(L["Anchor position reset to default."])
         end,
     })
-    AnchorWidget(resetButton, parent, yOffset)
+    LC.AnchorWidget(resetButton, parent, yOffset)
     yOffset = yOffset - resetButton:GetHeight()
 
     return yOffset
@@ -301,7 +282,7 @@ end
 
 local function CreateContent(parent)
     dtns = ns.dtns
-    local yOffset = PADDING_TOP
+    local yOffset = LC.PADDING_TOP
 
     yOffset = CreateLayoutSection(parent, yOffset)
     yOffset = CreateSizeSection(parent, yOffset)
@@ -309,7 +290,7 @@ local function CreateContent(parent)
     yOffset = CreatePaddingSection(parent, yOffset)
     yOffset = CreateAnchorSection(parent, yOffset)
 
-    parent:SetHeight(math_abs(yOffset) + PADDING_BOTTOM)
+    parent:SetHeight(math_abs(yOffset) + LC.PADDING_BOTTOM)
 end
 
 -------------------------------------------------------------------------------

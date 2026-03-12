@@ -15,6 +15,9 @@ ns.ADDON_NAME = ADDON_NAME
 ns.ADDON_TITLE = "DragonToast"
 ns.VERSION = "@project-version@"
 
+local ONE_THOUSAND = 1000
+local ONE_MILLION = 1000000
+
 -- Color constants
 ns.COLOR_GOLD = "|cffffd700"
 ns.COLOR_GREEN = "|cff00ff00"
@@ -47,17 +50,21 @@ local L = ns.L
 -------------------------------------------------------------------------------
 
 ns.ListenerUtils = {}
+ns.QueueUtils = {}
 ns.ToastManager = {}
 ns.ToastFrame = {}
 ns.ToastAnimations = {}
 ns.ElvUISkin = {}
 ns.LootListener = {}
+ns.LootListenerShared = {}
 ns.XPListener = {}
 ns.HonorListener = {}
 ns.ReputationListener = {}
 ns.CurrencyListener = {}
 ns.MessageBridge = {}
+ns.TestToasts = {}
 ns.MailListener = {}
+ns.MailListenerShared = {}
 ns.MinimapIcon = {}
 
 -------------------------------------------------------------------------------
@@ -87,14 +94,14 @@ end
 -------------------------------------------------------------------------------
 
 function ns.FormatNumber(num)
-    if num >= 1000000 then
-        local divided = num / 1000000
+    if num >= ONE_MILLION then
+        local divided = num / ONE_MILLION
         if math.floor(divided) == divided then
             return string.format("%dM", divided)
         end
         return string.format("%.1fM", divided)
-    elseif num >= 1000 then
-        local divided = num / 1000
+    elseif num >= ONE_THOUSAND then
+        local divided = num / ONE_THOUSAND
         if math.floor(divided) == divided then
             return string.format("%dK", divided)
         end
@@ -108,6 +115,20 @@ end
 -------------------------------------------------------------------------------
 
 DragonToastNS = ns
+
+-------------------------------------------------------------------------------
+-- Listener module registry (initialized/shutdown via loop in OnEnable/OnDisable)
+-------------------------------------------------------------------------------
+
+local LISTENER_MODULES = {
+    "LootListener",
+    "XPListener",
+    "HonorListener",
+    "ReputationListener",
+    "CurrencyListener",
+    "MailListener",
+    "MessageBridge",
+}
 
 -------------------------------------------------------------------------------
 -- AceAddon Lifecycle
@@ -131,91 +152,37 @@ function Addon:OnInitialize()
 end
 
 function Addon:OnEnable()
-    -- Initialize display system
+    -- Initialize display system (always present)
     ns.ToastManager.Initialize()
 
-    -- Initialize loot listener (version-specific file populates ns.LootListener)
-    if ns.LootListener.Initialize then
-        ns.LootListener.Initialize(self)
+    -- Initialize all listener modules
+    for _, name in ipairs(LISTENER_MODULES) do
+        local mod = ns[name]
+        if mod and mod.Initialize then
+            mod.Initialize(self)
+        end
     end
 
     -- Apply ElvUI skin if available
     if ns.ElvUISkin.Apply then
         ns.ElvUISkin.Apply()
     end
-
-    -- Initialize XP listener
-    if ns.XPListener.Initialize then
-        ns.XPListener.Initialize(self)
-    end
-
-    -- Initialize Honor listener
-    if ns.HonorListener.Initialize then
-        ns.HonorListener.Initialize(self)
-    end
-
-    -- Initialize reputation listener
-    if ns.ReputationListener.Initialize then
-        ns.ReputationListener.Initialize(self)
-    end
-
-    -- Initialize Currency listener
-    if ns.CurrencyListener.Initialize then
-        ns.CurrencyListener.Initialize(self)
-    end
-
-    -- Initialize mail listener
-    if ns.MailListener.Initialize then
-        ns.MailListener.Initialize(self)
-    end
-
-    -- Initialize message bridge (cross-addon integration)
-    if ns.MessageBridge and ns.MessageBridge.Initialize then
-        ns.MessageBridge.Initialize(self)
-    end
 end
 
-function Addon:OnDisable()
-    -- Shutdown loot listener
-    if ns.LootListener.Shutdown then
-        ns.LootListener.Shutdown()
-    end
-
-    -- Shutdown XP listener
-    if ns.XPListener.Shutdown then
-        ns.XPListener.Shutdown()
-    end
-
-    -- Shutdown Honor listener
-    if ns.HonorListener.Shutdown then
-        ns.HonorListener.Shutdown()
-    end
-
-    -- Shutdown reputation listener
-    if ns.ReputationListener.Shutdown then
-        ns.ReputationListener.Shutdown()
-    end
-
-    -- Shutdown Currency listener
-    if ns.CurrencyListener.Shutdown then
-        ns.CurrencyListener.Shutdown()
-    end
-
-    -- Shutdown mail listener
-    if ns.MailListener.Shutdown then
-        ns.MailListener.Shutdown()
-    end
-
-    -- Shutdown message bridge
-    if ns.MessageBridge and ns.MessageBridge.Shutdown then
-        ns.MessageBridge.Shutdown()
+function Addon.OnDisable(_)
+    -- Shutdown all listener modules
+    for _, name in ipairs(LISTENER_MODULES) do
+        local mod = ns[name]
+        if mod and mod.Shutdown then
+            mod.Shutdown()
+        end
     end
 
     -- Clear all toasts
     ns.ToastManager.ClearAll()
 end
 
-function Addon:OnSlashCommand(input)
+function Addon.OnSlashCommand(_, input)
     -- Routed to SlashCommands.lua
     if ns.HandleSlashCommand then
         ns.HandleSlashCommand(input)

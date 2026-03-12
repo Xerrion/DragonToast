@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local LC = ns.LayoutConstants
 
 -------------------------------------------------------------------------------
 -- Cached globals
@@ -28,17 +29,6 @@ local L = ns.L
 -------------------------------------------------------------------------------
 
 local dtns
-
--------------------------------------------------------------------------------
--- Constants
--------------------------------------------------------------------------------
-
-local PADDING_SIDE = 10
-local PADDING_TOP = -10
-local SPACING_AFTER_HEADER = 8
-local SPACING_BETWEEN_WIDGETS = 6
-local SPACING_BETWEEN_SECTIONS = 16
-local PADDING_BOTTOM = 20
 
 -------------------------------------------------------------------------------
 -- Static popup dialogs (defined at file scope)
@@ -77,11 +67,6 @@ StaticPopupDialogs["DRAGONTOAST_OPTIONS_DELETE_PROFILE"] = {
 -- Helpers
 -------------------------------------------------------------------------------
 
-local function AnchorWidget(widget, parent, yOffset)
-    widget:SetPoint("TOPLEFT", parent, "TOPLEFT", PADDING_SIDE, yOffset)
-    widget:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -PADDING_SIDE, yOffset)
-end
-
 local function GetProfileValues()
     local db = dtns.Addon.db
     local profiles = db:GetProfiles()
@@ -117,13 +102,13 @@ local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
     local newProfileName = ""
 
     local header = W.CreateHeader(parent, L["Current Profile"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local desc = W.CreateDescription(parent,
         L["Profiles allow you to save different configurations for different characters."])
-    AnchorWidget(desc, parent, yOffset)
-    yOffset = yOffset - desc:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(desc, parent, yOffset)
+    yOffset = yOffset - desc:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local activeDropdown = W.CreateDropdown(parent, {
         label = L["Active Profile"],
@@ -135,8 +120,8 @@ local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
             refreshAll()
         end,
     })
-    AnchorWidget(activeDropdown, parent, yOffset)
-    yOffset = yOffset - activeDropdown:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(activeDropdown, parent, yOffset)
+    yOffset = yOffset - activeDropdown:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local newProfileInput = W.CreateTextInput(parent, {
         label = L["New Profile Name"],
@@ -144,8 +129,8 @@ local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
         get = function() return "" end,
         set = function(value) newProfileName = value end,
     })
-    AnchorWidget(newProfileInput, parent, yOffset)
-    yOffset = yOffset - newProfileInput:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(newProfileInput, parent, yOffset)
+    yOffset = yOffset - newProfileInput:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local createButton = W.CreateButton(parent, {
         text = L["Create Profile"],
@@ -161,7 +146,7 @@ local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
             end
         end,
     })
-    AnchorWidget(createButton, parent, yOffset)
+    LC.AnchorWidget(createButton, parent, yOffset)
     yOffset = yOffset - createButton:GetHeight()
 
     return yOffset, activeDropdown
@@ -171,11 +156,11 @@ local function CreateActionsSection(parent, yOffset, refreshAll)
     local W = ns.Widgets
     local db = dtns.Addon.db
 
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Profile Actions"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local copyDropdown = W.CreateDropdown(parent, {
         label = L["Copy From"],
@@ -190,8 +175,8 @@ local function CreateActionsSection(parent, yOffset, refreshAll)
             refreshAll()
         end,
     })
-    AnchorWidget(copyDropdown, parent, yOffset)
-    yOffset = yOffset - copyDropdown:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(copyDropdown, parent, yOffset)
+    yOffset = yOffset - copyDropdown:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local resetButton = W.CreateButton(parent, {
         text = L["Reset Profile"],
@@ -200,8 +185,8 @@ local function CreateActionsSection(parent, yOffset, refreshAll)
             StaticPopup_Show("DRAGONTOAST_OPTIONS_RESET_PROFILE")
         end,
     })
-    AnchorWidget(resetButton, parent, yOffset)
-    yOffset = yOffset - resetButton:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(resetButton, parent, yOffset)
+    yOffset = yOffset - resetButton:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local deleteDropdown = W.CreateDropdown(parent, {
         label = L["Delete Profile"],
@@ -215,7 +200,7 @@ local function CreateActionsSection(parent, yOffset, refreshAll)
             end
         end,
     })
-    AnchorWidget(deleteDropdown, parent, yOffset)
+    LC.AnchorWidget(deleteDropdown, parent, yOffset)
     yOffset = yOffset - deleteDropdown:GetHeight()
 
     return yOffset, copyDropdown, deleteDropdown
@@ -228,7 +213,7 @@ end
 local function CreateContent(parent)
     dtns = ns.dtns
     local db = dtns.Addon.db
-    local yOffset = PADDING_TOP
+    local yOffset = LC.PADDING_TOP
 
     -- Forward-declare widget refs for refresh closure
     local activeDropdown, copyDropdown, deleteDropdown
@@ -251,7 +236,7 @@ local function CreateContent(parent)
     -- Profile Actions section
     yOffset, copyDropdown, deleteDropdown = CreateActionsSection(parent, yOffset, RefreshProfileWidgets)
 
-    parent:SetHeight(math_abs(yOffset) + PADDING_BOTTOM)
+    parent:SetHeight(math_abs(yOffset) + LC.PADDING_BOTTOM)
 
     -- Register AceDB profile callbacks (only once, CreateContent is called via lazy init)
     db.RegisterCallback(db, "OnProfileChanged", RefreshProfileWidgets)

@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local LC = ns.LayoutConstants
 
 -------------------------------------------------------------------------------
 -- Cached globals
@@ -29,24 +30,8 @@ local L = ns.L
 local dtns
 
 -------------------------------------------------------------------------------
--- Constants
--------------------------------------------------------------------------------
-
-local PADDING_SIDE = 10
-local PADDING_TOP = -10
-local SPACING_AFTER_HEADER = 8
-local SPACING_BETWEEN_WIDGETS = 6
-local SPACING_BETWEEN_SECTIONS = 16
-local PADDING_BOTTOM = 20
-
--------------------------------------------------------------------------------
 -- Helpers
 -------------------------------------------------------------------------------
-
-local function AnchorWidget(widget, parent, yOffset)
-    widget:SetPoint("TOPLEFT", parent, "TOPLEFT", PADDING_SIDE, yOffset)
-    widget:SetPoint("TOPRIGHT", parent, "TOPRIGHT", -PADDING_SIDE, yOffset)
-end
 
 local function BuildLSMValues(mediaType)
     local lsm = LibStub("LibSharedMedia-3.0", true)
@@ -87,11 +72,11 @@ end
 -- Section builders
 -------------------------------------------------------------------------------
 
-local function CreatePresetSection(parent, _db, yOffset)
+local function CreatePresetSection(parent, _, yOffset)
     local W = ns.Widgets
     local header = W.CreateHeader(parent, L["Preset"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local presetDropdown = W.CreateDropdown(parent, {
         label = L["Skin Preset"],
@@ -103,7 +88,7 @@ local function CreatePresetSection(parent, _db, yOffset)
             ns.RefreshVisibleWidgets()
         end,
     })
-    AnchorWidget(presetDropdown, parent, yOffset)
+    LC.AnchorWidget(presetDropdown, parent, yOffset)
     yOffset = yOffset - presetDropdown:GetHeight()
 
     return yOffset
@@ -111,11 +96,11 @@ end
 
 local function CreateFontSection(parent, db, yOffset)
     local W = ns.Widgets
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Font"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local fontFace = W.CreateDropdown(parent, {
         label = L["Font"],
@@ -125,8 +110,8 @@ local function CreateFontSection(parent, db, yOffset)
         get = function() return db.profile.appearance.fontFace end,
         set = function(value) db.profile.appearance.fontFace = value; NotifyAppearanceChange() end,
     })
-    AnchorWidget(fontFace, parent, yOffset)
-    yOffset = yOffset - fontFace:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(fontFace, parent, yOffset)
+    yOffset = yOffset - fontFace:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local fontSize = W.CreateSlider(parent, {
         label = L["Primary Font Size"],
@@ -135,8 +120,8 @@ local function CreateFontSection(parent, db, yOffset)
         get = function() return db.profile.appearance.fontSize end,
         set = function(value) db.profile.appearance.fontSize = value; NotifyAppearanceChange() end,
     })
-    AnchorWidget(fontSize, parent, yOffset)
-    yOffset = yOffset - fontSize:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(fontSize, parent, yOffset)
+    yOffset = yOffset - fontSize:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local secondaryFontSize = W.CreateSlider(parent, {
         label = L["Secondary Font Size"],
@@ -148,8 +133,8 @@ local function CreateFontSection(parent, db, yOffset)
             NotifyAppearanceChange()
         end,
     })
-    AnchorWidget(secondaryFontSize, parent, yOffset)
-    yOffset = yOffset - secondaryFontSize:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(secondaryFontSize, parent, yOffset)
+    yOffset = yOffset - secondaryFontSize:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local fontOutline = W.CreateDropdown(parent, {
         label = L["Font Outline"],
@@ -158,7 +143,7 @@ local function CreateFontSection(parent, db, yOffset)
         get = function() return db.profile.appearance.fontOutline end,
         set = function(value) db.profile.appearance.fontOutline = value; NotifyAppearanceChange() end,
     })
-    AnchorWidget(fontOutline, parent, yOffset)
+    LC.AnchorWidget(fontOutline, parent, yOffset)
     yOffset = yOffset - fontOutline:GetHeight()
 
     return yOffset
@@ -166,11 +151,11 @@ end
 
 local function CreateBackgroundSection(parent, db, yOffset)
     local W = ns.Widgets
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Background"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local bgColor = W.CreateColorPicker(parent, {
         label = L["Background Color"],
@@ -187,8 +172,8 @@ local function CreateBackgroundSection(parent, db, yOffset)
             NotifyAppearanceChange()
         end,
     })
-    AnchorWidget(bgColor, parent, yOffset)
-    yOffset = yOffset - bgColor:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(bgColor, parent, yOffset)
+    yOffset = yOffset - bgColor:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local bgAlpha = W.CreateSlider(parent, {
         label = L["Background Alpha"],
@@ -200,8 +185,8 @@ local function CreateBackgroundSection(parent, db, yOffset)
             NotifyAppearanceChange()
         end,
     })
-    AnchorWidget(bgAlpha, parent, yOffset)
-    yOffset = yOffset - bgAlpha:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(bgAlpha, parent, yOffset)
+    yOffset = yOffset - bgAlpha:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local bgTexture = W.CreateDropdown(parent, {
         label = L["Background Texture"],
@@ -214,7 +199,7 @@ local function CreateBackgroundSection(parent, db, yOffset)
             NotifyAppearanceChange()
         end,
     })
-    AnchorWidget(bgTexture, parent, yOffset)
+    LC.AnchorWidget(bgTexture, parent, yOffset)
     yOffset = yOffset - bgTexture:GetHeight()
 
     return yOffset
@@ -222,11 +207,11 @@ end
 
 local function CreateBorderSection(parent, db, yOffset)
     local W = ns.Widgets
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Border and Glow"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local qualityBorder = W.CreateToggle(parent, {
         label = L["Quality Border"],
@@ -234,8 +219,8 @@ local function CreateBorderSection(parent, db, yOffset)
         get = function() return db.profile.appearance.qualityBorder end,
         set = function(value) db.profile.appearance.qualityBorder = value; NotifyAppearanceChange() end,
     })
-    AnchorWidget(qualityBorder, parent, yOffset)
-    yOffset = yOffset - qualityBorder:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(qualityBorder, parent, yOffset)
+    yOffset = yOffset - qualityBorder:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local borderSize = W.CreateSlider(parent, {
         label = L["Border Size"],
@@ -244,8 +229,8 @@ local function CreateBorderSection(parent, db, yOffset)
         get = function() return db.profile.appearance.borderSize end,
         set = function(value) db.profile.appearance.borderSize = value; NotifyAppearanceChange() end,
     })
-    AnchorWidget(borderSize, parent, yOffset)
-    yOffset = yOffset - borderSize:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(borderSize, parent, yOffset)
+    yOffset = yOffset - borderSize:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local borderInset = W.CreateSlider(parent, {
         label = L["Border Inset"],
@@ -254,8 +239,8 @@ local function CreateBorderSection(parent, db, yOffset)
         get = function() return db.profile.appearance.borderInset end,
         set = function(value) db.profile.appearance.borderInset = value; NotifyAppearanceChange() end,
     })
-    AnchorWidget(borderInset, parent, yOffset)
-    yOffset = yOffset - borderInset:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(borderInset, parent, yOffset)
+    yOffset = yOffset - borderInset:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local borderTexture = W.CreateDropdown(parent, {
         label = L["Border Texture"],
@@ -268,8 +253,8 @@ local function CreateBorderSection(parent, db, yOffset)
             NotifyAppearanceChange()
         end,
     })
-    AnchorWidget(borderTexture, parent, yOffset)
-    yOffset = yOffset - borderTexture:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(borderTexture, parent, yOffset)
+    yOffset = yOffset - borderTexture:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local qualityGlow = W.CreateToggle(parent, {
         label = L["Quality Glow"],
@@ -277,7 +262,7 @@ local function CreateBorderSection(parent, db, yOffset)
         get = function() return db.profile.appearance.qualityGlow end,
         set = function(value) db.profile.appearance.qualityGlow = value; NotifyAppearanceChange() end,
     })
-    AnchorWidget(qualityGlow, parent, yOffset)
+    LC.AnchorWidget(qualityGlow, parent, yOffset)
     yOffset = yOffset - qualityGlow:GetHeight()
 
     return yOffset
@@ -285,11 +270,11 @@ end
 
 local function CreateGlowingBorderSection(parent, db, yOffset)
     local W = ns.Widgets
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Glowing Border"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local statusBarTexture = W.CreateDropdown(parent, {
         label = L["Glow Texture"],
@@ -302,8 +287,8 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
             NotifyAppearanceChange()
         end,
     })
-    AnchorWidget(statusBarTexture, parent, yOffset)
-    yOffset = yOffset - statusBarTexture:GetHeight() - SPACING_BETWEEN_WIDGETS
+    LC.AnchorWidget(statusBarTexture, parent, yOffset)
+    yOffset = yOffset - statusBarTexture:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local glowWidth = W.CreateSlider(parent, {
         label = L["Glow Width"],
@@ -312,7 +297,7 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
         get = function() return db.profile.appearance.glowWidth end,
         set = function(value) db.profile.appearance.glowWidth = value; NotifyAppearanceChange() end,
     })
-    AnchorWidget(glowWidth, parent, yOffset)
+    LC.AnchorWidget(glowWidth, parent, yOffset)
     yOffset = yOffset - glowWidth:GetHeight()
 
     return yOffset
@@ -320,11 +305,11 @@ end
 
 local function CreateIconSection(parent, db, yOffset)
     local W = ns.Widgets
-    yOffset = yOffset - SPACING_BETWEEN_SECTIONS
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Icon"])
-    AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - SPACING_AFTER_HEADER
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local iconSize = W.CreateSlider(parent, {
         label = L["Icon Size"],
@@ -333,7 +318,7 @@ local function CreateIconSection(parent, db, yOffset)
         get = function() return db.profile.appearance.iconSize end,
         set = function(value) db.profile.appearance.iconSize = value; NotifyAppearanceChange() end,
     })
-    AnchorWidget(iconSize, parent, yOffset)
+    LC.AnchorWidget(iconSize, parent, yOffset)
     yOffset = yOffset - iconSize:GetHeight()
 
     return yOffset
@@ -346,7 +331,7 @@ end
 local function CreateContent(parent)
     dtns = ns.dtns
     local db = dtns.Addon.db
-    local yOffset = PADDING_TOP
+    local yOffset = LC.PADDING_TOP
 
     yOffset = CreatePresetSection(parent, db, yOffset)
     yOffset = CreateFontSection(parent, db, yOffset)
@@ -355,7 +340,7 @@ local function CreateContent(parent)
     yOffset = CreateGlowingBorderSection(parent, db, yOffset)
     yOffset = CreateIconSection(parent, db, yOffset)
 
-    parent:SetHeight(math_abs(yOffset) + PADDING_BOTTOM)
+    parent:SetHeight(math_abs(yOffset) + LC.PADDING_BOTTOM)
 end
 
 -------------------------------------------------------------------------------

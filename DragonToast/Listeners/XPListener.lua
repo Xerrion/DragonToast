@@ -19,6 +19,9 @@ local string_format = string.format
 local string_match = string.match
 local L = ns.L
 
+local PLAYER_UNIT = "player"
+local XP_FALLBACK_PATTERN = "(%d+)%s+experience"
+
 
 -------------------------------------------------------------------------------
 -- Constants
@@ -38,101 +41,53 @@ local XP_QUALITY = 1  -- Common quality (white) -- we override color in ToastFra
 -- These globals are set by Blizzard's localization system
 local PATTERNS = {}
 
+local PATTERN_MAP = {
+    { global = "COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED",       key = "unnamed" },
+    { global = "COMBATLOG_XPGAIN_FIRSTPERSON",               key = "named" },
+    { global = "COMBATLOG_XPGAIN_EXHAUSTION1",               key = "rested1" },
+    { global = "COMBATLOG_XPGAIN_EXHAUSTION2",               key = "rested2" },
+    { global = "COMBATLOG_XPGAIN_EXHAUSTION1_UNNAMED",       key = "restedUnnamed1" },
+    { global = "COMBATLOG_XPGAIN_EXHAUSTION2_UNNAMED",       key = "restedUnnamed2" },
+    { global = "COMBATLOG_XPGAIN_FIRSTPERSON_GUILD",         key = "guild" },
+    { global = "COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED_GUILD", key = "guildUnnamed" },
+}
+
 local function InitPatterns()
-    -- "You gain %d experience." (no mob)
-    if COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED then
-        PATTERNS.unnamed = Utils.BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED, true)
+    for _, entry in ipairs(PATTERN_MAP) do
+        local globalValue = _G[entry.global]
+        if globalValue then
+            PATTERNS[entry.key] = Utils.BuildPattern(globalValue, true)
+        end
     end
-
-    -- "%s dies, you gain %d experience." (with mob)
-    if COMBATLOG_XPGAIN_FIRSTPERSON then
-        PATTERNS.named = Utils.BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON, true)
-    end
-
-    -- Rested bonus variants: "%s dies, you gain %d experience. (%s exp %s bonus)"
-    if COMBATLOG_XPGAIN_EXHAUSTION1 then
-        PATTERNS.rested1 = Utils.BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION1, true)
-    end
-    if COMBATLOG_XPGAIN_EXHAUSTION2 then
-        PATTERNS.rested2 = Utils.BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION2, true)
-    end
-
-    -- Rested unnamed: "You gain %d experience. (%s exp %s bonus)"
-    if COMBATLOG_XPGAIN_EXHAUSTION1_UNNAMED then
-        PATTERNS.restedUnnamed1 = Utils.BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION1_UNNAMED, true)
-    end
-    if COMBATLOG_XPGAIN_EXHAUSTION2_UNNAMED then
-        PATTERNS.restedUnnamed2 = Utils.BuildPattern(COMBATLOG_XPGAIN_EXHAUSTION2_UNNAMED, true)
-    end
-
-    -- Guild bonus: "%s dies, you gain %d experience. (+%d exp Guild Bonus)"
-    if COMBATLOG_XPGAIN_FIRSTPERSON_GUILD then
-        PATTERNS.guild = Utils.BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON_GUILD, true)
-    end
-
-    -- Unnamed guild bonus: "You gain %d experience. (+%d exp Guild Bonus)"
-    if COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED_GUILD then
-        PATTERNS.guildUnnamed = Utils.BuildPattern(COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED_GUILD, true)
-    end
-
-    -- Quest XP: "You gain %d experience." (same as unnamed, quest context handled by event)
 end
 
 -------------------------------------------------------------------------------
 -- XP Parsing
 -------------------------------------------------------------------------------
 
+-- Ordered lists: try named patterns (2 captures) first, then unnamed (1 capture)
+local NAMED_PATTERNS = { "rested1", "rested2", "guild", "named" }
+local UNNAMED_PATTERNS = { "restedUnnamed1", "restedUnnamed2", "guildUnnamed", "unnamed" }
+
 local function ParseXPText(text)
     if not text or text == "" then return nil, nil end
 
-    -- Try named patterns first (mob name + XP)
-    -- Rested named: mob, xp, bonusXP, bonusType
-    if PATTERNS.rested1 then
-        local mob, xp = string_match(text, PATTERNS.rested1)
-        if mob and xp then return tonumber(xp), mob end
-    end
-    if PATTERNS.rested2 then
-        local mob, xp = string_match(text, PATTERNS.rested2)
-        if mob and xp then return tonumber(xp), mob end
+    for _, key in ipairs(NAMED_PATTERNS) do
+        if PATTERNS[key] then
+            local mob, xp = string_match(text, PATTERNS[key])
+            if xp then return tonumber(xp), mob end
+        end
     end
 
-    -- Guild named: mob, xp, guildXP
-    if PATTERNS.guild then
-        local mob, xp = string_match(text, PATTERNS.guild)
-        if mob and xp then return tonumber(xp), mob end
-    end
-
-    -- Standard named: mob, xp
-    if PATTERNS.named then
-        local mob, xp = string_match(text, PATTERNS.named)
-        if mob and xp then return tonumber(xp), mob end
-    end
-
-    -- Try unnamed patterns (XP only, no mob)
-    -- Rested unnamed: xp, bonusXP, bonusType
-    if PATTERNS.restedUnnamed1 then
-        local xp = string_match(text, PATTERNS.restedUnnamed1)
-        if xp then return tonumber(xp), nil end
-    end
-    if PATTERNS.restedUnnamed2 then
-        local xp = string_match(text, PATTERNS.restedUnnamed2)
-        if xp then return tonumber(xp), nil end
-    end
-
-    -- Guild unnamed: xp, guildXP
-    if PATTERNS.guildUnnamed then
-        local xp = string_match(text, PATTERNS.guildUnnamed)
-        if xp then return tonumber(xp), nil end
-    end
-
-    -- Standard unnamed: xp
-    if PATTERNS.unnamed then
-        local xp = string_match(text, PATTERNS.unnamed)
-        if xp then return tonumber(xp), nil end
+    for _, key in ipairs(UNNAMED_PATTERNS) do
+        if PATTERNS[key] then
+            local xp = string_match(text, PATTERNS[key])
+            if xp then return tonumber(xp), nil end
+        end
     end
 
     -- Fallback: try to find any number in the text
-    local xp = string_match(text, "(%d+)%s+experience")
+    local xp = string_match(text, XP_FALLBACK_PATTERN)
     if xp then return tonumber(xp), nil end
 
     return nil, nil
@@ -142,7 +97,7 @@ end
 -- Event Handler
 -------------------------------------------------------------------------------
 
-local function OnChatMsgCombatXPGain(_event, text)
+local function OnChatMsgCombatXPGain(_, text)
     local db = ns.Addon.db.profile
     if not db.enabled then return end
     if not db.filters.showXP then return end
@@ -161,7 +116,7 @@ local function OnChatMsgCombatXPGain(_event, text)
         itemType = nil,
         itemSubType = nil,
         quantity = 1,
-        looter = UnitName("player") or L["You"],
+        looter = UnitName(PLAYER_UNIT) or L["You"],
         isSelf = true,
         isCurrency = false,
         timestamp = GetTime(),

@@ -14,6 +14,9 @@ local ADDON_NAME, ns = ...
 local lib = LibStub("LibAnimate")
 ns.LibAnimate = lib
 
+local IDENTITY_ANIMATION_DURATION = 1
+local DEFAULT_SLIDE_SPEED = 0.2
+
 -------------------------------------------------------------------------------
 -- Register the identity ("none") animation for the hold phase.
 -- No-op animation: keeps the frame fully visible at its current position.
@@ -21,7 +24,7 @@ ns.LibAnimate = lib
 
 lib:RegisterAnimation("none", {
     type = "attention",
-    defaultDuration = 1,
+    defaultDuration = IDENTITY_ANIMATION_DURATION,
     keyframes = {
         { progress = 0, alpha = 1, scale = 1, translateX = 0, translateY = 0 },
         { progress = 1, alpha = 1, scale = 1, translateX = 0, translateY = 0 },
@@ -51,7 +54,7 @@ end
 --- if slides happened), re-anchor the frame to its logical target position.
 local function RestoreLogicalAnchor(frame)
     if frame._targetY == nil then return end
-    local point, relativeTo, relativePoint, x, _y = frame:GetPoint()
+    local point, relativeTo, relativePoint, x, _ = frame:GetPoint()
     if point then
         frame:ClearAllPoints()
         frame:SetPoint(point, relativeTo, relativePoint, x, frame._targetY)
@@ -158,7 +161,7 @@ end
 -- so older toasts do not gain extra lifetime or replay animations.
 -------------------------------------------------------------------------------
 
-function ns.ToastAnimations.UpdateLifecycle(frame, _lootData)
+function ns.ToastAnimations.UpdateLifecycle(frame, _)
     if frame._isExiting or frame._phase == nil then return end
 end
 
@@ -166,8 +169,8 @@ end
 -- Play slide animation (reposition in stack)
 -------------------------------------------------------------------------------
 
-function ns.ToastAnimations.PlaySlide(frame, _startY, toY, point, relativeTo,
-                                      relativePoint, x)
+function ns.ToastAnimations.PlaySlide(frame, _, toY, point, relativeTo,
+                                       relativePoint, x)
     if frame._isExiting then return end
 
     local db = ns.Addon.db.profile
@@ -188,7 +191,7 @@ function ns.ToastAnimations.PlaySlide(frame, _startY, toY, point, relativeTo,
     -- slide to completion, then starts a new slide from the completed position.
     -- Do NOT call UpdateAnchor before SlideAnchor -- it would clobber the
     -- in-progress interpolated anchor with a stale value, causing visual jumps.
-    lib:SlideAnchor(frame, x, toY, db.animation.slideSpeed or 0.2)
+    lib:SlideAnchor(frame, x, toY, db.animation.slideSpeed or DEFAULT_SLIDE_SPEED)
 end
 
 -------------------------------------------------------------------------------

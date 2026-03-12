@@ -49,6 +49,8 @@ describe("HandleSlashCommand", function()
                 ClearAll = function()
                     clearCalled = true
                 end,
+            },
+            TestToasts = {
                 IsTestModeActive = function()
                     return false
                 end,

@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local WC = ns.WidgetConstants
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -18,12 +19,8 @@ local GameTooltip = GameTooltip
 -- Constants
 -------------------------------------------------------------------------------
 
-local FONT_PATH = "Fonts\\FRIZQT__.TTF"
 local FONT_SIZE = 12
 local BOX_SIZE = 20
-local WHITE_COLOR = { 1, 1, 1 }
-local DISABLED_COLOR = { 0.5, 0.5, 0.5 }
-local WHITE8x8 = "Interface\\Buttons\\WHITE8x8"
 local CHECK_TEXTURE = "Interface\\Buttons\\UI-CheckBox-Check"
 local BOX_BG = { 0.1, 0.1, 0.1, 0.9 }
 local BOX_BORDER = { 0.4, 0.4, 0.4, 1 }
@@ -53,8 +50,8 @@ local function CreateCheckBox(parent)
     local box = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     box:SetSize(BOX_SIZE, BOX_SIZE)
     box:SetBackdrop({
-        bgFile = WHITE8x8,
-        edgeFile = WHITE8x8,
+        bgFile = WC.WHITE8x8,
+        edgeFile = WC.WHITE8x8,
         edgeSize = 1,
     })
     box:SetBackdropColor(BOX_BG[1], BOX_BG[2], BOX_BG[3], BOX_BG[4])
@@ -93,8 +90,8 @@ function ns.Widgets.CreateToggle(parent, opts)
 
     -- Label
     local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont(FONT_PATH, FONT_SIZE, "")
-    label:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+    label:SetFont(WC.FONT_PATH, FONT_SIZE, "")
+    label:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
     label:SetPoint("LEFT", box, "RIGHT", LABEL_OFFSET, 0)
     label:SetText(opts.label or "")
 
@@ -121,32 +118,32 @@ function ns.Widgets.CreateToggle(parent, opts)
     -- Apply initial disabled state
     if opts.disabled then
         disabled = true
-        label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
+        label:SetTextColor(WC.DISABLED_COLOR[1], WC.DISABLED_COLOR[2], WC.DISABLED_COLOR[3])
         box:SetAlpha(0.5)
     end
 
     -- Public API
-    function frame:GetValue()
+    function frame.GetValue(_)
         return checked
     end
 
-    function frame:SetValue(v)
+    function frame.SetValue(_, v)
         checked = not not v
         box._checkMark:SetShown(checked)
     end
 
-    function frame:SetDisabled(state)
+    function frame.SetDisabled(_, state)
         disabled = state
         if disabled then
-            label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
+            label:SetTextColor(WC.DISABLED_COLOR[1], WC.DISABLED_COLOR[2], WC.DISABLED_COLOR[3])
             box:SetAlpha(0.5)
         else
-            label:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+            label:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
             box:SetAlpha(1)
         end
     end
 
-    function frame:Refresh()
+    function frame.Refresh(_)
         if opts.get then
             checked = not not opts.get()
             box._checkMark:SetShown(checked)

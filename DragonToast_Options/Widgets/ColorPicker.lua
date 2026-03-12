@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local WC = ns.WidgetConstants
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -19,12 +20,8 @@ local ShowUIPanel = ShowUIPanel
 -- Constants
 -------------------------------------------------------------------------------
 
-local FONT_PATH = "Fonts\\FRIZQT__.TTF"
 local FONT_SIZE = 12
 local SWATCH_SIZE = 24
-local WHITE8x8 = "Interface\\Buttons\\WHITE8x8"
-local WHITE_COLOR = { 1, 1, 1 }
-local DISABLED_COLOR = { 0.5, 0.5, 0.5 }
 local BORDER_COLOR = { 0.5, 0.5, 0.5, 1 }
 local FRAME_HEIGHT = 24
 local LABEL_OFFSET = 8
@@ -128,8 +125,8 @@ function ns.Widgets.CreateColorPicker(parent, opts)
 
     -- Label
     local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont(FONT_PATH, FONT_SIZE, "")
-    label:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+    label:SetFont(WC.FONT_PATH, FONT_SIZE, "")
+    label:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
     label:SetPoint("LEFT", frame, "LEFT", 0, 0)
     label:SetText(opts.label or "")
 
@@ -137,7 +134,7 @@ function ns.Widgets.CreateColorPicker(parent, opts)
     local border = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     border:SetSize(SWATCH_SIZE + 2, SWATCH_SIZE + 2)
     border:SetPoint("LEFT", label, "RIGHT", LABEL_OFFSET, 0)
-    border:SetBackdrop({ bgFile = WHITE8x8, edgeFile = WHITE8x8, edgeSize = 1 })
+    border:SetBackdrop({ bgFile = WC.WHITE8x8, edgeFile = WC.WHITE8x8, edgeSize = 1 })
     border:SetBackdropColor(0, 0, 0, 0)
     border:SetBackdropBorderColor(BORDER_COLOR[1], BORDER_COLOR[2], BORDER_COLOR[3], BORDER_COLOR[4])
 
@@ -176,29 +173,29 @@ function ns.Widgets.CreateColorPicker(parent, opts)
     end)
 
     -- Public API
-    function frame:GetValue()
+    function frame.GetValue(_)
         if opts.get then return opts.get() end
         return initR, initG, initB, initA
     end
 
-    function frame:SetValue(r, g, b, a)
+    function frame.SetValue(_, r, g, b, a)
         a = a or 1
         UpdateSwatch(swatch, r, g, b, a)
         if opts.set then opts.set(r, g, b, a) end
     end
 
-    function frame:SetDisabled(state)
+    function frame.SetDisabled(_, state)
         disabled = state
         if disabled then
-            label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
+            label:SetTextColor(WC.DISABLED_COLOR[1], WC.DISABLED_COLOR[2], WC.DISABLED_COLOR[3])
             border:SetAlpha(0.5)
         else
-            label:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+            label:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
             border:SetAlpha(1)
         end
     end
 
-    function frame:Refresh()
+    function frame.Refresh(_)
         if not opts.get then return end
         local r, g, b, a = opts.get()
         UpdateSwatch(swatch, r, g, b, a or 1)

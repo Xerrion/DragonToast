@@ -15,6 +15,13 @@ local math_floor = math.floor
 local string_format = string.format
 local table_concat = table.concat
 
+local COPPER_PER_SILVER = 100
+local COPPER_PER_GOLD = 10000
+local GOLD_SUFFIX = "g"
+local SILVER_SUFFIX = "s"
+local COPPER_SUFFIX = "c"
+local ZERO_COPPER_TEXT = "0c"
+
 local function BuildLocalizedPattern(globalString, anchor)
     if not globalString then return nil, nil end
 
@@ -120,7 +127,7 @@ function Utils.ParseMoneyString(moneyString)
         if c then copper = tonumber(c) or 0 end
     end
 
-    local total = gold * 10000 + silver * 100 + copper
+    local total = gold * COPPER_PER_GOLD + silver * COPPER_PER_SILVER + copper
     return total > 0 and total or nil
 end
 
@@ -130,14 +137,14 @@ end
 -------------------------------------------------------------------------------
 
 function Utils.FormatGold(copper)
-    local gold = math_floor(copper / 10000)
-    local silver = math_floor((copper % 10000) / 100)
-    local copperRemainder = copper % 100
+    local gold = math_floor(copper / COPPER_PER_GOLD)
+    local silver = math_floor((copper % COPPER_PER_GOLD) / COPPER_PER_SILVER)
+    local copperRemainder = copper % COPPER_PER_SILVER
     local parts = {}
-    if gold > 0 then parts[#parts + 1] = gold .. "g" end
-    if silver > 0 then parts[#parts + 1] = silver .. "s" end
-    if copperRemainder > 0 then parts[#parts + 1] = copperRemainder .. "c" end
-    if #parts == 0 then parts[#parts + 1] = "0c" end
+    if gold > 0 then parts[#parts + 1] = gold .. GOLD_SUFFIX end
+    if silver > 0 then parts[#parts + 1] = silver .. SILVER_SUFFIX end
+    if copperRemainder > 0 then parts[#parts + 1] = copperRemainder .. COPPER_SUFFIX end
+    if #parts == 0 then parts[#parts + 1] = ZERO_COPPER_TEXT end
     return string_format("|T%d:0:0:0:0|t%s", Utils.GOLD_ICON, table_concat(parts, " "))
 end
 

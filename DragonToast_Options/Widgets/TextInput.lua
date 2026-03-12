@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
+local WC = ns.WidgetConstants
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -17,12 +18,8 @@ local CreateFrame = CreateFrame
 -- Constants
 -------------------------------------------------------------------------------
 
-local FONT_PATH = "Fonts\\FRIZQT__.TTF"
 local LABEL_FONT_SIZE = 12
 local INPUT_FONT_SIZE = 11
-local WHITE_COLOR = { 1, 1, 1 }
-local DISABLED_COLOR = { 0.5, 0.5, 0.5 }
-local WHITE8x8 = "Interface\\Buttons\\WHITE8x8"
 local INPUT_BG = { 0.08, 0.08, 0.08, 0.9 }
 local INPUT_BORDER = { 0.3, 0.3, 0.3, 1 }
 local DEFAULT_WIDTH = 200
@@ -43,8 +40,8 @@ function ns.Widgets.CreateTextInput(parent, opts)
 
     -- Label at top
     local label = frame:CreateFontString(nil, "OVERLAY")
-    label:SetFont(FONT_PATH, LABEL_FONT_SIZE, "")
-    label:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+    label:SetFont(WC.FONT_PATH, LABEL_FONT_SIZE, "")
+    label:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
     label:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
     label:SetText(opts.label or "")
 
@@ -53,14 +50,14 @@ function ns.Widgets.CreateTextInput(parent, opts)
     editBox:SetSize(inputWidth, INPUT_HEIGHT)
     editBox:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -LABEL_GAP)
     editBox:SetBackdrop({
-        bgFile = WHITE8x8,
-        edgeFile = WHITE8x8,
+        bgFile = WC.WHITE8x8,
+        edgeFile = WC.WHITE8x8,
         edgeSize = 1,
     })
     editBox:SetBackdropColor(INPUT_BG[1], INPUT_BG[2], INPUT_BG[3], INPUT_BG[4])
     editBox:SetBackdropBorderColor(INPUT_BORDER[1], INPUT_BORDER[2], INPUT_BORDER[3], INPUT_BORDER[4])
-    editBox:SetFont(FONT_PATH, INPUT_FONT_SIZE, "")
-    editBox:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+    editBox:SetFont(WC.FONT_PATH, INPUT_FONT_SIZE, "")
+    editBox:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
     editBox:SetTextInsets(4, 4, 0, 0)
     editBox:SetAutoFocus(false)
 
@@ -99,26 +96,26 @@ function ns.Widgets.CreateTextInput(parent, opts)
     end
 
     -- Public API
-    function frame:GetValue()
+    function frame.GetValue(_)
         return editBox:GetText()
     end
 
-    function frame:SetValue(v)
+    function frame.SetValue(_, v)
         editBox:SetText(v or "")
     end
 
-    function frame:SetDisabled(state)
+    function frame.SetDisabled(_, state)
         disabled = state
         if disabled then
-            label:SetTextColor(DISABLED_COLOR[1], DISABLED_COLOR[2], DISABLED_COLOR[3])
+            label:SetTextColor(WC.DISABLED_COLOR[1], WC.DISABLED_COLOR[2], WC.DISABLED_COLOR[3])
             editBox:SetAlpha(0.5)
         else
-            label:SetTextColor(WHITE_COLOR[1], WHITE_COLOR[2], WHITE_COLOR[3])
+            label:SetTextColor(WC.WHITE_COLOR[1], WC.WHITE_COLOR[2], WC.WHITE_COLOR[3])
             editBox:SetAlpha(1)
         end
     end
 
-    function frame:Refresh()
+    function frame.Refresh(_)
         if opts.get then
             editBox:SetText(opts.get() or "")
         end

@@ -22,6 +22,40 @@ local math_ceil = math.ceil
 local string_format = string.format
 local LSM = LibStub("LibSharedMedia-3.0")
 local L = ns.L
+local Utils = ns.ListenerUtils
+
+local DEFAULT_TEXT_PADDING_V = 6
+local DEFAULT_TEXT_PADDING_H = 8
+local DEFAULT_BORDER_SIZE = 1
+local DEFAULT_GLOW_WIDTH = 4
+local DEFAULT_ICON_SIZE = 36
+local DEFAULT_SECONDARY_FONT_SIZE = 10
+local DEFAULT_FRAME_WIDTH = 350
+local DEFAULT_FRAME_HEIGHT = 48
+local BASE_FRAME_LEVEL = 100
+local FRAME_BORDER_OFFSET = 1
+local ICON_FRAME_BORDER_EXTRA = 2
+local ICON_FRAME_INSET = 4
+local TEXT_ONLY_LEFT_INSET = 6
+local ICON_BORDER_EDGE_SIZE = 1
+local QUALITY_BORDER_ALPHA = 0.6
+local DEFAULT_BORDER_COLOR = { r = 0.3, g = 0.3, b = 0.3, a = 0.8 }
+local DEFAULT_BACKGROUND_COLOR = { r = 0.05, g = 0.05, b = 0.05, a = 0.7 }
+local GOLD_ACCENT_COLOR = { r = 1, g = 0.82, b = 0 }
+local HONOR_TOAST_COLOR = { r = 1, g = 0.24, b = 0.17 }
+local REPUTATION_TOAST_COLOR = { r = 0.35, g = 0.85, b = 0.55 }
+local WHITE_TEXT_COLOR = { r = 1, g = 1, b = 1 }
+local MUTED_TEXT_COLOR = { r = 0.7, g = 0.7, b = 0.7 }
+local SECONDARY_TEXT_COLOR = { r = 0.5, g = 0.5, b = 0.5 }
+local ITEM_LEVEL_TEXT_COLOR = { r = 0.6, g = 0.6, b = 0.6 }
+local SELF_LOOTER_COLOR = { r = 0.3, g = 1.0, b = 0.3 }
+local ICON_EDGE_FILE = "Interface\\Buttons\\WHITE8x8"
+local ICON_BACKDROP_KEY = ICON_EDGE_FILE .. "|1|0"
+local ICON_TEX_COORD_MIN = 0.08
+local ICON_TEX_COORD_MAX = 0.92
+local COPPER_PER_SILVER = 100
+local COPPER_PER_GOLD = 10000
+local QUANTITY_MIN_STACK = 1
 
 -------------------------------------------------------------------------------
 -- Frame Pool
@@ -62,12 +96,12 @@ end
 
 --- Position all content elements based on icon visibility and config
 local function ApplyLayout(frame, db, showIcon)
-    local padV = db.display.textPaddingV or 6
-    local padH = db.display.textPaddingH or 8
-    local borderSize = db.appearance.borderSize or 1
+    local padV = db.display.textPaddingV or DEFAULT_TEXT_PADDING_V
+    local padH = db.display.textPaddingH or DEFAULT_TEXT_PADDING_H
+    local borderSize = db.appearance.borderSize or DEFAULT_BORDER_SIZE
     local borderInset = db.appearance.borderInset or 0
-    local glowWidth = db.appearance.glowWidth or 4
-    local iconSize = db.appearance.iconSize or 36
+    local glowWidth = db.appearance.glowWidth or DEFAULT_GLOW_WIDTH
+    local iconSize = db.appearance.iconSize or DEFAULT_ICON_SIZE
     local contentInset = borderSize > 0 and borderInset or 0
 
     -- Update content frame inset to sit inside the border
@@ -85,9 +119,9 @@ local function ApplyLayout(frame, db, showIcon)
 
     if showIcon then
         -- iconFrame: size includes 1px border on each side
-        frame.iconFrame:SetSize(iconSize + 2, iconSize + 2)
+        frame.iconFrame:SetSize(iconSize + ICON_FRAME_BORDER_EXTRA, iconSize + ICON_FRAME_BORDER_EXTRA)
         frame.iconFrame:ClearAllPoints()
-        frame.iconFrame:SetPoint("LEFT", frame.content, "LEFT", iconGlowPad + 4, 0)
+        frame.iconFrame:SetPoint("LEFT", frame.content, "LEFT", iconGlowPad + ICON_FRAME_INSET, 0)
         frame.iconFrame:Show()
         frame.icon:SetSize(iconSize, iconSize)
 
@@ -98,8 +132,8 @@ local function ApplyLayout(frame, db, showIcon)
         frame.itemType:SetPoint("BOTTOM", frame.content, "BOTTOM", 0, padV)
     else
         frame.iconFrame:Hide()
-        frame.itemName:SetPoint("TOPLEFT", frame.content, "TOPLEFT", iconGlowPad + 6, -padV)
-        frame.itemType:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", iconGlowPad + 6, padV)
+        frame.itemName:SetPoint("TOPLEFT", frame.content, "TOPLEFT", iconGlowPad + TEXT_ONLY_LEFT_INSET, -padV)
+        frame.itemType:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", iconGlowPad + TEXT_ONLY_LEFT_INSET, padV)
     end
 
     frame.itemName:SetPoint("RIGHT", frame.content, "RIGHT", -padH, 0)
@@ -107,9 +141,37 @@ local function ApplyLayout(frame, db, showIcon)
     frame.looter:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", -padH, padV)
 end
 
+--- Apply icon frame backdrop (always 1px solid border, no background)
+local function ApplyIconBackdrop(frame)
+    if frame._iconBackdropKey ~= ICON_BACKDROP_KEY then
+        frame.iconFrame:SetBackdrop({
+            bgFile = nil,
+            edgeFile = ICON_EDGE_FILE,
+            edgeSize = ICON_BORDER_EDGE_SIZE,
+            insets = { left = 0, right = 0, top = 0, bottom = 0 },
+        })
+        frame._iconBackdropKey = ICON_BACKDROP_KEY
+    end
+end
+
+--- Apply quality-based or default border colors to border and icon frames
+local function ApplyBorderColors(frame, db, qualityR, qualityG, qualityB)
+    if db.appearance.qualityBorder and qualityR then
+        frame.borderFrame:SetBackdropBorderColor(qualityR, qualityG, qualityB, QUALITY_BORDER_ALPHA)
+        frame.iconFrame:SetBackdropBorderColor(qualityR, qualityG, qualityB, QUALITY_BORDER_ALPHA)
+    else
+        frame.borderFrame:SetBackdropBorderColor(
+            DEFAULT_BORDER_COLOR.r, DEFAULT_BORDER_COLOR.g, DEFAULT_BORDER_COLOR.b, DEFAULT_BORDER_COLOR.a
+        )
+        frame.iconFrame:SetBackdropBorderColor(
+            DEFAULT_BORDER_COLOR.r, DEFAULT_BORDER_COLOR.g, DEFAULT_BORDER_COLOR.b, DEFAULT_BORDER_COLOR.a
+        )
+    end
+end
+
 --- Apply backdrop, background color, and border color to root frame and iconFrame
 local function ApplyBackdrop(frame, db, qualityR, qualityG, qualityB)
-    local borderSize = db.appearance.borderSize or 1
+    local borderSize = db.appearance.borderSize or DEFAULT_BORDER_SIZE
 
     -- Root frame backdrop: background only, no edge
     local bgFile = LSM:Fetch("background", db.appearance.backgroundTexture or "Solid")
@@ -124,7 +186,7 @@ local function ApplyBackdrop(frame, db, qualityR, qualityG, qualityB)
         frame._backdropKey = backdropKey
     end
 
-    local bgColor = db.appearance.backgroundColor or { r = 0.05, g = 0.05, b = 0.05 }
+    local bgColor = db.appearance.backgroundColor or DEFAULT_BACKGROUND_COLOR
     frame:SetBackdropColor(bgColor.r, bgColor.g, bgColor.b, db.appearance.backgroundAlpha)
 
     -- Border frame: edge only, no background. Positioned outside the main frame.
@@ -153,27 +215,8 @@ local function ApplyBackdrop(frame, db, qualityR, qualityG, qualityB)
     frame.borderFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", -offset, offset)
     frame.borderFrame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", offset, -offset)
 
-    -- iconFrame backdrop (always 1px solid border, no background)
-    local iconEdge = "Interface\\Buttons\\WHITE8x8"
-    local iconBackdropKey = iconEdge .. "|1|0"
-    if frame._iconBackdropKey ~= iconBackdropKey then
-        frame.iconFrame:SetBackdrop({
-            bgFile = nil,
-            edgeFile = iconEdge,
-            edgeSize = 1,
-            insets = { left = 0, right = 0, top = 0, bottom = 0 },
-        })
-        frame._iconBackdropKey = iconBackdropKey
-    end
-
-    -- Border colors
-    if db.appearance.qualityBorder and qualityR then
-        frame.borderFrame:SetBackdropBorderColor(qualityR, qualityG, qualityB, 0.6)
-        frame.iconFrame:SetBackdropBorderColor(qualityR, qualityG, qualityB, 0.6)
-    else
-        frame.borderFrame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
-        frame.iconFrame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
-    end
+    ApplyIconBackdrop(frame)
+    ApplyBorderColors(frame, db, qualityR, qualityG, qualityB)
 end
 
 --- Apply quality glow strip to the content frame
@@ -183,7 +226,7 @@ local function ApplyGlow(frame, db, r, g, b)
     frame.qualityGlow:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", 0, 0)
 
     if db.appearance.qualityGlow then
-        local glowWidth = db.appearance.glowWidth or 4
+        local glowWidth = db.appearance.glowWidth or DEFAULT_GLOW_WIDTH
         frame.qualityGlow:SetWidth(glowWidth)
         local statusBarPath = LSM:Fetch("statusbar", db.appearance.statusBarTexture)
         if statusBarPath then
@@ -198,99 +241,153 @@ local function ApplyGlow(frame, db, r, g, b)
     end
 end
 
+local function GetToastColor(lootData)
+    if lootData.isXP then
+        return GOLD_ACCENT_COLOR.r, GOLD_ACCENT_COLOR.g, GOLD_ACCENT_COLOR.b
+    end
+
+    if lootData.isHonor then
+        return HONOR_TOAST_COLOR.r, HONOR_TOAST_COLOR.g, HONOR_TOAST_COLOR.b
+    end
+
+    if lootData.isReputation then
+        return REPUTATION_TOAST_COLOR.r, REPUTATION_TOAST_COLOR.g, REPUTATION_TOAST_COLOR.b
+    end
+
+    if lootData.itemQuality then
+        if ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[lootData.itemQuality] then
+            local qualityColor = ITEM_QUALITY_COLORS[lootData.itemQuality]
+            return qualityColor.r, qualityColor.g, qualityColor.b
+        end
+
+        if ns.QUALITY_COLORS and ns.QUALITY_COLORS[lootData.itemQuality] then
+            local qualityColor = ns.QUALITY_COLORS[lootData.itemQuality]
+            return qualityColor.r, qualityColor.g, qualityColor.b
+        end
+    end
+
+    return 1, 1, 1
+end
+
+local function ApplyRewardDetail(frame, detailText)
+    if not detailText or detailText == "" then
+        frame.itemType:Hide()
+        return
+    end
+
+    frame.itemType:SetText(detailText)
+    frame.itemType:SetTextColor(MUTED_TEXT_COLOR.r, MUTED_TEXT_COLOR.g, MUTED_TEXT_COLOR.b)
+    frame.itemType:Show()
+end
+
+local function ApplyRewardLooter(frame, db)
+    if not db.display.showLooter then
+        frame.looter:Hide()
+        return
+    end
+
+    frame.looter:SetText(L["You"])
+    frame.looter:SetTextColor(SELF_LOOTER_COLOR.r, SELF_LOOTER_COLOR.g, SELF_LOOTER_COLOR.b)
+    frame.looter:Show()
+end
+
+local function ApplyItemLooter(frame, db, lootData)
+    if not db.display.showLooter or not lootData.looter then
+        frame.looter:Hide()
+        return
+    end
+
+    if lootData.isSelf then
+        frame.looter:SetText(L["You"])
+        frame.looter:SetTextColor(SELF_LOOTER_COLOR.r, SELF_LOOTER_COLOR.g, SELF_LOOTER_COLOR.b)
+    else
+        frame.looter:SetText(lootData.looter)
+        frame.looter:SetTextColor(MUTED_TEXT_COLOR.r, MUTED_TEXT_COLOR.g, MUTED_TEXT_COLOR.b)
+    end
+
+    frame.looter:Show()
+end
+
+local function BuildItemTypeText(lootData)
+    local typeText = lootData.itemType
+    if lootData.itemSubType and lootData.itemSubType ~= "" and lootData.itemSubType ~= lootData.itemType then
+        typeText = typeText .. " > " .. lootData.itemSubType
+    end
+
+    return typeText
+end
+
+local function PopulateRewardToast(frame, lootData, db, r, g, b, detailText)
+    frame.itemName:SetText(lootData.itemName)
+    frame.itemName:SetTextColor(r, g, b)
+    frame.quantity:Hide()
+    frame.itemLevel:Hide()
+
+    ApplyRewardDetail(frame, detailText)
+    ApplyRewardLooter(frame, db)
+end
+
 -------------------------------------------------------------------------------
--- Create a single toast frame
+-- Create a single toast frame (split into helpers for readability)
 -------------------------------------------------------------------------------
 
-local function CreateToastFrame()
-    frameCount = frameCount + 1
-    local frameName = "DragonToastFrame" .. frameCount
-
-    -- Root frame: outer border + background only
-    local frame = CreateFrame("Button", frameName, UIParent, "BackdropTemplate")
-    frame:SetSize(350, 48)
-    frame:SetFrameStrata("MEDIUM")
-    frame:SetFrameLevel(100 + frameCount)
-    frame:Hide()
-
-    frame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = nil,
-        edgeSize = 0,
-        insets = { left = 0, right = 0, top = 0, bottom = 0 },
-    })
-    frame:SetBackdropColor(0.05, 0.05, 0.05, 0.7)
-
-    -- Border frame: wraps outside the main frame, edge only
-    frame.borderFrame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    frame.borderFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", -1, 1)
-    frame.borderFrame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 1, -1)
-    frame.borderFrame:SetFrameLevel(frame:GetFrameLevel() + 1)
-    frame.borderFrame:SetBackdrop({
-        bgFile = nil,
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-        insets = { left = 0, right = 0, top = 0, bottom = 0 },
-    })
-    frame.borderFrame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
-
-    -- Content frame: child for all visible content (above root border)
-    frame.content = CreateFrame("Frame", nil, frame)
-    frame.content:SetAllPoints(frame)
-    frame.content:SetFrameLevel(frame:GetFrameLevel() + 2)
-
+--- Create glow, icon container, icon texture, and quantity badge on the frame
+local function CreateToastTextures(frame)
     -- Quality glow strip on content (BACKGROUND layer = behind text but above root border)
     frame.qualityGlow = frame.content:CreateTexture(nil, "BACKGROUND")
-    frame.qualityGlow:SetWidth(4)
-    frame.qualityGlow:SetPoint("TOPLEFT", frame.content, "TOPLEFT", 1, -1)
-    frame.qualityGlow:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", 1, 1)
-    frame.qualityGlow:SetColorTexture(1, 1, 1, 0.8)
+    frame.qualityGlow:SetWidth(DEFAULT_GLOW_WIDTH)
+    frame.qualityGlow:SetPoint("TOPLEFT", frame.content, "TOPLEFT", FRAME_BORDER_OFFSET, -FRAME_BORDER_OFFSET)
+    frame.qualityGlow:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", FRAME_BORDER_OFFSET, FRAME_BORDER_OFFSET)
+    frame.qualityGlow:SetColorTexture(WHITE_TEXT_COLOR.r, WHITE_TEXT_COLOR.g, WHITE_TEXT_COLOR.b, 0.8)
 
     -- Icon container frame with its own border (above content)
     frame.iconFrame = CreateFrame("Frame", nil, frame.content, "BackdropTemplate")
     frame.iconFrame:SetFrameLevel(frame.content:GetFrameLevel() + 2)
-    frame.iconFrame:SetSize(38, 38)
+    frame.iconFrame:SetSize(DEFAULT_ICON_SIZE + ICON_FRAME_BORDER_EXTRA, DEFAULT_ICON_SIZE + ICON_FRAME_BORDER_EXTRA)
     frame.iconFrame:SetBackdrop({
         bgFile = nil,
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
+        edgeFile = ICON_EDGE_FILE,
+        edgeSize = ICON_BORDER_EDGE_SIZE,
         insets = { left = 0, right = 0, top = 0, bottom = 0 },
     })
-    frame.iconFrame:SetBackdropBorderColor(0.3, 0.3, 0.3, 0.8)
+    frame.iconFrame:SetBackdropBorderColor(
+        DEFAULT_BORDER_COLOR.r, DEFAULT_BORDER_COLOR.g, DEFAULT_BORDER_COLOR.b, DEFAULT_BORDER_COLOR.a
+    )
 
-    -- Icon texture on iconFrame (ARTWORK = natural layer, no hack needed)
+    -- Icon texture on iconFrame (ARTWORK = natural layer)
     frame.icon = frame.iconFrame:CreateTexture(nil, "ARTWORK")
-    frame.icon:SetSize(36, 36)
+    frame.icon:SetSize(DEFAULT_ICON_SIZE, DEFAULT_ICON_SIZE)
     frame.icon:SetPoint("CENTER", frame.iconFrame, "CENTER", 0, 0)
-    frame.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    frame.icon:SetTexCoord(ICON_TEX_COORD_MIN, ICON_TEX_COORD_MAX, ICON_TEX_COORD_MIN, ICON_TEX_COORD_MAX)
 
     -- Quantity badge on iconFrame (OVERLAY = on top of icon)
     frame.quantity = frame.iconFrame:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
     frame.quantity:SetPoint("BOTTOMRIGHT", frame.icon, "BOTTOMRIGHT", 2, -2)
     frame.quantity:SetJustifyH("RIGHT")
-    frame.quantity:SetTextColor(1, 1, 1)
+    frame.quantity:SetTextColor(WHITE_TEXT_COLOR.r, WHITE_TEXT_COLOR.g, WHITE_TEXT_COLOR.b)
+end
 
-    -- Text elements on content frame (OVERLAY layer)
+--- Create all text FontStrings (itemName, itemLevel, itemType, looter) on the content frame
+local function CreateToastTexts(frame)
     frame.itemName = frame.content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     frame.itemName:SetJustifyH("LEFT")
     frame.itemName:SetWordWrap(false)
 
     frame.itemLevel = frame.content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     frame.itemLevel:SetJustifyH("RIGHT")
-    frame.itemLevel:SetTextColor(0.6, 0.6, 0.6)
+    frame.itemLevel:SetTextColor(ITEM_LEVEL_TEXT_COLOR.r, ITEM_LEVEL_TEXT_COLOR.g, ITEM_LEVEL_TEXT_COLOR.b)
 
     frame.itemType = frame.content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     frame.itemType:SetJustifyH("LEFT")
-    frame.itemType:SetTextColor(0.5, 0.5, 0.5)
+    frame.itemType:SetTextColor(SECONDARY_TEXT_COLOR.r, SECONDARY_TEXT_COLOR.g, SECONDARY_TEXT_COLOR.b)
 
     frame.looter = frame.content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     frame.looter:SetJustifyH("RIGHT")
-    frame.looter:SetTextColor(0.7, 0.7, 0.7)
+    frame.looter:SetTextColor(MUTED_TEXT_COLOR.r, MUTED_TEXT_COLOR.g, MUTED_TEXT_COLOR.b)
+end
 
-    ---------------------------------------------------------------------------
-    -- Interaction Scripts (on root Button -- children don't enable mouse)
-    ---------------------------------------------------------------------------
-
+--- Wire up click, enter, and leave scripts on the root Button frame
+local function SetupToastScripts(frame)
     frame:EnableMouse(true)
     frame:RegisterForClicks("LeftButtonUp")
 
@@ -312,9 +409,56 @@ local function CreateToastFrame()
         end
     end)
 
-    frame:SetScript("OnLeave", function(self)
+    frame:SetScript("OnLeave", function(_)
         GameTooltip:Hide()
     end)
+end
+
+local function CreateToastFrame()
+    frameCount = frameCount + 1
+    local frameName = "DragonToastFrame" .. frameCount
+
+    -- Root frame: outer border + background only
+    local frame = CreateFrame("Button", frameName, UIParent, "BackdropTemplate")
+    frame:SetSize(DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT)
+    frame:SetFrameStrata("MEDIUM")
+    frame:SetFrameLevel(BASE_FRAME_LEVEL + frameCount)
+    frame:Hide()
+
+    frame:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = nil,
+        edgeSize = 0,
+        insets = { left = 0, right = 0, top = 0, bottom = 0 },
+    })
+    frame:SetBackdropColor(
+        DEFAULT_BACKGROUND_COLOR.r, DEFAULT_BACKGROUND_COLOR.g,
+        DEFAULT_BACKGROUND_COLOR.b, DEFAULT_BACKGROUND_COLOR.a
+    )
+
+    -- Border frame: wraps outside the main frame, edge only
+    frame.borderFrame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    frame.borderFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", -FRAME_BORDER_OFFSET, FRAME_BORDER_OFFSET)
+    frame.borderFrame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", FRAME_BORDER_OFFSET, -FRAME_BORDER_OFFSET)
+    frame.borderFrame:SetFrameLevel(frame:GetFrameLevel() + 1)
+    frame.borderFrame:SetBackdrop({
+        bgFile = nil,
+        edgeFile = ICON_EDGE_FILE,
+        edgeSize = ICON_BORDER_EDGE_SIZE,
+        insets = { left = 0, right = 0, top = 0, bottom = 0 },
+    })
+    frame.borderFrame:SetBackdropBorderColor(
+        DEFAULT_BORDER_COLOR.r, DEFAULT_BORDER_COLOR.g, DEFAULT_BORDER_COLOR.b, DEFAULT_BORDER_COLOR.a
+    )
+
+    -- Content frame: child for all visible content (above root border)
+    frame.content = CreateFrame("Frame", nil, frame)
+    frame.content:SetAllPoints(frame)
+    frame.content:SetFrameLevel(frame:GetFrameLevel() + 2)
+
+    CreateToastTextures(frame)
+    CreateToastTexts(frame)
+    SetupToastScripts(frame)
 
     return frame
 end
@@ -324,9 +468,9 @@ end
 -------------------------------------------------------------------------------
 
 local function FormatMoney(copperAmount, format)
-    local gold = math.floor(copperAmount / 10000)
-    local silver = math.floor((copperAmount % 10000) / 100)
-    local copper = copperAmount % 100
+    local gold = math.floor(copperAmount / COPPER_PER_GOLD)
+    local silver = math.floor((copperAmount % COPPER_PER_GOLD) / COPPER_PER_SILVER)
+    local copper = copperAmount % COPPER_PER_SILVER
 
     if format == "short" then
         local parts = {}
@@ -346,6 +490,51 @@ local function FormatMoney(copperAmount, format)
     end
 end
 
+--- Populate the "normal item toast" content fields (name, quantity, ilvl, type, looter)
+local function PopulateItemContent(frame, lootData, db, r, g, b)
+    -- Money or item name
+    if lootData.copperAmount and lootData.itemSubType == "Gold" then
+        frame.itemName:SetText(FormatMoney(lootData.copperAmount, db.display.goldFormat))
+    else
+        frame.itemName:SetText(lootData.itemName)
+    end
+
+    -- Currency color
+    if lootData.isCurrency then
+        frame.itemName:SetTextColor(GOLD_ACCENT_COLOR.r, GOLD_ACCENT_COLOR.g, GOLD_ACCENT_COLOR.b)
+    else
+        frame.itemName:SetTextColor(r, g, b)
+    end
+
+    -- Quantity
+    if db.display.showQuantity and lootData.quantity and lootData.quantity > QUANTITY_MIN_STACK then
+        frame.quantity:SetText(lootData.quantity)
+        frame.quantity:Show()
+    else
+        frame.quantity:Hide()
+    end
+
+    -- Item level
+    if db.display.showItemLevel and lootData.itemLevel and lootData.itemLevel > 0
+        and not lootData.isCurrency then
+        frame.itemLevel:SetText(string_format(L["ilvl %s"], lootData.itemLevel))
+        frame.itemLevel:Show()
+    else
+        frame.itemLevel:Hide()
+    end
+
+    -- Type/Subtype
+    if db.display.showItemType and lootData.itemType and not lootData.isCurrency then
+        frame.itemType:SetText(BuildItemTypeText(lootData))
+        frame.itemType:Show()
+    else
+        frame.itemType:Hide()
+    end
+
+    -- Looter
+    ApplyItemLooter(frame, db, lootData)
+end
+
 -------------------------------------------------------------------------------
 -- Populate toast with loot data
 -------------------------------------------------------------------------------
@@ -358,7 +547,7 @@ local function PopulateToast(frame, lootData)
     local fontPath = LSM:Fetch("font", db.appearance.fontFace) or STANDARD_TEXT_FONT
     local fontOutline = db.appearance.fontOutline or "OUTLINE"
     local fontSize = db.appearance.fontSize
-    local secondaryFontSize = db.appearance.secondaryFontSize or 10
+    local secondaryFontSize = db.appearance.secondaryFontSize or DEFAULT_SECONDARY_FONT_SIZE
 
     -- Apply fonts (shared across all paths)
     ApplyFonts(frame, fontPath, fontSize, secondaryFontSize, fontOutline)
@@ -367,22 +556,7 @@ local function PopulateToast(frame, lootData)
     frame:SetSize(db.display.toastWidth, db.display.toastHeight)
 
     -- Determine quality color
-    local r, g, b = 1, 1, 1
-    if lootData.isXP then
-        r, g, b = 1, 0.82, 0
-    elseif lootData.isHonor then
-        r, g, b = 1, 0.24, 0.17
-    elseif lootData.isReputation then
-        r, g, b = 0.35, 0.85, 0.55
-    elseif lootData.itemQuality then
-        if ITEM_QUALITY_COLORS and ITEM_QUALITY_COLORS[lootData.itemQuality] then
-            local qc = ITEM_QUALITY_COLORS[lootData.itemQuality]
-            r, g, b = qc.r, qc.g, qc.b
-        elseif ns.QUALITY_COLORS and ns.QUALITY_COLORS[lootData.itemQuality] then
-            local qc = ns.QUALITY_COLORS[lootData.itemQuality]
-            r, g, b = qc.r, qc.g, qc.b
-        end
-    end
+    local r, g, b = GetToastColor(lootData)
 
     -- Layout, backdrop, glow (shared)
     local showIcon = db.display.showIcon ~= false
@@ -392,7 +566,7 @@ local function PopulateToast(frame, lootData)
 
     -- Icon
     if showIcon then
-        frame.icon:SetTexture(lootData.itemIcon or ns.ListenerUtils.QUESTION_MARK_ICON)
+        frame.icon:SetTexture(lootData.itemIcon or Utils.QUESTION_MARK_ICON)
         frame.icon:Show()
     end
 
@@ -401,130 +575,13 @@ local function PopulateToast(frame, lootData)
     ---------------------------------------------------------------------------
 
     if lootData.isXP then
-        -- XP toast
-        frame.itemName:SetText(lootData.itemName)
-        frame.itemName:SetTextColor(1, 0.82, 0)
-        frame.quantity:Hide()
-        frame.itemLevel:Hide()
-
-        if lootData.mobName and lootData.mobName ~= "" then
-            frame.itemType:SetText(lootData.mobName)
-            frame.itemType:SetTextColor(0.7, 0.7, 0.7)
-            frame.itemType:Show()
-        else
-            frame.itemType:Hide()
-        end
-
-        if db.display.showLooter then
-            frame.looter:SetText(L["You"])
-            frame.looter:SetTextColor(0.3, 1.0, 0.3)
-            frame.looter:Show()
-        else
-            frame.looter:Hide()
-        end
-
+        PopulateRewardToast(frame, lootData, db, r, g, b, lootData.mobName)
     elseif lootData.isHonor then
-        -- Honor toast
-        frame.itemName:SetText(lootData.itemName)
-        frame.itemName:SetTextColor(1, 0.24, 0.17)
-        frame.quantity:Hide()
-        frame.itemLevel:Hide()
-
-        if lootData.victimName and lootData.victimName ~= "" then
-            frame.itemType:SetText(lootData.victimName)
-            frame.itemType:SetTextColor(0.7, 0.7, 0.7)
-            frame.itemType:Show()
-        else
-            frame.itemType:Hide()
-        end
-
-        if db.display.showLooter then
-            frame.looter:SetText(L["You"])
-            frame.looter:SetTextColor(0.3, 1.0, 0.3)
-            frame.looter:Show()
-        else
-            frame.looter:Hide()
-        end
-
+        PopulateRewardToast(frame, lootData, db, r, g, b, lootData.victimName)
     elseif lootData.isReputation then
-        -- Reputation toast
-        frame.itemName:SetText(lootData.itemName)
-        frame.itemName:SetTextColor(0.35, 0.85, 0.55)
-        frame.quantity:Hide()
-        frame.itemLevel:Hide()
-
-        if lootData.factionName and lootData.factionName ~= "" then
-            frame.itemType:SetText(lootData.factionName)
-            frame.itemType:SetTextColor(0.7, 0.7, 0.7)
-            frame.itemType:Show()
-        else
-            frame.itemType:Hide()
-        end
-
-        if db.display.showLooter then
-            frame.looter:SetText(L["You"])
-            frame.looter:SetTextColor(0.3, 1.0, 0.3)
-            frame.looter:Show()
-        else
-            frame.looter:Hide()
-        end
-
+        PopulateRewardToast(frame, lootData, db, r, g, b, lootData.factionName)
     else
-        -- Normal item toast
-        if lootData.copperAmount and lootData.itemSubType == "Gold" then
-            frame.itemName:SetText(FormatMoney(lootData.copperAmount, db.display.goldFormat))
-        else
-            frame.itemName:SetText(lootData.itemName)
-        end
-        if lootData.isCurrency then
-            frame.itemName:SetTextColor(1, 0.82, 0)
-        else
-            frame.itemName:SetTextColor(r, g, b)
-        end
-
-        -- Quantity
-        if db.display.showQuantity and lootData.quantity and lootData.quantity > 1 then
-            frame.quantity:SetText(lootData.quantity)
-            frame.quantity:Show()
-        else
-            frame.quantity:Hide()
-        end
-
-        -- Item level
-        if db.display.showItemLevel and lootData.itemLevel and lootData.itemLevel > 0
-            and not lootData.isCurrency then
-            frame.itemLevel:SetText(string_format(L["ilvl %s"], lootData.itemLevel))
-            frame.itemLevel:Show()
-        else
-            frame.itemLevel:Hide()
-        end
-
-        -- Type/Subtype
-        if db.display.showItemType and lootData.itemType and not lootData.isCurrency then
-            local typeText = lootData.itemType
-            if lootData.itemSubType and lootData.itemSubType ~= ""
-                and lootData.itemSubType ~= lootData.itemType then
-                typeText = typeText .. " > " .. lootData.itemSubType
-            end
-            frame.itemType:SetText(typeText)
-            frame.itemType:Show()
-        else
-            frame.itemType:Hide()
-        end
-
-        -- Looter
-        if db.display.showLooter and lootData.looter then
-            if lootData.isSelf then
-                frame.looter:SetText(L["You"])
-                frame.looter:SetTextColor(0.3, 1.0, 0.3)
-            else
-                frame.looter:SetText(lootData.looter)
-                frame.looter:SetTextColor(0.7, 0.7, 0.7)
-            end
-            frame.looter:Show()
-        else
-            frame.looter:Hide()
-        end
+        PopulateItemContent(frame, lootData, db, r, g, b)
     end
 
     -- Apply ElvUI skin if available (always last)

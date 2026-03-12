@@ -19,6 +19,8 @@ local next = next
 local wipe = wipe
 local L = ns.L
 
+local PLAYER_UNIT = "player"
+
 -------------------------------------------------------------------------------
 -- Module
 -------------------------------------------------------------------------------
@@ -82,17 +84,17 @@ end
 -- Generic Message Handlers
 -------------------------------------------------------------------------------
 
-local function OnSuppress(_event, source)
+local function OnSuppress(_, source)
     if type(source) ~= "string" or source == "" then return end
     AddSuppression(source)
 end
 
-local function OnUnsuppress(_event, source)
+local function OnUnsuppress(_, source)
     if type(source) ~= "string" or source == "" then return end
     RemoveSuppression(source)
 end
 
-local function OnQueueToast(_event, toastData)
+local function OnQueueToast(_, toastData)
     if type(toastData) ~= "table" then return end
     if not toastData.itemName or not toastData.itemIcon or not toastData.itemQuality then return end
 
@@ -150,7 +152,7 @@ local function BuildRollWonToast(rollData)
         itemType = rollDisplay,
         itemSubType = nil,
         quantity = rollData.quantity or 1,
-        looter = rollData.winnerName or UnitName("player") or L["You"],
+        looter = rollData.winnerName or UnitName(PLAYER_UNIT) or L["You"],
         isSelf = rollData.isSelf ~= false, -- default true for backward compat
         isCurrency = false,
         timestamp = GetTime(),
@@ -172,7 +174,7 @@ local function OnDragonLootClosed()
 end
 
 -- Legacy: remove when all senders use generic API
-local function OnDragonLootRollWon(_event, rollData)
+local function OnDragonLootRollWon(_, rollData)
     if not rollData then return end
 
     local db = ns.Addon.db.profile

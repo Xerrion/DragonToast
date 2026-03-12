@@ -8,7 +8,6 @@
 local ADDON_NAME, ns = ...
 
 local C_AddOns = C_AddOns
-local IsAddOnLoaded = IsAddOnLoaded
 
 -------------------------------------------------------------------------------
 -- Helpers
@@ -17,8 +16,8 @@ local IsAddOnLoaded = IsAddOnLoaded
 local function IsOptionsLoaded()
     if C_AddOns and C_AddOns.IsAddOnLoaded then
         return C_AddOns.IsAddOnLoaded("DragonToast_Options")
-    elseif IsAddOnLoaded then
-        return IsAddOnLoaded("DragonToast_Options")
+    elseif _G.IsAddOnLoaded then
+        return _G.IsAddOnLoaded("DragonToast_Options")
     end
     return false
 end
@@ -28,8 +27,8 @@ local function LoadOptions()
 
     if C_AddOns and C_AddOns.LoadAddOn then
         C_AddOns.LoadAddOn("DragonToast_Options")
-    elseif LoadAddOn then
-        LoadAddOn("DragonToast_Options")
+    elseif _G.LoadAddOn then
+        _G.LoadAddOn("DragonToast_Options")
     end
 
     return IsOptionsLoaded()

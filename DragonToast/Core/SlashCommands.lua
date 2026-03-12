@@ -55,7 +55,7 @@ local function PrintStatus()
     print("  Minimap Icon: " .. (not db.minimap.hide and "Yes" or "No"))
     print("  Anchor: " .. db.display.anchorPoint
         .. " (" .. math.floor(db.display.anchorX) .. ", " .. math.floor(db.display.anchorY) .. ")")
-    local tmStatus = ns.ToastManager.IsTestModeActive()
+    local tmStatus = ns.TestToasts.IsTestModeActive()
         and ns.COLOR_GREEN .. "Active" or "Inactive"
     print("  Test Mode: " .. tmStatus .. ns.COLOR_RESET)
 end
@@ -64,24 +64,30 @@ end
 -- Help Display
 -------------------------------------------------------------------------------
 
+local HELP_ENTRIES = {
+    { "",                "Show this help" },
+    { " toggle",         "Toggle addon on/off" },
+    { " config",         "Open settings panel" },
+    { " lock",           "Toggle anchor lock (drag to move)" },
+    { " test",           "Show a test toast" },
+    { " test stack",     "Test item stacking (3 rapid items)" },
+    { " test xp",        "Test XP accumulation" },
+    { " test gold",      "Test gold accumulation" },
+    { " test honor",     "Test honor accumulation" },
+    { " test reputation", "Test reputation accumulation" },
+    { " test all",       "Run all stacking tests" },
+    { " testmode",       "Toggle continuous test toast generation" },
+    { " clear",          "Dismiss all toasts" },
+    { " reset",          "Reset anchor position to default" },
+    { " status",         "Show current settings" },
+    { " help",           "Show this help" },
+}
+
 local function PrintHelp()
     print(ns.COLOR_GOLD .. "--- DragonToast Commands ---" .. ns.COLOR_RESET)
-    print("  " .. ns.COLOR_WHITE .. "/dt" .. ns.COLOR_RESET .. " — Show this help")
-    print("  " .. ns.COLOR_WHITE .. "/dt toggle" .. ns.COLOR_RESET .. " — Toggle addon on/off")
-    print("  " .. ns.COLOR_WHITE .. "/dt config" .. ns.COLOR_RESET .. " — Open settings panel")
-    print("  " .. ns.COLOR_WHITE .. "/dt lock" .. ns.COLOR_RESET .. " — Toggle anchor lock (drag to move)")
-    print("  " .. ns.COLOR_WHITE .. "/dt test" .. ns.COLOR_RESET .. " — Show a test toast")
-    print("  " .. ns.COLOR_WHITE .. "/dt test stack" .. ns.COLOR_RESET .. " -- Test item stacking (3 rapid items)")
-    print("  " .. ns.COLOR_WHITE .. "/dt test xp" .. ns.COLOR_RESET .. " -- Test XP accumulation")
-    print("  " .. ns.COLOR_WHITE .. "/dt test gold" .. ns.COLOR_RESET .. " -- Test gold accumulation")
-    print("  " .. ns.COLOR_WHITE .. "/dt test honor" .. ns.COLOR_RESET .. " -- Test honor accumulation")
-    print("  " .. ns.COLOR_WHITE .. "/dt test reputation" .. ns.COLOR_RESET .. " -- Test reputation accumulation")
-    print("  " .. ns.COLOR_WHITE .. "/dt test all" .. ns.COLOR_RESET .. " -- Run all stacking tests")
-    print("  " .. ns.COLOR_WHITE .. "/dt testmode" .. ns.COLOR_RESET .. " — Toggle continuous test toast generation")
-    print("  " .. ns.COLOR_WHITE .. "/dt clear" .. ns.COLOR_RESET .. " — Dismiss all toasts")
-    print("  " .. ns.COLOR_WHITE .. "/dt reset" .. ns.COLOR_RESET .. " — Reset anchor position to default")
-    print("  " .. ns.COLOR_WHITE .. "/dt status" .. ns.COLOR_RESET .. " — Show current settings")
-    print("  " .. ns.COLOR_WHITE .. "/dt help" .. ns.COLOR_RESET .. " — Show this help")
+    for _, entry in ipairs(HELP_ENTRIES) do
+        print("  " .. ns.COLOR_WHITE .. "/dt" .. entry[1] .. ns.COLOR_RESET .. " -- " .. entry[2])
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -126,14 +132,14 @@ function ns.HandleSlashCommand(input)
         ns.ToastManager.ToggleLock()
 
     elseif cmd == "test" then
-        ns.ToastManager.ShowTestToast()
+        ns.TestToasts.ShowTestToast()
 
     elseif cmd:find("^test ") then
         local subCmd = cmd:match("^test (.+)$")
-        ns.ToastManager.RunStackTest(subCmd)
+        ns.TestToasts.RunStackTest(subCmd)
 
     elseif cmd == "testmode" then
-        ns.ToastManager.ToggleTestMode()
+        ns.TestToasts.ToggleTestMode()
 
     elseif cmd == "clear" then
         ns.ToastManager.ClearAll()
