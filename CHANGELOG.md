@@ -4,6 +4,25 @@
 
 * fix changelog list items ([#65](https://github.com/DragonAddons/DragonToast/issues/65)) ([1c399f4](https://github.com/DragonAddons/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [2.0.0](https://github.com/DragonAddons/DragonToast/compare/1.13.0...2.0.0) (2026-03-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* ns.ToastManager test functions moved to ns.TestToasts
+
+### 🚀 Features
+
+* add bundled default notification sounds ([#122](https://github.com/DragonAddons/DragonToast/issues/122)) ([4930a55](https://github.com/DragonAddons/DragonToast/commit/4930a5557efdcbf885a2df76185a860ed99a9aae))
+* codebase-wide refactoring for consistency and maintainability ([#127](https://github.com/DragonAddons/DragonToast/issues/127)) ([7dfee81](https://github.com/DragonAddons/DragonToast/commit/7dfee818a84fa305716928ba1c7478c657888b87))
+
+
+### 🐛 Bug Fixes
+
+* add missing currency loot messages ([#126](https://github.com/DragonAddons/DragonToast/issues/126)) ([b4b9853](https://github.com/DragonAddons/DragonToast/commit/b4b9853ffbefc4f75eb825a4abaf60f4fe71ecd8))
+* exclude generate_sound.py from bundling ([3e96233](https://github.com/DragonAddons/DragonToast/commit/3e96233e4520694cda9a3ae710e0e42bb7d67830))
+* use correct verion tags ([#124](https://github.com/DragonAddons/DragonToast/issues/124)) ([ab0463c](https://github.com/DragonAddons/DragonToast/commit/ab0463c650fc6d57fed428c261ca12c8ce594d16))
+
 ## [1.13.0](https://github.com/DragonAddons/DragonToast/compare/1.12.1...1.13.0) (2026-03-07)
 
 
