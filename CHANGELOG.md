@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/DragonAddons/DragonToast/issues/65)) ([1c399f4](https://github.com/DragonAddons/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [2.0.1](https://github.com/DragonAddons/DragonToast/compare/2.0.0...2.0.1) (2026-03-13)
+
+
+### ⚙️ Miscellaneous Tasks
+
+* toc bump ([ea5e57d](https://github.com/DragonAddons/DragonToast/commit/ea5e57d1db6ce10333f25d2354766c86eaf80787))
+
 ## [2.0.0](https://github.com/DragonAddons/DragonToast/compare/1.13.0...2.0.0) (2026-03-13)
 
 
