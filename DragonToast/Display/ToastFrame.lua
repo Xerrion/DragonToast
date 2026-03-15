@@ -16,6 +16,7 @@ local GameTooltip = GameTooltip
 local IsShiftKeyDown = IsShiftKeyDown
 local ChatFrame_OpenChat = ChatFrame_OpenChat
 local GetCoinTextureString = GetCoinTextureString
+local GetTime = GetTime
 local UIParent = UIParent
 local STANDARD_TEXT_FONT = STANDARD_TEXT_FONT
 local math_ceil = math.ceil
@@ -386,6 +387,37 @@ local function CreateToastTexts(frame)
     frame.looter:SetTextColor(MUTED_TEXT_COLOR.r, MUTED_TEXT_COLOR.g, MUTED_TEXT_COLOR.b)
 end
 
+local function PauseNoAnimTimer(frame)
+    if not frame._noAnimTimer then return end
+    if not frame._holdStartTime then return end
+
+    local elapsed = GetTime() - frame._holdStartTime
+    local holdDuration = ns.Addon.db.profile.animation.holdDuration
+    frame._holdRemaining = holdDuration - elapsed
+    if frame._holdRemaining < 0 then
+        frame._holdRemaining = 0
+    end
+
+    ns.Addon:CancelTimer(frame._noAnimTimer)
+    frame._noAnimTimer = nil
+end
+
+local function ResumeNoAnimTimer(frame)
+    if frame._holdRemaining == nil then return end
+    if frame._noAnimTimer then return end
+
+    local remaining = frame._holdRemaining
+    frame._holdRemaining = nil
+    frame._holdStartTime = GetTime()
+
+    frame._noAnimTimer = ns.Addon:ScheduleTimer(function()
+        frame._noAnimTimer = nil
+        frame._holdStartTime = nil
+        frame._phase = nil
+        ns.ToastManager.OnToastFinished(frame)
+    end, remaining)
+end
+
 --- Wire up click, enter, and leave scripts on the root Button frame
 local function SetupToastScripts(frame)
     frame:EnableMouse(true)
@@ -407,10 +439,51 @@ local function SetupToastScripts(frame)
             GameTooltip:SetHyperlink(self.lootData.itemLink)
             GameTooltip:Show()
         end
+
+        local db = ns.Addon.db
+        if not db or not db.profile.animation.pauseOnHover then return end
+        if self._phase == nil or self._isExiting or self._isEntering then return end
+
+        self._isHovered = true
+        if not db.profile.animation.enableAnimations then
+            PauseNoAnimTimer(self)
+        else
+            -- Snap any in-progress LibAnimate slide to its current
+            -- interpolated position so the toast stops moving immediately.
+            local libAnim = ns.LibAnimate
+            if libAnim and libAnim.activeAnimations then
+                local state = libAnim.activeAnimations[self]
+                if state and state.slideStartTime then
+                    local slideElapsed = GetTime() - state.slideStartTime
+                    local slideProgress = math.min(slideElapsed / state.slideDuration, 1.0)
+                    state.anchorX = state.slideFromX + (state.slideToX - state.slideFromX) * slideProgress
+                    state.anchorY = state.slideFromY + (state.slideToY - state.slideFromY) * slideProgress
+                    state.slideStartTime = nil
+                    state.slideDuration = nil
+                    state.slideFromX = nil
+                    state.slideFromY = nil
+                    state.slideToX = nil
+                    state.slideToY = nil
+                    state.slideElapsedAtPause = nil
+                end
+            end
+        end
     end)
 
-    frame:SetScript("OnLeave", function(_)
+    frame:SetScript("OnLeave", function(self)
         GameTooltip:Hide()
+
+        if not self._isHovered then return end
+        self._isHovered = false
+
+        local db = ns.Addon.db
+        if not db or not db.profile.animation.pauseOnHover then return end
+
+        if db.profile.animation.enableAnimations then
+            ns.ToastAnimations.ResumeFromHoverHold(self)
+        else
+            ResumeNoAnimTimer(self)
+        end
     end)
 end
 
@@ -617,6 +690,10 @@ function ns.ToastFrame.Release(frame)
     frame:ClearAllPoints()
     frame.lootData = nil
     frame._noAnimTimer = nil
+    frame._holdStartTime = nil
+    frame._holdRemaining = nil
+    frame._isHovered = false
+    frame._hoverHoldCallback = nil
     frame._backdropKey = nil
     frame._borderKey = nil
     frame._iconBackdropKey = nil

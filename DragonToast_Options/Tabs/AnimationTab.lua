@@ -157,7 +157,16 @@ local function CreateHoldSection(parent, yOffset)
         set = function(value) db.profile.animation.holdDuration = value end,
     })
     LC.AnchorWidget(duration, parent, yOffset)
-    yOffset = yOffset - duration:GetHeight()
+    yOffset = yOffset - duration:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+
+    local pauseOnHover = W.CreateToggle(parent, {
+        label = L["Pause on Hover"],
+        tooltip = L["Pause toast fade-out when hovering to read tooltips"],
+        get = function() return db.profile.animation.pauseOnHover end,
+        set = function(value) db.profile.animation.pauseOnHover = value end,
+    })
+    LC.AnchorWidget(pauseOnHover, parent, yOffset)
+    yOffset = yOffset - pauseOnHover:GetHeight()
 
     return yOffset
 end

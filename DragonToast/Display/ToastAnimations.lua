@@ -14,8 +14,11 @@ local ADDON_NAME, ns = ...
 local lib = LibStub("LibAnimate")
 ns.LibAnimate = lib
 
+local GetTime = GetTime
+
 local IDENTITY_ANIMATION_DURATION = 1
 local DEFAULT_SLIDE_SPEED = 0.2
+local HOVER_HOLD_DURATION = 300
 
 -------------------------------------------------------------------------------
 -- Register the identity ("none") animation for the hold phase.
@@ -72,13 +75,31 @@ local function PlayExit(frame, db, onLifecycleFinished)
     })
 end
 
+--- Extended hold while cursor is over the toast. Keeps an active
+--- animation so SlideAnchor repositioning continues to work.
+local function PlayHoverHold(frame, db, onLifecycleFinished)
+    frame._hoverHoldCallback = onLifecycleFinished
+    lib:Animate(frame, "none", {
+        duration = HOVER_HOLD_DURATION,
+        onFinished = function()
+            frame._hoverHoldCallback = nil
+            PlayExit(frame, db, onLifecycleFinished)
+        end,
+    })
+    lib:PauseQueue(frame)
+end
+
 --- Hold phase: identity animation whose duration IS the display time.
 local function PlayHold(frame, db, onLifecycleFinished)
     frame._phase = "hold"
     lib:Animate(frame, "none", {
         duration = db.animation.holdDuration,
         onFinished = function()
-            PlayExit(frame, db, onLifecycleFinished)
+            if frame._isHovered then
+                PlayHoverHold(frame, db, onLifecycleFinished)
+            else
+                PlayExit(frame, db, onLifecycleFinished)
+            end
         end,
     })
 end
@@ -142,8 +163,10 @@ function ns.ToastAnimations.PlayLifecycle(frame, lootData)
         frame:Show()
         frame:SetAlpha(1)
         frame._phase = "hold"
+        frame._holdStartTime = GetTime()
         frame._noAnimTimer = ns.Addon:ScheduleTimer(function()
             frame._noAnimTimer = nil
+            frame._holdStartTime = nil
             frame._phase = nil
             OnToastFinished(frame)
         end, db.animation.holdDuration)
@@ -152,6 +175,23 @@ function ns.ToastAnimations.PlayLifecycle(frame, lootData)
 
     frame:Show()
     PlayEntrance(frame, db, lootData, function() OnToastFinished(frame) end)
+end
+
+-------------------------------------------------------------------------------
+-- Resume from hover hold (mouse left the toast)
+-------------------------------------------------------------------------------
+
+function ns.ToastAnimations.ResumeFromHoverHold(frame)
+    local callback = frame._hoverHoldCallback
+    if not callback then return end
+    frame._hoverHoldCallback = nil
+
+    local db = ns.Addon.db.profile
+    lib:ResumeQueue(frame)
+    lib:Stop(frame)
+    RestoreLogicalAnchor(frame)
+    frame._anchorY = frame._targetY
+    PlayExit(frame, db, callback)
 end
 
 -------------------------------------------------------------------------------
@@ -170,8 +210,13 @@ end
 -------------------------------------------------------------------------------
 
 function ns.ToastAnimations.PlaySlide(frame, _, toY, point, relativeTo,
-                                       relativePoint, x)
+                                        relativePoint, x)
     if frame._isExiting then return end
+
+    -- Hovered toasts are frozen in place. _targetY is already updated by
+    -- the caller (UpdatePositions) so the correct position is known when
+    -- the hover ends.
+    if frame._isHovered then return end
 
     local db = ns.Addon.db.profile
 
@@ -201,9 +246,11 @@ end
 function ns.ToastAnimations.Dismiss(frame)
     if frame._phase == "exit" then return end -- already exiting
 
+    frame._hoverHoldCallback = nil
     local db = ns.Addon.db.profile
 
     if frame._phase ~= nil and db.animation.enableAnimations then
+        lib:ResumeQueue(frame)
         lib:Stop(frame)
         -- lib:Stop restores the anchor to whatever position was captured when
         -- Animate started, which may be stale if slides happened since then.
@@ -224,11 +271,15 @@ function ns.ToastAnimations.StopAll(frame)
     frame._isExiting = false
     frame._isEntering = false
     frame._phase = nil
+    frame._holdStartTime = nil
+    frame._holdRemaining = nil
+    frame._hoverHoldCallback = nil
 
     if frame._noAnimTimer then
         ns.Addon:CancelTimer(frame._noAnimTimer)
         frame._noAnimTimer = nil
     end
 
+    lib:ResumeQueue(frame)
     lib:Stop(frame)
 end

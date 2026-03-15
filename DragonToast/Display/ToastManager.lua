@@ -227,9 +227,12 @@ function ns.ToastManager.UpdatePositions()
                     -- Store anchor args so the onFinished callback can issue the catch-up slide.
                     toast._targetY = y
                     toast._deferredSlideArgs = { point, relativeTo, relativePoint, x }
+                elseif toast._isHovered then
+                    -- Hovered: record desired position but don't move.
+                    -- _anchorY stays at the frozen position so resume can
+                    -- slide from there.
+                    toast._targetY = y
                 else
-                    -- Normal slide: use logical anchor instead of GetPoint() which
-                    -- returns the animated position, not the base position.
                     local currentY = toast._anchorY
                     local startY = currentY or toast._targetY or y
                     toast._targetY = y
@@ -336,8 +339,17 @@ local function ShowToast(lootData)
     local toast = ns.ToastFrame.Acquire()
     ns.ToastFrame.Populate(toast, lootData)
 
-    -- Insert at position 1 (newest on top/bottom)
-    table.insert(activeToasts, 1, toast)
+    -- Insert newest toast at position 1, but after any hovered toasts
+    -- so frozen toasts keep their index and physical position.
+    local insertAt = 1
+    for i, t in ipairs(activeToasts) do
+        if t._isHovered then
+            insertAt = i + 1
+        else
+            break
+        end
+    end
+    table.insert(activeToasts, insertAt, toast)
 
     -- Position all toasts
     ns.ToastManager.UpdatePositions()

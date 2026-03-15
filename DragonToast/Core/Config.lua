@@ -64,6 +64,8 @@ local defaults = {
             attentionMinQuality = 4,
             attentionRepeatCount = 2,
             attentionDelay = 0.1,
+
+            pauseOnHover = true,
         },
 
         appearance = {
@@ -119,6 +121,7 @@ local SIMPLE_MIGRATIONS = {
     { version = 4, section = "filters", key = "showHonor", default = true },
     { version = 5, section = "filters", key = "showMail", default = true },
     { version = 6, section = "filters", key = "showReputation", default = true },
+    { version = 7, section = "animation", key = "pauseOnHover", default = true },
 }
 
 local function MigrateProfile(db)
