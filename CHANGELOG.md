@@ -4,6 +4,25 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [2.1.0](https://github.com/Xerrion/DragonToast/compare/2.0.2...2.1.0) (2026-03-15)
+
+
+### 🚀 Features
+
+* drop support for tww ([8edabfa](https://github.com/Xerrion/DragonToast/commit/8edabfacdf50d873db1af36651b54813649a1564))
+
+
+### 🐛 Bug Fixes
+
+* use proper token? ([0671e7c](https://github.com/Xerrion/DragonToast/commit/0671e7cd1d2de26e9eda61913d1f4442564c34b8))
+
+
+### ⚙️ Miscellaneous Tasks
+
+* inline shared release workflows ([#130](https://github.com/Xerrion/DragonToast/issues/130)) ([c061080](https://github.com/Xerrion/DragonToast/commit/c061080c921b08aa19ce281c73587e3e325a2ecb))
+* update naming ([49d6b8c](https://github.com/Xerrion/DragonToast/commit/49d6b8c0b9a9eab709e21736ac861e0afb6c6fef))
+* update submodule ([f37655b](https://github.com/Xerrion/DragonToast/commit/f37655b3d9f093aa47a6137138d1494d775b9380))
+
 ## [2.0.2](https://github.com/Xerrion/DragonToast/compare/2.0.1...2.0.2) (2026-03-13)
 
 
