@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [2.1.2](https://github.com/Xerrion/DragonToast/compare/2.1.1...2.1.2) (2026-03-15)
+
+
+### 🐛 Bug Fixes
+
+* show honor and mail filter status in /dt status output ([260c8ca](https://github.com/Xerrion/DragonToast/commit/260c8caf0a7141f6082046789fb82f4fb4ab672a))
+
 ## [2.1.1](https://github.com/Xerrion/DragonToast/compare/2.1.0...2.1.1) (2026-03-15)
 
 
