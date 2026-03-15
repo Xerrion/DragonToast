@@ -10,6 +10,6 @@
 [submodule "DragonToast/Libs/LibSharedMedia-3.0"]
 	path = DragonToast/Libs/LibSharedMedia-3.0
 	url = https://github.com/wowace-clone/LibSharedMedia-3.0.git
-[submodule "DragonToasts/Libs/LibAnimate"]
-	path = DragonToasts/Libs/LibAnimate
+[submodule "DragonToast/Libs/LibAnimate"]
+	path = DragonToast/Libs/LibAnimate
 	url = https://github.com/Xerrion/LibAnimate.git
