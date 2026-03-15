@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [2.1.3](https://github.com/Xerrion/DragonToast/compare/2.1.2...2.1.3) (2026-03-15)
+
+
+### 🐛 Bug Fixes
+
+* correct LibAnimate submodule path from DragonToasts to DragonToast ([#135](https://github.com/Xerrion/DragonToast/issues/135)) ([c431923](https://github.com/Xerrion/DragonToast/commit/c43192392ec35114360f17e191c73d7e7fa8e897))
+
 ## [2.1.2](https://github.com/Xerrion/DragonToast/compare/2.1.1...2.1.2) (2026-03-15)
 
 
