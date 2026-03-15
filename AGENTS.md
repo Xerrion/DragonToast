@@ -248,9 +248,9 @@ AceEvent:SendMessage("DRAGONTOAST_UNSUPPRESS", "MyLootAddon")
 
 | Workflow         | Trigger                         | Purpose                                                          |
 |------------------|---------------------------------|------------------------------------------------------------------|
-| `lint.yml`       | `pull_request_target` to master | Luacheck (uses `pull_request_target` for release-please bot PRs) |
-| `release-pr.yml` | `push` to master                | release-please creates/updates a Release PR                      |
-| `release.yml`    | tag push or `workflow_dispatch` | BigWigsMods packager -> CurseForge, Wago, GitHub Releases        |
+| `lint.yml`       | `pull_request_target` to master | Luacheck + busted tests via `Xerrion/wow-workflows` reusable workflow |
+| `release.yml`    | `push` to master                | release-please PR + BigWigsMods packager via `Xerrion/wow-workflows` combined workflow |
+| `toc-update.yml` | Weekly schedule / manual        | Auto-bump TOC Interface versions via `Xerrion/wow-workflows` reusable workflow |
 
 Branch protection on `master`: PRs required, Luacheck status check required, branches must be up to date, no force pushes. Squash merge only; auto-delete head branches.
 
