@@ -207,41 +207,75 @@ local function GetToastPosition(index)
     end
 end
 
+local function CollectBlockedSlots()
+    local blocked = {}
+    for _, toast in ipairs(activeToasts) do
+        if toast._isHovered and toast._frozenY then
+            blocked[#blocked + 1] = toast._frozenY
+        end
+    end
+    return blocked
+end
+
+--- All Y values originate from the same grid formula, so exact comparison is safe.
+local function IsBlockedY(y, blockedSlots)
+    for _, blockedY in ipairs(blockedSlots) do
+        if y == blockedY then
+            return true
+        end
+    end
+    return false
+end
+
+local function ApplyPosition(toast, y, point, relativeTo, relativePoint, x)
+    if toast._targetY == nil then
+        -- First positioning: hard-set the frame and record logical anchor
+        toast._targetY = y
+        toast._anchorY = y
+        toast:ClearAllPoints()
+        toast:SetPoint(point, relativeTo, relativePoint, x, y)
+        return
+    end
+
+    if toast._targetY == y then return end
+    if toast._isExiting then return end
+
+    if toast._isEntering then
+        -- Entrance still playing: defer the slide until entrance finishes
+        toast._targetY = y
+        toast._deferredSlideArgs = { point, relativeTo, relativePoint, x }
+    else
+        toast._targetY = y
+        toast._anchorY = y
+        ns.ToastAnimations.PlaySlide(
+            toast, nil, y, point, relativeTo, relativePoint, x
+        )
+    end
+end
+
 function ns.ToastManager.UpdatePositions()
     if not isInitialized then return end
 
-    for i, toast in ipairs(activeToasts) do
-        local point, relativeTo, relativePoint, x, y = GetToastPosition(i)
+    local blockedSlots = CollectBlockedSlots()
 
-        if toast._targetY == nil then
-            -- First positioning: hard-set the frame and record logical anchor
-            toast._targetY = y
-            toast._anchorY = y
-            toast:ClearAllPoints()
-            toast:SetPoint(point, relativeTo, relativePoint, x, y)
-        elseif toast._targetY ~= y then
-            -- Skip repositioning for exiting toasts to avoid stale position data
-            if not toast._isExiting then
-                if toast._isEntering then
-                    -- Entrance still playing: defer the slide until entrance finishes.
-                    -- Store anchor args so the onFinished callback can issue the catch-up slide.
-                    toast._targetY = y
-                    toast._deferredSlideArgs = { point, relativeTo, relativePoint, x }
-                elseif toast._isHovered then
-                    -- Hovered: record desired position but don't move.
-                    -- _anchorY stays at the frozen position so resume can
-                    -- slide from there.
-                    toast._targetY = y
-                else
-                    local currentY = toast._anchorY
-                    local startY = currentY or toast._targetY or y
-                    toast._targetY = y
-                    toast._anchorY = y
-                    ns.ToastAnimations.PlaySlide(
-                        toast, startY, y, point, relativeTo, relativePoint, x
-                    )
-                end
+    -- Phase 1: hovered toasts keep their frozen position as targetY
+    for _, toast in ipairs(activeToasts) do
+        if toast._isHovered and toast._frozenY then
+            toast._targetY = toast._frozenY
+        end
+    end
+
+    -- Phase 2: assign visual slots to non-hovered toasts, skipping blocked Y
+    local visualIndex = 1
+    for _, toast in ipairs(activeToasts) do
+        if not toast._isHovered then
+            local point, relativeTo, relativePoint, x, y = GetToastPosition(visualIndex)
+            while IsBlockedY(y, blockedSlots) do
+                visualIndex = visualIndex + 1
+                _, _, _, _, y = GetToastPosition(visualIndex)
             end
+            ApplyPosition(toast, y, point, relativeTo, relativePoint, x)
+            visualIndex = visualIndex + 1
         end
     end
 end
@@ -339,17 +373,8 @@ local function ShowToast(lootData)
     local toast = ns.ToastFrame.Acquire()
     ns.ToastFrame.Populate(toast, lootData)
 
-    -- Insert newest toast at position 1, but after any hovered toasts
-    -- so frozen toasts keep their index and physical position.
-    local insertAt = 1
-    for i, t in ipairs(activeToasts) do
-        if t._isHovered then
-            insertAt = i + 1
-        else
-            break
-        end
-    end
-    table.insert(activeToasts, insertAt, toast)
+    -- Insert newest toast at position 1 (top of the stack).
+    table.insert(activeToasts, 1, toast)
 
     -- Position all toasts
     ns.ToastManager.UpdatePositions()

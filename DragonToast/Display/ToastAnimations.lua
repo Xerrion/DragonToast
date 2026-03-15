@@ -18,11 +18,10 @@ local GetTime = GetTime
 
 local IDENTITY_ANIMATION_DURATION = 1
 local DEFAULT_SLIDE_SPEED = 0.2
-local HOVER_HOLD_DURATION = 300
 
 -------------------------------------------------------------------------------
 -- Register the identity ("none") animation for the hold phase.
--- No-op animation: keeps the frame fully visible at its current position.
+-- translateX/Y = 0 is intentional: it enables SlideAnchor repositioning.
 -------------------------------------------------------------------------------
 
 lib:RegisterAnimation("none", {
@@ -53,17 +52,6 @@ end
 -- PlayAttentionOrHold -> PlayEntrance.
 -------------------------------------------------------------------------------
 
---- After lib:Stop() restores the pre-animation anchor (which may be stale
---- if slides happened), re-anchor the frame to its logical target position.
-local function RestoreLogicalAnchor(frame)
-    if frame._targetY == nil then return end
-    local point, relativeTo, relativePoint, x, _ = frame:GetPoint()
-    if point then
-        frame:ClearAllPoints()
-        frame:SetPoint(point, relativeTo, relativePoint, x, frame._targetY)
-    end
-end
-
 --- Exit phase: fade/slide out, then signal lifecycle complete.
 local function PlayExit(frame, db, onLifecycleFinished)
     frame._phase = "exit"
@@ -75,31 +63,20 @@ local function PlayExit(frame, db, onLifecycleFinished)
     })
 end
 
---- Extended hold while cursor is over the toast. Keeps an active
---- animation so SlideAnchor repositioning continues to work.
-local function PlayHoverHold(frame, db, onLifecycleFinished)
-    frame._hoverHoldCallback = onLifecycleFinished
-    lib:Animate(frame, "none", {
-        duration = HOVER_HOLD_DURATION,
-        onFinished = function()
-            frame._hoverHoldCallback = nil
-            PlayExit(frame, db, onLifecycleFinished)
-        end,
-    })
-    lib:PauseQueue(frame)
-end
-
 --- Hold phase: identity animation whose duration IS the display time.
+--- If the cursor is over the toast when hold expires, defer the exit
+--- until OnLeave fires.
 local function PlayHold(frame, db, onLifecycleFinished)
     frame._phase = "hold"
     lib:Animate(frame, "none", {
         duration = db.animation.holdDuration,
         onFinished = function()
             if frame._isHovered then
-                PlayHoverHold(frame, db, onLifecycleFinished)
-            else
-                PlayExit(frame, db, onLifecycleFinished)
+                frame._exitDeferred = true
+                frame._deferredExitCallback = onLifecycleFinished
+                return
             end
+            PlayExit(frame, db, onLifecycleFinished)
         end,
     })
 end
@@ -167,6 +144,11 @@ function ns.ToastAnimations.PlayLifecycle(frame, lootData)
         frame._noAnimTimer = ns.Addon:ScheduleTimer(function()
             frame._noAnimTimer = nil
             frame._holdStartTime = nil
+            if frame._isHovered then
+                frame._exitDeferred = true
+                frame._deferredExitCallback = function() OnToastFinished(frame) end
+                return
+            end
             frame._phase = nil
             OnToastFinished(frame)
         end, db.animation.holdDuration)
@@ -178,19 +160,19 @@ function ns.ToastAnimations.PlayLifecycle(frame, lootData)
 end
 
 -------------------------------------------------------------------------------
--- Resume from hover hold (mouse left the toast)
+-- Play deferred exit (mouse left a toast whose hold already expired)
 -------------------------------------------------------------------------------
 
-function ns.ToastAnimations.ResumeFromHoverHold(frame)
-    local callback = frame._hoverHoldCallback
+function ns.ToastAnimations.PlayDeferredExit(frame)
+    local callback = frame._deferredExitCallback
     if not callback then return end
-    frame._hoverHoldCallback = nil
+    frame._deferredExitCallback = nil
+    frame._exitDeferred = nil
 
     local db = ns.Addon.db.profile
-    lib:ResumeQueue(frame)
-    lib:Stop(frame)
-    RestoreLogicalAnchor(frame)
-    frame._anchorY = frame._targetY
+
+    -- The "none" hold animation already finished, so no active animation
+    -- state to clean up. Just start exit from current position.
     PlayExit(frame, db, callback)
 end
 
@@ -244,18 +226,14 @@ end
 -------------------------------------------------------------------------------
 
 function ns.ToastAnimations.Dismiss(frame)
-    if frame._phase == "exit" then return end -- already exiting
+    if frame._phase == "exit" then return end
 
-    frame._hoverHoldCallback = nil
+    frame._exitDeferred = nil
+    frame._deferredExitCallback = nil
     local db = ns.Addon.db.profile
 
     if frame._phase ~= nil and db.animation.enableAnimations then
-        lib:ResumeQueue(frame)
         lib:Stop(frame)
-        -- lib:Stop restores the anchor to whatever position was captured when
-        -- Animate started, which may be stale if slides happened since then.
-        -- Re-anchor to the current logical position before starting the exit.
-        RestoreLogicalAnchor(frame)
         PlayExit(frame, db, function() OnToastFinished(frame) end)
     else
         ns.ToastAnimations.StopAll(frame)
@@ -273,7 +251,8 @@ function ns.ToastAnimations.StopAll(frame)
     frame._phase = nil
     frame._holdStartTime = nil
     frame._holdRemaining = nil
-    frame._hoverHoldCallback = nil
+    frame._exitDeferred = nil
+    frame._deferredExitCallback = nil
 
     if frame._noAnimTimer then
         ns.Addon:CancelTimer(frame._noAnimTimer)
