@@ -387,20 +387,6 @@ local function CreateToastTexts(frame)
     frame.looter:SetTextColor(MUTED_TEXT_COLOR.r, MUTED_TEXT_COLOR.g, MUTED_TEXT_COLOR.b)
 end
 
-local function PauseAnimatedToast(frame)
-    local animLib = ns.LibAnimate
-    if not animLib then return end
-    if animLib:IsPaused(frame) then return end
-    animLib:PauseQueue(frame)
-end
-
-local function ResumeAnimatedToast(frame)
-    local animLib = ns.LibAnimate
-    if not animLib then return end
-    if not animLib:IsPaused(frame) then return end
-    animLib:ResumeQueue(frame)
-end
-
 local function PauseNoAnimTimer(frame)
     if not frame._noAnimTimer then return end
     if not frame._holdStartTime then return end
@@ -456,12 +442,10 @@ local function SetupToastScripts(frame)
 
         local db = ns.Addon.db
         if not db or not db.profile.animation.pauseOnHover then return end
-        if self._phase == nil or self._isExiting then return end
+        if self._phase == nil or self._isExiting or self._isEntering then return end
 
         self._isHovered = true
-        if db.profile.animation.enableAnimations then
-            PauseAnimatedToast(self)
-        else
+        if not db.profile.animation.enableAnimations then
             PauseNoAnimTimer(self)
         end
     end)
@@ -476,7 +460,7 @@ local function SetupToastScripts(frame)
         if not db or not db.profile.animation.pauseOnHover then return end
 
         if db.profile.animation.enableAnimations then
-            ResumeAnimatedToast(self)
+            ns.ToastAnimations.ResumeFromHoverHold(self)
         else
             ResumeNoAnimTimer(self)
         end
@@ -689,6 +673,7 @@ function ns.ToastFrame.Release(frame)
     frame._holdStartTime = nil
     frame._holdRemaining = nil
     frame._isHovered = false
+    frame._hoverHoldCallback = nil
     frame._backdropKey = nil
     frame._borderKey = nil
     frame._iconBackdropKey = nil

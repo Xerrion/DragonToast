@@ -18,6 +18,7 @@ local GetTime = GetTime
 
 local IDENTITY_ANIMATION_DURATION = 1
 local DEFAULT_SLIDE_SPEED = 0.2
+local HOVER_HOLD_DURATION = 300
 
 -------------------------------------------------------------------------------
 -- Register the identity ("none") animation for the hold phase.
@@ -74,13 +75,30 @@ local function PlayExit(frame, db, onLifecycleFinished)
     })
 end
 
+--- Extended hold while cursor is over the toast. Keeps an active
+--- animation so SlideAnchor repositioning continues to work.
+local function PlayHoverHold(frame, db, onLifecycleFinished)
+    frame._hoverHoldCallback = onLifecycleFinished
+    lib:Animate(frame, "none", {
+        duration = HOVER_HOLD_DURATION,
+        onFinished = function()
+            frame._hoverHoldCallback = nil
+            PlayExit(frame, db, onLifecycleFinished)
+        end,
+    })
+end
+
 --- Hold phase: identity animation whose duration IS the display time.
 local function PlayHold(frame, db, onLifecycleFinished)
     frame._phase = "hold"
     lib:Animate(frame, "none", {
         duration = db.animation.holdDuration,
         onFinished = function()
-            PlayExit(frame, db, onLifecycleFinished)
+            if frame._isHovered then
+                PlayHoverHold(frame, db, onLifecycleFinished)
+            else
+                PlayExit(frame, db, onLifecycleFinished)
+            end
         end,
     })
 end
@@ -159,6 +177,21 @@ function ns.ToastAnimations.PlayLifecycle(frame, lootData)
 end
 
 -------------------------------------------------------------------------------
+-- Resume from hover hold (mouse left the toast)
+-------------------------------------------------------------------------------
+
+function ns.ToastAnimations.ResumeFromHoverHold(frame)
+    local callback = frame._hoverHoldCallback
+    if not callback then return end
+    frame._hoverHoldCallback = nil
+
+    local db = ns.Addon.db.profile
+    lib:Stop(frame)
+    RestoreLogicalAnchor(frame)
+    PlayExit(frame, db, callback)
+end
+
+-------------------------------------------------------------------------------
 -- Update lifecycle for duplicate/stacking items
 --
 -- Preserve the current lifecycle. Active duplicate stacks update content only
@@ -205,6 +238,7 @@ end
 function ns.ToastAnimations.Dismiss(frame)
     if frame._phase == "exit" then return end -- already exiting
 
+    frame._hoverHoldCallback = nil
     local db = ns.Addon.db.profile
 
     if frame._phase ~= nil and db.animation.enableAnimations then
@@ -230,6 +264,7 @@ function ns.ToastAnimations.StopAll(frame)
     frame._phase = nil
     frame._holdStartTime = nil
     frame._holdRemaining = nil
+    frame._hoverHoldCallback = nil
 
     if frame._noAnimTimer then
         ns.Addon:CancelTimer(frame._noAnimTimer)
