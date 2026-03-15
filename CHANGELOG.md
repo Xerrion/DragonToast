@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [2.1.1](https://github.com/Xerrion/DragonToast/compare/2.1.0...2.1.1) (2026-03-15)
+
+
+### 🐛 Bug Fixes
+
+* update AGENTS.md CI/CD docs to reflect consolidated workflow structure ([654eaa6](https://github.com/Xerrion/DragonToast/commit/654eaa6ade737adecaa0b4072a125e9357f581a1))
+
 ## [2.1.0](https://github.com/Xerrion/DragonToast/compare/2.0.2...2.1.0) (2026-03-15)
 
 
