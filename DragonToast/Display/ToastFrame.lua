@@ -447,6 +447,26 @@ local function SetupToastScripts(frame)
         self._isHovered = true
         if not db.profile.animation.enableAnimations then
             PauseNoAnimTimer(self)
+        else
+            -- Snap any in-progress LibAnimate slide to its current
+            -- interpolated position so the toast stops moving immediately.
+            local libAnim = ns.LibAnimate
+            if libAnim and libAnim.activeAnimations then
+                local state = libAnim.activeAnimations[self]
+                if state and state.slideStartTime then
+                    local slideElapsed = GetTime() - state.slideStartTime
+                    local slideProgress = math.min(slideElapsed / state.slideDuration, 1.0)
+                    state.anchorX = state.slideFromX + (state.slideToX - state.slideFromX) * slideProgress
+                    state.anchorY = state.slideFromY + (state.slideToY - state.slideFromY) * slideProgress
+                    state.slideStartTime = nil
+                    state.slideDuration = nil
+                    state.slideFromX = nil
+                    state.slideFromY = nil
+                    state.slideToX = nil
+                    state.slideToY = nil
+                    state.slideElapsedAtPause = nil
+                end
+            end
         end
     end)
 

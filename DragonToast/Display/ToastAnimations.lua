@@ -86,6 +86,7 @@ local function PlayHoverHold(frame, db, onLifecycleFinished)
             PlayExit(frame, db, onLifecycleFinished)
         end,
     })
+    lib:PauseQueue(frame)
 end
 
 --- Hold phase: identity animation whose duration IS the display time.
@@ -186,6 +187,7 @@ function ns.ToastAnimations.ResumeFromHoverHold(frame)
     frame._hoverHoldCallback = nil
 
     local db = ns.Addon.db.profile
+    lib:ResumeQueue(frame)
     lib:Stop(frame)
     RestoreLogicalAnchor(frame)
     frame._anchorY = frame._targetY
@@ -248,6 +250,7 @@ function ns.ToastAnimations.Dismiss(frame)
     local db = ns.Addon.db.profile
 
     if frame._phase ~= nil and db.animation.enableAnimations then
+        lib:ResumeQueue(frame)
         lib:Stop(frame)
         -- lib:Stop restores the anchor to whatever position was captured when
         -- Animate started, which may be stale if slides happened since then.
@@ -277,5 +280,6 @@ function ns.ToastAnimations.StopAll(frame)
         frame._noAnimTimer = nil
     end
 
+    lib:ResumeQueue(frame)
     lib:Stop(frame)
 end
