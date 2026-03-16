@@ -3,6 +3,7 @@ max_line_length = 120
 codes = true
 exclude_files = {
     "DragonToast/Libs/",
+    "DragonToast/Locales/",
     ".release/",
     ".types.lua",
 }
