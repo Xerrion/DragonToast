@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [3.0.1](https://github.com/Xerrion/DragonToast/compare/3.0.0...3.0.1) (2026-03-16)
+
+
+### 🐛 Bug Fixes
+
+* **deDE:** restore English keys matching enUS.lua ([#140](https://github.com/Xerrion/DragonToast/issues/140)) ([#141](https://github.com/Xerrion/DragonToast/issues/141)) ([bdc09db](https://github.com/Xerrion/DragonToast/commit/bdc09db3be04f60ddb8035b09af7db25a6e6ee71))
+
 ## [3.0.0](https://github.com/Xerrion/DragonToast/compare/2.1.3...3.0.0) (2026-03-15)
 
 
