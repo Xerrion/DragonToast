@@ -12,14 +12,14 @@ if not L then return end
 L["Loaded. Type /dt help for commands."] = "Geladen. Tippe /dt help für Befehle."
 
 -- DragonToast/Display/ToastManager.lua
-L["+%s Ehre"] = true
-L["+%s Reputation"] = true
-L["+%s XP"] = true
+L["+%s Ehre"] = "+%s Ehre"
+L["+%s Reputation"] = "+%s Reputation"
+L["+%s XP"] = "+%s XP"
 L["Drag to move"] = "Ziehen zum Verschieben"
 
 -- DragonToast/Display/ToastFrame.lua
-L["Du"] = true
-L["ilvl %s"] = true
+L["Du"] = "Du"
+L["ilvl %s"] = "ilvl %s"
 
 -- DragonToast/Listeners/MessageBridge.lua
 L["Disenchant"] = "Entzaubern"
