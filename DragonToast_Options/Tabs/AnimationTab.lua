@@ -31,7 +31,9 @@ local dtns
 
 -------------------------------------------------------------------------------
 -- Helpers
--------------------------------------------------------------------------------
+-- Create a list of dropdown option tables for animations returned by the specified LibAnimate method.
+-- @param methodName The method name on LibAnimate to call (e.g., "GetEntranceAnimations").
+-- @return A list of tables each containing `value` and `text` for a dropdown; the first entry is `{ value = "none", text = L["NONE"] }`.
 
 local function BuildAnimationValues(methodName)
     local lib = LibStub("LibAnimate", true)
@@ -66,7 +68,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Section builders
--------------------------------------------------------------------------------
+-- Create the "Animation" section UI and its enable toggle.
+-- Updates `attentionState.enableToggle` and wires the toggle to enable/disable attention widgets.
+-- @param parent UI container to which widgets will be added.
+-- @param yOffset Number vertical offset (pixels) where the section should start; adjusted as widgets are anchored.
+-- @param attentionState Table with optional fields `dropdown` and `widgets` used to manage the Attention subsection.
+-- @return number The updated vertical offset after placing the section's widgets.
 
 local function CreateAnimationSection(parent, yOffset, attentionState)
     local W = ns.Widgets
@@ -96,6 +103,10 @@ local function CreateAnimationSection(parent, yOffset, attentionState)
     return yOffset
 end
 
+-- Creates the "Entrance" section in the animation options and adds its widgets to the given parent.
+-- @param parent The UI container/frame to which the section's widgets will be anchored.
+-- @param yOffset The current vertical offset (y) used to position widgets; will be adjusted downward as widgets are added.
+-- @return The updated vertical offset after placing the section's header and widgets.
 local function CreateEntranceSection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
@@ -139,6 +150,11 @@ local function CreateEntranceSection(parent, yOffset)
     return yOffset
 end
 
+-- Builds the Hold animation settings section and positions its widgets within the parent.
+-- Creates a duration slider and a "pause on hover" toggle, anchored starting at the provided yOffset.
+-- @param parent The parent UI frame to attach the section's widgets to.
+-- @param yOffset The starting vertical offset (pixels) where the section will be placed.
+-- @return The updated vertical offset after the section and its widgets have been laid out.
 local function CreateHoldSection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
@@ -171,6 +187,10 @@ local function CreateHoldSection(parent, yOffset)
     return yOffset
 end
 
+-- Creates the "Exit" section of the Animation tab, placing a header and widgets for exit duration, exit animation, and exit distance.
+-- @param parent The parent UI frame to attach the section to.
+-- @param yOffset The starting vertical offset; widgets are anchored relative to this value.
+-- @return The updated vertical offset after laying out the section.
 local function CreateExitSection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
@@ -214,6 +234,10 @@ local function CreateExitSection(parent, yOffset)
     return yOffset
 end
 
+-- Creates and places the Slide section UI (header and slide speed slider) into the parent layout.
+-- @param parent The parent UI frame to anchor the section to.
+-- @param yOffset The current vertical offset within the parent where the section should be placed.
+-- @return The updated vertical offset after adding the section.
 local function CreateSlideSection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
@@ -237,6 +261,11 @@ local function CreateSlideSection(parent, yOffset)
     return yOffset
 end
 
+-- Creates the "Attention" subsection of the Animation tab, adds its controls to the given parent, and registers those widgets in attentionState.
+-- @param parent UI frame to attach the section widgets to.
+-- @param yOffset Number representing the starting vertical offset; widgets are anchored relative to this value.
+-- @param attentionState Table used to read the enable toggle and to store created controls; this function sets attentionState.dropdown and attentionState.widgets.
+-- @return The updated vertical offset after placing the section's widgets.
 local function CreateAttentionSection(parent, yOffset, attentionState)
     local W = ns.Widgets
     local db = dtns.Addon.db

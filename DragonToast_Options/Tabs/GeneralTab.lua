@@ -32,7 +32,9 @@ local LSM = LibStub("LibSharedMedia-3.0", true)
 
 -------------------------------------------------------------------------------
 -- Helpers
--------------------------------------------------------------------------------
+-- Builds a sorted list of available sound options for use in a dropdown.
+-- Includes a leading `{ value = "None", text = L["NONE"] }` entry. If LibSharedMedia-3.0 is unavailable, returns an empty table.
+-- @return A table of `{ value = <soundName>, text = <displayName> }` entries, sorted alphabetically by `text`, with the "None" entry first (or `{}` if no sound provider).
 
 local function BuildSoundValues()
     if not LSM then return {} end
@@ -48,7 +50,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Section builders
--------------------------------------------------------------------------------
+-- Builds the "Core Settings" subsection of the General tab and places its widgets into the given parent container.
+-- @param parent UI frame that will contain the section's widgets.
+-- @param yOffset Number representing the starting vertical offset within `parent`.
+-- @return number The updated vertical offset after the section's widgets have been placed.
 
 local function CreateCoreSection(parent, yOffset)
     local W = ns.Widgets
@@ -97,6 +102,11 @@ local function CreateCoreSection(parent, yOffset)
     return yOffset
 end
 
+-- Builds the "Sound" subsection of the General tab UI.
+-- Creates a header, an enable-sound toggle, and a sound selection dropdown; the dropdown is disabled when sound is disabled.
+-- @param parent The parent UI frame to anchor the section's widgets to.
+-- @param yOffset The starting vertical offset for placing widgets; layout proceeds downward.
+-- @return The updated vertical offset after placing the section's widgets.
 local function CreateSoundSection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
@@ -136,6 +146,11 @@ local function CreateSoundSection(parent, yOffset)
     return yOffset
 end
 
+-- Builds the "Testing" subsection in the provided parent frame and anchors its widgets vertically.
+-- Creates a header, "Show Test Toast" and "Clear Toasts" buttons, and a "Test Mode" toggle.
+-- @param parent The parent frame to contain the testing widgets.
+-- @param yOffset The starting vertical offset (in pixels) from the top of the parent where the section is placed.
+-- @return The updated vertical offset after placing the section.
 local function CreateTestingSection(parent, yOffset)
     local W = ns.Widgets
 

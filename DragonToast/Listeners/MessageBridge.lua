@@ -133,6 +133,23 @@ local rollTypeNames = {
     [4] = L["TRANSMOG"],
 }
 
+-- Builds a toast payload representing a won roll for a loot item.
+-- @param rollData Table with roll and item details. Expected keys:
+--   `rollType` (number) - numeric roll type.
+--   `rollValue` (number, optional) - numeric roll value to display.
+--   `itemLink` (string, optional) - item link string.
+--   `itemID` (number, optional) - numeric item ID.
+--   `itemName` (string, optional) - display name for the item.
+--   `itemQuality` (number, optional) - item quality index.
+--   `itemIcon` (string, optional) - icon texture path.
+--   `quantity` (number, optional) - item quantity.
+--   `winnerName` (string, optional) - name of the roll winner.
+--   `isSelf` (boolean, optional) - whether the winner is the player.
+-- @return A table containing the toast payload with keys:
+--   `isRollWin` (true), `itemLink`, `itemID`, `itemName`, `itemQuality`,
+--   `itemIcon`, `itemLevel` (number), `itemType` (display string for roll),
+--   `itemSubType` (nil), `quantity`, `looter` (string), `isSelf` (boolean),
+--   `isCurrency` (false), and `timestamp` (number).
 local function BuildRollWonToast(rollData)
     -- Build human-readable roll display (e.g. "Need (87)")
     local rollTypeName = rollTypeNames[rollData.rollType] or L["ROLL"]

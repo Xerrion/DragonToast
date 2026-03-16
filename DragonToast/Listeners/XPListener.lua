@@ -99,7 +99,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Event Handler
--------------------------------------------------------------------------------
+-- Handles combat XP gain chat messages and queues an XP toast when applicable.
+-- Parses `text` for an XP amount and optional source name; if a positive amount is found, builds a toast payload and enqueues it via ns.ToastManager.
+-- @param text The chat message text containing the XP gain.
 
 local function OnChatMsgCombatXPGain(_, text)
     local db = owner.db.profile

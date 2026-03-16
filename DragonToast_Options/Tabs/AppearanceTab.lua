@@ -60,6 +60,8 @@ local FONT_OUTLINE_VALUES = {
     { value = "MONOCHROME, OUTLINE", text = L["FONT_OUTLINE_MONOCHROME_OUTLINE"] },
 }
 
+-- Builds a list of available appearance presets.
+-- @return An array of tables where each entry has `value` (preset key) and `text` (preset display name).
 local function GetPresetValues()
     local values = {}
     for _, key in ipairs(dtns.Presets.order) do
@@ -70,7 +72,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Section builders
--------------------------------------------------------------------------------
+-- Creates the Preset section in the Appearance tab and anchors it at the specified vertical offset.
+-- @param parent The UI container/frame to attach the section to.
+-- @param yOffset The starting vertical offset (pixels) from the top; adjusted downward as widgets are placed.
+-- @return The updated vertical offset (pixels) after the preset section has been added.
 
 local function CreatePresetSection(parent, yOffset)
     local W = ns.Widgets
@@ -94,6 +99,11 @@ local function CreatePresetSection(parent, yOffset)
     return yOffset
 end
 
+-- Builds the Font section UI inside the Appearance tab and returns the updated vertical offset.
+-- @param parent The UI container to attach the section widgets to.
+-- @param db Addon database table used for reading and writing appearance settings.
+-- @param yOffset Current vertical offset from the top of `parent` where widgets should be anchored.
+-- @return The updated vertical offset after placing the Font section.
 local function CreateFontSection(parent, db, yOffset)
     local W = ns.Widgets
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
@@ -149,6 +159,11 @@ local function CreateFontSection(parent, db, yOffset)
     return yOffset
 end
 
+-- Creates the "Background" subsection of the Appearance tab, adding color, alpha, and texture controls and returning the updated vertical offset.
+-- @param parent The parent UI frame to attach the section's widgets to.
+-- @param db Addon database table (expects db.profile.appearance to exist and be writable).
+-- @param yOffset The starting vertical offset (in pixels) where the section will be anchored; widgets are laid out downward from this value.
+-- @return number The updated vertical offset after placing the section's widgets.
 local function CreateBackgroundSection(parent, db, yOffset)
     local W = ns.Widgets
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
@@ -205,6 +220,11 @@ local function CreateBackgroundSection(parent, db, yOffset)
     return yOffset
 end
 
+-- Builds the "Border and Glow" section in the Appearance tab and lays out its controls.
+-- @param parent UI container/frame to which the section widgets are attached.
+-- @param db Addon database table (expects db.profile.appearance to exist and be writable).
+-- @param yOffset Number vertical offset (in pixels) from the top where layout should start.
+-- @return number The updated vertical offset after placing the section's widgets.
 local function CreateBorderSection(parent, db, yOffset)
     local W = ns.Widgets
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
@@ -268,6 +288,11 @@ local function CreateBorderSection(parent, db, yOffset)
     return yOffset
 end
 
+-- Creates the Glowing Border section in the Appearance tab and returns the updated vertical offset.
+-- @param parent The parent UI frame to attach the section's widgets to.
+-- @param db The addon's database table; the function reads and writes values under `db.profile.appearance`.
+-- @param yOffset The starting vertical offset (number) where the section should be placed.
+-- @return The updated vertical offset after placing the section's widgets.
 local function CreateGlowingBorderSection(parent, db, yOffset)
     local W = ns.Widgets
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
@@ -303,6 +328,11 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
     return yOffset
 end
 
+-- Creates the "Icon" appearance section on the given parent and places an icon size slider bound to the appearance settings.
+-- @param parent UI frame that will contain the section.
+-- @param db Addon database; the slider reads and updates db.profile.appearance.iconSize.
+-- @param yOffset Starting vertical offset (pixels) from the parent's top; the function positions widgets relative to this value.
+-- @return The updated vertical offset after adding the section's widgets.
 local function CreateIconSection(parent, db, yOffset)
     local W = ns.Widgets
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS

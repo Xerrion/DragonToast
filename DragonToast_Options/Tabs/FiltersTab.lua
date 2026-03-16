@@ -53,7 +53,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Section builders
--------------------------------------------------------------------------------
+-- Builds the Loot Quality section containing a header and a minimum-quality dropdown, anchoring them at the given vertical offset.
+-- @param parent The parent frame or widget to which the section widgets are anchored.
+-- @param yOffset The starting vertical offset (in pixels) for anchoring the section.
+-- @return The updated vertical offset after placing the section's widgets.
 
 local function CreateQualitySection(parent, yOffset)
     local W = ns.Widgets
@@ -83,6 +86,10 @@ local SOURCE_TOGGLES = {
     { key = "showMail",       label = "SHOW_MAIL",          tooltip = "TOOLTIP_SHOW_MAIL" },
 }
 
+-- Creates the "Loot Sources" section: places a header and the source filter toggles anchored from the given vertical offset.
+-- @param parent The container frame to attach the section widgets to.
+-- @param yOffset The starting vertical offset (number) from which widgets are anchored.
+-- @return The updated vertical offset (number) after the section has been laid out.
 local function CreateSourcesSection(parent, yOffset)
     local db = dtns.Addon.db
 
@@ -105,6 +112,10 @@ local CURRENCY_TOGGLES = {
     { key = "showReputation", label = "SHOW_REPUTATION",   tooltip = "TOOLTIP_SHOW_REPUTATION" },
 }
 
+-- Creates the "Currency and Rewards" section and its filter toggles, anchored at the given vertical offset.
+-- @param parent UI frame to attach the section to.
+-- @param yOffset Number representing the current vertical offset (pixels); will be decreased as widgets are added.
+-- @return The updated vertical offset after placing the section and its toggles.
 local function CreateCurrencySection(parent, yOffset)
     local db = dtns.Addon.db
 
