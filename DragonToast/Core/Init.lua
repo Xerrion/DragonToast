@@ -135,7 +135,9 @@ local LISTENER_MODULES = {
 
 -------------------------------------------------------------------------------
 -- AceAddon Lifecycle
--------------------------------------------------------------------------------
+-- Initialize addon runtime state, configuration, and UI integrations.
+-- Performs database setup, registers the "dragontoast" and "dt" slash commands,
+-- initializes the minimap icon if available, and prints the localized loaded message.
 
 function Addon:OnInitialize()
     -- AceDB setup (Config.lua defines the defaults and registers the DB)
@@ -151,9 +153,14 @@ function Addon:OnInitialize()
         ns.MinimapIcon.Initialize()
     end
 
-    ns.Print(L["Loaded. Type /dt help for commands."])
+    ns.Print(L["LOADED_MESSAGE"])
 end
 
+-- Performs addon enable-time setup: initializes the toast display system,
+-- starts listener modules, and applies an ElvUI skin if present.
+-- Initializes the core ToastManager, calls `Initialize` on each module
+-- listed in `LISTENER_MODULES` if available, and invokes
+-- `ns.ElvUISkin.Apply()` when provided.
 function Addon:OnEnable()
     -- Initialize display system (always present)
     ns.ToastManager.Initialize()

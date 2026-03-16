@@ -282,17 +282,31 @@ local function ApplyRewardDetail(frame, detailText)
     frame.itemType:Show()
 end
 
+-- Shows or hides the looter label on a reward toast according to configuration.
+-- If `db.display.showLooter` is false the looter label is hidden; otherwise the label
+-- is set to the localized "YOU" text, colored with `SELF_LOOTER_COLOR`, and shown.
+-- @param frame The toast frame containing the `looter` FontString.
+-- @param db Configuration table; expects `db.display.showLooter` (boolean) to control visibility.
 local function ApplyRewardLooter(frame, db)
     if not db.display.showLooter then
         frame.looter:Hide()
         return
     end
 
-    frame.looter:SetText(L["You"])
+    frame.looter:SetText(L["YOU"])
     frame.looter:SetTextColor(SELF_LOOTER_COLOR.r, SELF_LOOTER_COLOR.g, SELF_LOOTER_COLOR.b)
     frame.looter:Show()
 end
 
+-- Update the toast's looter label according to configuration and loot data.
+-- Shows or hides the looter text; when the looter is the player displays
+-- `L["YOU"]` with the self looter color, otherwise displays the looter's
+-- name with a muted color.
+-- @param frame Table representing the toast frame; must contain a `looter` FontString.
+-- @param db Table of toast configuration; expects `db.display.showLooter` (boolean).
+-- @param lootData Table with looter information. Expected fields:
+--   `looter` (string) - name of the looter,
+--   `isSelf` (boolean) - true if the looter is the current player.
 local function ApplyItemLooter(frame, db, lootData)
     if not db.display.showLooter or not lootData.looter then
         frame.looter:Hide()
@@ -300,7 +314,7 @@ local function ApplyItemLooter(frame, db, lootData)
     end
 
     if lootData.isSelf then
-        frame.looter:SetText(L["You"])
+        frame.looter:SetText(L["YOU"])
         frame.looter:SetTextColor(SELF_LOOTER_COLOR.r, SELF_LOOTER_COLOR.g, SELF_LOOTER_COLOR.b)
     else
         frame.looter:SetText(lootData.looter)
@@ -593,7 +607,21 @@ local function FormatMoney(copperAmount, format)
     end
 end
 
---- Populate the "normal item toast" content fields (name, quantity, ilvl, type, looter)
+-- Populates the toast's item-related display fields (name, quantity,
+-- item level, type, and looter) according to the provided loot data and
+-- display configuration.
+-- @param frame The toast frame whose UI elements will be updated
+--   (expects fields: itemName, quantity, itemLevel, itemType, etc.).
+-- @param lootData Table describing the loot (e.g., itemName,
+--   copperAmount, itemSubType, isCurrency, quantity, itemLevel,
+--   itemType); used to decide text, colors, and visibility.
+-- @param db Configuration table controlling presentation (notably
+--   db.display.showQuantity, db.display.showItemLevel,
+--   db.display.showItemType, and db.display.goldFormat).
+-- @param r Number red component for item name color when the item is not a currency.
+-- @param g Number green component for item name color when the item is not a currency.
+-- @param b Number blue component for item name color when the item is not a currency.
+-- (No return value.)
 local function PopulateItemContent(frame, lootData, db, r, g, b)
     -- Money or item name
     if lootData.copperAmount and lootData.itemSubType == "Gold" then
@@ -620,7 +648,7 @@ local function PopulateItemContent(frame, lootData, db, r, g, b)
     -- Item level
     if db.display.showItemLevel and lootData.itemLevel and lootData.itemLevel > 0
         and not lootData.isCurrency then
-        frame.itemLevel:SetText(string_format(L["ilvl %s"], lootData.itemLevel))
+        frame.itemLevel:SetText(string_format(L["FORMAT_ILVL"], lootData.itemLevel))
         frame.itemLevel:Show()
     else
         frame.itemLevel:Hide()

@@ -279,7 +279,15 @@ function M.CreateNamespace()
     }
 
     -- Mock AceLocale (identity passthrough: L["key"] returns "key")
-    ns.L = setmetatable({}, {
+    -- Format-string keys need explicit values so string.format() works in tests.
+    ns.L = setmetatable({
+        FORMAT_PLUS_XP = "+%s XP",
+        FORMAT_PLUS_HONOR = "+%s Honor",
+        FORMAT_PLUS_REPUTATION = "+%s Reputation",
+        FORMAT_ILVL = "ilvl %s",
+        FORMAT_MAIL_FROM = "Mail - %s",
+        CONFIRM_DELETE_PROFILE = "Are you sure you want to delete the profile \"%s\"?",
+    }, {
         __index = function(_, key)
             return key
         end,

@@ -39,27 +39,42 @@ local ATTACHMENTS_MAX = 12 -- ATTACHMENTS_MAX_RECEIVE in Blizzard code
 
 -------------------------------------------------------------------------------
 -- Shared helpers
--------------------------------------------------------------------------------
+-- Return a localized label describing the source of the mail at the given inbox index.
+-- @param index The inbox mail index to inspect.
+-- @return A localized string: `L["AUCTION_WON"]` for buyer invoices,
+--   `L["AUCTION_SALE"]` for seller invoices, a formatted
+--   `L["FORMAT_MAIL_FROM"]` with the sender when present, or
+--   `L["MAIL"]` as a fallback.
 
 local function GetMailSourceLabel(index)
     local _, _, _, _, isInvoice = GetInboxText(index)
     if isInvoice then
         local invoiceType = GetInboxInvoiceInfo(index)
         if invoiceType == "buyer" then
-            return L["Auction Won"]
+            return L["AUCTION_WON"]
         elseif invoiceType == "seller" or invoiceType == "seller_temp_invoice" then
-            return L["Auction Sale"]
+            return L["AUCTION_SALE"]
         end
     end
 
     local _, _, sender = GetInboxHeaderInfo(index)
     if sender and sender ~= "" then
-        return string_format(L["Mail - %s"], sender)
+        return string_format(L["FORMAT_MAIL_FROM"], sender)
     end
 
-    return L["Mail"]
+    return L["MAIL"]
 end
 
+-- Creates a snapshot for an item attachment in a mail or returns nil if no attachment exists at that slot.
+-- @param index The inbox mail index.
+-- @param attachIndex The attachment slot index (1..ATTACHMENTS_MAX).
+-- @param sourceLabel A label describing the mail's source (used as itemType).
+-- @param supportsAttachmentCurrencyFlag If true, the snapshot's
+--   `isCurrency` mirrors the API flag; if false, `isCurrency` is
+--   always false.
+-- @return A table with fields `type="item"`, `mailIndex`, `attachIndex`,
+--   `itemID`, `count`, `isCurrency`, and `sourceLabel`, or `nil` if no
+--   item is present.
 local function SnapshotItemAttachment(index, attachIndex, sourceLabel, supportsAttachmentCurrencyFlag)
     local _, itemID, _, count, _, _, isCurrency = GetInboxItem(index, attachIndex)
     if not itemID then return nil end

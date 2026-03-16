@@ -53,19 +53,23 @@ end
 
 -------------------------------------------------------------------------------
 -- Section builders
--------------------------------------------------------------------------------
+-- Builds the Loot Quality section containing a header and a
+-- minimum-quality dropdown, anchoring them at the given vertical offset.
+-- @param parent The parent frame or widget to which the section widgets are anchored.
+-- @param yOffset The starting vertical offset (in pixels) for anchoring the section.
+-- @return The updated vertical offset after placing the section's widgets.
 
 local function CreateQualitySection(parent, yOffset)
     local W = ns.Widgets
     local db = dtns.Addon.db
 
-    local header = W.CreateHeader(parent, L["Loot Quality"])
+    local header = W.CreateHeader(parent, L["HEADER_LOOT_QUALITY"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local minQuality = W.CreateDropdown(parent, {
-        label = L["Minimum Quality"],
-        tooltip = L["Only show toasts for items of this quality or higher"],
+        label = L["MINIMUM_QUALITY"],
+        tooltip = L["TOOLTIP_MINIMUM_QUALITY"],
         values = LC.QUALITY_VALUES,
         get = function() return db.profile.filters.minQuality end,
         set = function(value) db.profile.filters.minQuality = tonumber(value) end,
@@ -77,18 +81,23 @@ local function CreateQualitySection(parent, yOffset)
 end
 
 local SOURCE_TOGGLES = {
-    { key = "showSelfLoot",   label = "Show Self Loot",   tooltip = "Show toasts when you loot items" },
-    { key = "showGroupLoot",  label = "Show Group Loot",  tooltip = "Show toasts when group members receive loot" },
-    { key = "showQuestItems", label = "Show Quest Items",  tooltip = "Show toasts for quest item pickups" },
-    { key = "showMail",       label = "Show Mail",         tooltip = "Show toasts for mail attachments" },
+    { key = "showSelfLoot",   label = "SHOW_SELF_LOOT",    tooltip = "TOOLTIP_SHOW_SELF_LOOT" },
+    { key = "showGroupLoot",  label = "SHOW_GROUP_LOOT",   tooltip = "TOOLTIP_SHOW_GROUP_LOOT" },
+    { key = "showQuestItems", label = "SHOW_QUEST_ITEMS",  tooltip = "TOOLTIP_SHOW_QUEST_ITEMS" },
+    { key = "showMail",       label = "SHOW_MAIL",          tooltip = "TOOLTIP_SHOW_MAIL" },
 }
 
+-- Creates the "Loot Sources" section: places a header and the source
+-- filter toggles anchored from the given vertical offset.
+-- @param parent The container frame to attach the section widgets to.
+-- @param yOffset The starting vertical offset (number) from which widgets are anchored.
+-- @return The updated vertical offset (number) after the section has been laid out.
 local function CreateSourcesSection(parent, yOffset)
     local db = dtns.Addon.db
 
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = ns.Widgets.CreateHeader(parent, L["Loot Sources"])
+    local header = ns.Widgets.CreateHeader(parent, L["HEADER_LOOT_SOURCES"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
@@ -98,19 +107,23 @@ local function CreateSourcesSection(parent, yOffset)
 end
 
 local CURRENCY_TOGGLES = {
-    { key = "showGold",       label = "Show Gold",       tooltip = "Show toasts for gold gains" },
-    { key = "showCurrency",   label = "Show Currency",   tooltip = "Show toasts for currency gains" },
-    { key = "showXP",         label = "Show XP",         tooltip = "Show toasts for experience gains" },
-    { key = "showHonor",      label = "Show Honor",      tooltip = "Show toasts for honor gains" },
-    { key = "showReputation", label = "Show Reputation", tooltip = "Show toasts for reputation gains" },
+    { key = "showGold",       label = "SHOW_GOLD",         tooltip = "TOOLTIP_SHOW_GOLD" },
+    { key = "showCurrency",   label = "SHOW_CURRENCY",     tooltip = "TOOLTIP_SHOW_CURRENCY" },
+    { key = "showXP",         label = "SHOW_XP",           tooltip = "TOOLTIP_SHOW_XP" },
+    { key = "showHonor",      label = "SHOW_HONOR",        tooltip = "TOOLTIP_SHOW_HONOR" },
+    { key = "showReputation", label = "SHOW_REPUTATION",   tooltip = "TOOLTIP_SHOW_REPUTATION" },
 }
 
+-- Creates the "Currency and Rewards" section and its filter toggles, anchored at the given vertical offset.
+-- @param parent UI frame to attach the section to.
+-- @param yOffset Number representing the current vertical offset (pixels); will be decreased as widgets are added.
+-- @return The updated vertical offset after placing the section and its toggles.
 local function CreateCurrencySection(parent, yOffset)
     local db = dtns.Addon.db
 
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = ns.Widgets.CreateHeader(parent, L["Currency and Rewards"])
+    local header = ns.Widgets.CreateHeader(parent, L["HEADER_CURRENCY_AND_REWARDS"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
@@ -141,7 +154,7 @@ end
 ns.Tabs = ns.Tabs or {}
 ns.Tabs[#ns.Tabs + 1] = {
     id = "filters",
-    label = L["Filters"],
+    label = L["TAB_FILTERS"],
     order = 2,
     createFunc = CreateContent,
 }

@@ -91,7 +91,25 @@ end
 
 -------------------------------------------------------------------------------
 -- Toast Data
--------------------------------------------------------------------------------
+-- Create a toast data table representing a reputation gain.
+-- @param reputationAmount number The amount of reputation gained.
+-- @param factionName string The name of the faction whose reputation changed.
+-- @param icon string|nil The icon texture to display for the toast; may be nil to use a fallback.
+-- @return table A table containing toast fields:
+--   - isReputation: true
+--   - reputationAmount: number
+--   - factionName: string
+--   - itemIcon: string|nil
+--   - itemName: string (localized formatted reputation text)
+--   - itemQuality: number
+--   - itemLevel: number
+--   - itemType: nil
+--   - itemSubType: nil
+--   - quantity: number
+--   - looter: string
+--   - isSelf: boolean
+--   - isCurrency: boolean
+--   - timestamp: number (seconds since epoch from GetTime)
 
 local function BuildReputationToast(reputationAmount, factionName, icon)
     return {
@@ -99,13 +117,13 @@ local function BuildReputationToast(reputationAmount, factionName, icon)
         reputationAmount = reputationAmount,
         factionName = factionName,
         itemIcon = icon,
-        itemName = string_format(L["+%s Reputation"], ns.FormatNumber(reputationAmount)),
+        itemName = string_format(L["FORMAT_PLUS_REPUTATION"], ns.FormatNumber(reputationAmount)),
         itemQuality = REPUTATION_QUALITY,
         itemLevel = 0,
         itemType = nil,
         itemSubType = nil,
         quantity = 1,
-        looter = UnitName(PLAYER_UNIT) or L["You"],
+        looter = UnitName(PLAYER_UNIT) or L["YOU"],
         isSelf = true,
         isCurrency = false,
         timestamp = GetTime(),

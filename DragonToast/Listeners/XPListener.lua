@@ -99,7 +99,11 @@ end
 
 -------------------------------------------------------------------------------
 -- Event Handler
--------------------------------------------------------------------------------
+-- Handles combat XP gain chat messages and queues an XP toast when
+-- applicable. Parses `text` for an XP amount and optional source name;
+-- if a positive amount is found, builds a toast payload and enqueues it
+-- via ns.ToastManager.
+-- @param text The chat message text containing the XP gain.
 
 local function OnChatMsgCombatXPGain(_, text)
     local db = owner.db.profile
@@ -114,13 +118,13 @@ local function OnChatMsgCombatXPGain(_, text)
         xpAmount = xpAmount,
         mobName = mobName,
         itemIcon = XP_ICON,
-        itemName = string_format(L["+%s XP"], ns.FormatNumber(xpAmount)),
+        itemName = string_format(L["FORMAT_PLUS_XP"], ns.FormatNumber(xpAmount)),
         itemQuality = XP_QUALITY,
         itemLevel = 0,
         itemType = nil,
         itemSubType = nil,
         quantity = 1,
-        looter = UnitName(PLAYER_UNIT) or L["You"],
+        looter = UnitName(PLAYER_UNIT) or L["YOU"],
         isSelf = true,
         isCurrency = false,
         timestamp = GetTime(),

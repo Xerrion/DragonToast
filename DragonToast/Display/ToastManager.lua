@@ -90,18 +90,31 @@ local function GetDuplicateKind(existingLootData, incomingLootData)
     return nil
 end
 
+-- Merges an incoming loot entry into an existing target entry by aggregating amounts and updating display fields.
+-- @param targetLootData Table to be updated in-place with aggregated
+--   values (e.g., quantities, amounts, itemName, timestamp).
+-- @param incomingLootData Table containing the new loot values to merge into targetLootData.
+-- @param duplicateKind Identifier of the duplicate category; one of
+--   DUPLICATE_KIND_XP, DUPLICATE_KIND_HONOR, DUPLICATE_KIND_REPUTATION,
+--   DUPLICATE_KIND_GOLD, DUPLICATE_KIND_CURRENCY, or
+--   DUPLICATE_KIND_ITEM. Determines which fields are aggregated and
+--   whether the display name is updated.
+-- @param timestamp Optional numeric time value to assign to
+--   targetLootData.timestamp; if provided, it replaces the existing
+--   timestamp.
 local function ApplyDuplicateStack(targetLootData, incomingLootData, duplicateKind, timestamp)
     if duplicateKind == DUPLICATE_KIND_XP then
         targetLootData.xpAmount = (targetLootData.xpAmount or 0) + (incomingLootData.xpAmount or 0)
-        targetLootData.itemName = string_format(L["+%s XP"], ns.ToastManager.FormatNumber(targetLootData.xpAmount))
+        targetLootData.itemName = string_format(L["FORMAT_PLUS_XP"],
+            ns.ToastManager.FormatNumber(targetLootData.xpAmount))
     elseif duplicateKind == DUPLICATE_KIND_HONOR then
         targetLootData.honorAmount = (targetLootData.honorAmount or 0) + (incomingLootData.honorAmount or 0)
-        targetLootData.itemName = string_format(L["+%s Honor"],
+        targetLootData.itemName = string_format(L["FORMAT_PLUS_HONOR"],
             ns.ToastManager.FormatNumber(targetLootData.honorAmount))
     elseif duplicateKind == DUPLICATE_KIND_REPUTATION then
         targetLootData.reputationAmount = (targetLootData.reputationAmount or 0)
             + (incomingLootData.reputationAmount or 0)
-        targetLootData.itemName = string_format(L["+%s Reputation"],
+        targetLootData.itemName = string_format(L["FORMAT_PLUS_REPUTATION"],
             ns.ToastManager.FormatNumber(targetLootData.reputationAmount))
     elseif duplicateKind == DUPLICATE_KIND_GOLD then
         targetLootData.copperAmount = targetLootData.copperAmount + incomingLootData.copperAmount
@@ -138,7 +151,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Anchor Frame
--------------------------------------------------------------------------------
+-- Creates the invisible 1x1 anchor frame used for toast positioning and a draggable overlay to reposition it.
+-- If the anchor already exists the function returns immediately.
+-- The anchor is placed using saved values from `ns.Addon.db.profile.display` (`anchorPoint`, `anchorX`, `anchorY`).
+-- The overlay is hidden by default, shows the localized `DRAG_TO_MOVE`
+-- text when visible, allows left-button dragging to move the anchor,
+-- and saves the updated `anchorPoint`, `anchorX`, and `anchorY` back
+-- to the same profile keys on mouse release.
 
 local function CreateAnchorFrame()
     if anchorFrame then return end
@@ -169,7 +188,7 @@ local function CreateAnchorFrame()
 
     local dragText = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     dragText:SetPoint("CENTER")
-    dragText:SetText(L["Drag to move"])
+    dragText:SetText(L["DRAG_TO_MOVE"])
 
     overlay:SetScript("OnMouseDown", function(_, button)
         if button == "LeftButton" then

@@ -73,7 +73,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Toast Data
--------------------------------------------------------------------------------
+-- Builds a toast data table representing a single honor gain event.
+-- @param honorAmount The amount of honor gained.
+-- @param victimName The name of the victim credited for the honor, or nil if not applicable.
+-- @param honorIcon The icon to display for the honor toast.
+-- @return A table with toast fields:
+--         `isHonor` (true), `honorAmount`, `victimName`, `itemIcon`, `itemName` (formatted display name),
+--         `itemQuality`, `itemLevel`, `itemType`, `itemSubType`, `quantity`, `looter` (player name or localized "YOU"),
+--         `isSelf` (true), `isCurrency` (false), and `timestamp` (seconds since epoch).
 
 local function BuildHonorToast(honorAmount, victimName, honorIcon)
     return {
@@ -81,13 +88,13 @@ local function BuildHonorToast(honorAmount, victimName, honorIcon)
         honorAmount = honorAmount,
         victimName = victimName,
         itemIcon = honorIcon,
-        itemName = string_format(L["+%s Honor"], ns.FormatNumber(honorAmount)),
+        itemName = string_format(L["FORMAT_PLUS_HONOR"], ns.FormatNumber(honorAmount)),
         itemQuality = HONOR_QUALITY,
         itemLevel = 0,
         itemType = nil,
         itemSubType = nil,
         quantity = 1,
-        looter = UnitName(PLAYER_UNIT) or L["You"],
+        looter = UnitName(PLAYER_UNIT) or L["YOU"],
         isSelf = true,
         isCurrency = false,
         timestamp = GetTime(),
