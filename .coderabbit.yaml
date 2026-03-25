@@ -55,25 +55,25 @@ reviews:
         translation tables for any language.
 
   path_filters:
-    - "!DragonLoot/Libs/**"
+    - "!**/Libs/**"
     - "!**/node_modules/**"
     - "!**/*.snap"
 
   path_instructions:
-    - path: "DragonLoot/Core/**/*.lua"
+    - path: "DragonToast/Core/**/*.lua"
       instructions: >-
         Core addon layer - lifecycle, AceDB config, slash commands, minimap icon.
         Review for correct AceAddon/AceEvent/AceTimer patterns, proper event
         cleanup on OnDisable, and SavedVariables schema correctness.
         All files use `local ADDON_NAME, ns = ...` shared namespace.
-    - path: "DragonLoot/Display/**/*.lua"
+    - path: "DragonToast/Display/**/*.lua"
       instructions: >-
         Display layer - UI frames and presentation. Review for frame pool
         hygiene (acquire/release), proper Show/Hide/SetShown patterns,
         animation cleanup on hide, nil checks on widget methods, and
         correct backdrop/border API usage (CreateFrame + BackdropTemplateMixin).
         Frames must not leak globals. Check for taint risks in combat.
-    - path: "DragonLoot/Listeners/**/*.lua"
+    - path: "DragonToast/Listeners/**/*.lua"
       instructions: >-
         Event listener layer - version-specific loot/roll/history parsing.
         Key concerns: proper RegisterEvent/UnregisterEvent pairing, dedup
@@ -83,20 +83,13 @@ reviews:
         with retry timers). Retail and Classic listeners exist side-by-side
         with WOW_PROJECT_ID version guards. Do not flag the guard pattern
         as dead code.
-    - path: "DragonLoot/Listeners/LootHistoryChat.lua"
-      instructions: >-
-        CHAT_MSG_LOOT parser for direct loot tracking. GlobalString patterns
-        differ across game versions (TBC has trailing periods, Retail does not).
-        Patterns are built from actual GlobalString values at runtime.
-        Review for correct Lua pattern escaping and C_Timer.After retry
-        for uncached GetItemInfo calls.
-    - path: "DragonLoot_Options/**/*.lua"
+    - path: "DragonToast_Options/**/*.lua"
       instructions: >-
         Config UI - custom widget library and option tabs. Review for
         correct widget lifecycle (OnAcquire/OnRelease if pooled), proper
         config key paths matching db.profile schema in Core/Config.lua,
         and callback wiring. Uses CreateFrame-based widgets, not AceGUI.
-    - path: "DragonLoot/Locales/**/*.lua"
+    - path: "DragonToast/Locales/**/*.lua"
       instructions: >-
         Localization tables using AceLocale. Only flag missing keys
         compared to enUS.lua or incorrect format string placeholders
