@@ -105,16 +105,16 @@ end
 local function ApplyDuplicateStack(targetLootData, incomingLootData, duplicateKind, timestamp)
     if duplicateKind == DUPLICATE_KIND_XP then
         targetLootData.xpAmount = (targetLootData.xpAmount or 0) + (incomingLootData.xpAmount or 0)
-        targetLootData.itemName = string_format(L["FORMAT_PLUS_XP"],
+        targetLootData.itemName = string_format(L["+%s XP"],
             ns.ToastManager.FormatNumber(targetLootData.xpAmount))
     elseif duplicateKind == DUPLICATE_KIND_HONOR then
         targetLootData.honorAmount = (targetLootData.honorAmount or 0) + (incomingLootData.honorAmount or 0)
-        targetLootData.itemName = string_format(L["FORMAT_PLUS_HONOR"],
+        targetLootData.itemName = string_format(L["+%s Honor"],
             ns.ToastManager.FormatNumber(targetLootData.honorAmount))
     elseif duplicateKind == DUPLICATE_KIND_REPUTATION then
         targetLootData.reputationAmount = (targetLootData.reputationAmount or 0)
             + (incomingLootData.reputationAmount or 0)
-        targetLootData.itemName = string_format(L["FORMAT_PLUS_REPUTATION"],
+        targetLootData.itemName = string_format(L["+%s Reputation"],
             ns.ToastManager.FormatNumber(targetLootData.reputationAmount))
     elseif duplicateKind == DUPLICATE_KIND_GOLD then
         targetLootData.copperAmount = targetLootData.copperAmount + incomingLootData.copperAmount
@@ -188,7 +188,7 @@ local function CreateAnchorFrame()
 
     local dragText = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     dragText:SetPoint("CENTER")
-    dragText:SetText(L["DRAG_TO_MOVE"])
+    dragText:SetText(L["Drag to move"])
 
     overlay:SetScript("OnMouseDown", function(_, button)
         if button == "LeftButton" then

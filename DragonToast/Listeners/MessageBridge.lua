@@ -126,11 +126,11 @@ end
 
 -- Map numeric roll types to display names
 local rollTypeNames = {
-    [0] = L["PASS"],
-    [1] = L["NEED"],
-    [2] = L["GREED"],
-    [3] = L["DISENCHANT"],
-    [4] = L["TRANSMOG"],
+    [0] = L["Pass"],
+    [1] = L["Need"],
+    [2] = L["Greed"],
+    [3] = L["Disenchant"],
+    [4] = L["Transmog"],
 }
 
 -- Builds a toast payload representing a won roll for a loot item.
@@ -152,7 +152,7 @@ local rollTypeNames = {
 --   `isCurrency` (false), and `timestamp` (number).
 local function BuildRollWonToast(rollData)
     -- Build human-readable roll display (e.g. "Need (87)")
-    local rollTypeName = rollTypeNames[rollData.rollType] or L["ROLL"]
+    local rollTypeName = rollTypeNames[rollData.rollType] or L["Roll"]
     local rollDisplay = rollTypeName
     if rollData.rollValue then
         rollDisplay = rollTypeName .. " (" .. rollData.rollValue .. ")"
@@ -162,16 +162,16 @@ local function BuildRollWonToast(rollData)
         isRollWin = true,
         itemLink = rollData.itemLink,
         itemID = rollData.itemID or (rollData.itemLink and tonumber(rollData.itemLink:match("item:(%d+)"))),
-        itemName = rollData.itemName or UNKNOWN or L["UNKNOWN"],
+        itemName = rollData.itemName or UNKNOWN or L["Unknown"],
         itemQuality = rollData.itemQuality or 1,
         itemIcon = rollData.itemIcon,
         itemLevel = 0,
         itemType = rollDisplay,
         itemSubType = nil,
         quantity = rollData.quantity or 1,
-        looter = rollData.winnerName or UnitName(PLAYER_UNIT) or L["YOU"],
+        looter = rollData.winnerName or UnitName(PLAYER_UNIT) or L["You"],
         isSelf = (type(rollData.isSelf) == "boolean" and rollData.isSelf)
-            or (rollData.winnerName == UnitName(PLAYER_UNIT) or rollData.winnerName == L["YOU"]),
+            or (rollData.winnerName == UnitName(PLAYER_UNIT) or rollData.winnerName == L["You"]),
         isCurrency = false,
         timestamp = GetTime(),
     }

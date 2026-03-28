@@ -182,7 +182,7 @@ local function BuildTestLootData(test)
     if test.isXP then
         local amount = test.xpAmount + math_random(0, 500)
         local lootData = CreateProgressionTestLootData(
-            "isXP", "xpAmount", amount, L["FORMAT_PLUS_XP"],
+            "isXP", "xpAmount", amount, L["+%s XP"],
             test.icon, "mobName",
             (math_random(2) == 1) and "Test Creature" or nil
         )
@@ -191,7 +191,7 @@ local function BuildTestLootData(test)
     elseif test.isHonor then
         local amount = test.honorAmount + math_random(0, 100)
         local lootData = CreateProgressionTestLootData(
-            "isHonor", "honorAmount", amount, L["FORMAT_PLUS_HONOR"],
+            "isHonor", "honorAmount", amount, L["+%s Honor"],
             test.icon, "victimName", test.victimName
         )
         lootData.itemQuality = test.quality
@@ -199,7 +199,7 @@ local function BuildTestLootData(test)
     elseif test.isReputation then
         local amount = test.reputationAmount + math_random(0, 200)
         local lootData = CreateProgressionTestLootData(
-            "isReputation", "reputationAmount", amount, L["FORMAT_PLUS_REPUTATION"],
+            "isReputation", "reputationAmount", amount, L["+%s Reputation"],
             test.icon, "factionName", test.factionName
         )
         lootData.itemQuality = test.quality
@@ -285,7 +285,7 @@ end
 -- The returned table has `isXP = true`, `xpAmount = 500`, uses the `L["FORMAT_PLUS_XP"]` label, and icon `894556`.
 -- @return Loot data table for a 500 XP progression toast.
 local function MakeStackTestXPData()
-    return CreateProgressionTestLootData("isXP", "xpAmount", 500, L["FORMAT_PLUS_XP"], 894556)
+    return CreateProgressionTestLootData("isXP", "xpAmount", 500, L["+%s XP"], 894556)
 end
 
 -- Creates a money loot data object representing a gold payout used for stacking tests.
@@ -302,7 +302,7 @@ end
 --   fields (quantity, looter, isSelf, isCurrency, timestamp).
 local function MakeStackTestHonorData()
     return CreateProgressionTestLootData(
-        "isHonor", "honorAmount", 100, L["FORMAT_PLUS_HONOR"],
+        "isHonor", "honorAmount", 100, L["+%s Honor"],
         GetHonorIcon(), "victimName", "Enemy Player"
     )
 end
@@ -313,7 +313,7 @@ end
 -- @return A loot data table representing a 250-point reputation gain for "The Sha'tar".
 local function MakeStackTestReputationData()
     return CreateProgressionTestLootData(
-        "isReputation", "reputationAmount", 250, L["FORMAT_PLUS_REPUTATION"],
+        "isReputation", "reputationAmount", 250, L["+%s Reputation"],
         GetReputationIcon(), "factionName", "The Sha'tar"
     )
 end

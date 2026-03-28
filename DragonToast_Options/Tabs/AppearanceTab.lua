@@ -54,10 +54,10 @@ end
 -------------------------------------------------------------------------------
 
 local FONT_OUTLINE_VALUES = {
-    { value = "", text = L["NONE"] },
-    { value = "OUTLINE", text = L["FONT_OUTLINE_OUTLINE"] },
-    { value = "THICKOUTLINE", text = L["FONT_OUTLINE_THICK"] },
-    { value = "MONOCHROME, OUTLINE", text = L["FONT_OUTLINE_MONOCHROME_OUTLINE"] },
+    { value = "", text = L["None"] },
+    { value = "OUTLINE", text = L["Outline"] },
+    { value = "THICKOUTLINE", text = L["Thick Outline"] },
+    { value = "MONOCHROME, OUTLINE", text = L["Monochrome Outline"] },
 }
 
 -- Builds a list of available appearance presets.
@@ -79,13 +79,13 @@ end
 
 local function CreatePresetSection(parent, yOffset)
     local W = ns.Widgets
-    local header = W.CreateHeader(parent, L["HEADER_PRESET"])
+    local header = W.CreateHeader(parent, L["Preset"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local presetDropdown = W.CreateDropdown(parent, {
-        label = L["SKIN_PRESET"],
-        tooltip = L["TOOLTIP_SKIN_PRESET"],
+        label = L["Skin Preset"],
+        tooltip = L["Apply a preset appearance theme"],
         values = GetPresetValues,
         get = function() return dtns.Presets:DetectPreset() or "default" end,
         set = function(value)
@@ -108,13 +108,13 @@ local function CreateFontSection(parent, db, yOffset)
     local W = ns.Widgets
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, L["HEADER_FONT"])
+    local header = W.CreateHeader(parent, L["Font"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local fontFace = W.CreateDropdown(parent, {
-        label = L["FONT"],
-        tooltip = L["TOOLTIP_FONT"],
+        label = L["Font"],
+        tooltip = L["Font face for toast text"],
         values = function() return BuildLSMValues("font") end,
         mediaType = "font",
         get = function() return db.profile.appearance.fontFace end,
@@ -124,8 +124,8 @@ local function CreateFontSection(parent, db, yOffset)
     yOffset = yOffset - fontFace:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local fontSize = W.CreateSlider(parent, {
-        label = L["PRIMARY_FONT_SIZE"],
-        tooltip = L["TOOLTIP_PRIMARY_FONT_SIZE"],
+        label = L["Primary Font Size"],
+        tooltip = L["Size of the main text"],
         min = 8, max = 20, step = 1,
         get = function() return db.profile.appearance.fontSize end,
         set = function(value) db.profile.appearance.fontSize = value; NotifyAppearanceChange() end,
@@ -134,8 +134,8 @@ local function CreateFontSection(parent, db, yOffset)
     yOffset = yOffset - fontSize:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local secondaryFontSize = W.CreateSlider(parent, {
-        label = L["SECONDARY_FONT_SIZE"],
-        tooltip = L["TOOLTIP_SECONDARY_FONT_SIZE"],
+        label = L["Secondary Font Size"],
+        tooltip = L["Size of secondary text"],
         min = 6, max = 16, step = 1,
         get = function() return db.profile.appearance.secondaryFontSize end,
         set = function(value)
@@ -147,8 +147,8 @@ local function CreateFontSection(parent, db, yOffset)
     yOffset = yOffset - secondaryFontSize:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local fontOutline = W.CreateDropdown(parent, {
-        label = L["FONT_OUTLINE"],
-        tooltip = L["TOOLTIP_FONT_OUTLINE"],
+        label = L["Font Outline"],
+        tooltip = L["Outline style for text"],
         values = FONT_OUTLINE_VALUES,
         get = function() return db.profile.appearance.fontOutline end,
         set = function(value) db.profile.appearance.fontOutline = value; NotifyAppearanceChange() end,
@@ -172,13 +172,13 @@ local function CreateBackgroundSection(parent, db, yOffset)
     local W = ns.Widgets
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, L["HEADER_BACKGROUND"])
+    local header = W.CreateHeader(parent, L["Background"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local bgColor = W.CreateColorPicker(parent, {
-        label = L["BACKGROUND_COLOR"],
-        tooltip = L["TOOLTIP_BACKGROUND_COLOR"],
+        label = L["Background Color"],
+        tooltip = L["Toast background color"],
         hasAlpha = false,
         get = function()
             local c = db.profile.appearance.backgroundColor
@@ -195,8 +195,8 @@ local function CreateBackgroundSection(parent, db, yOffset)
     yOffset = yOffset - bgColor:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local bgAlpha = W.CreateSlider(parent, {
-        label = L["BACKGROUND_ALPHA"],
-        tooltip = L["TOOLTIP_BACKGROUND_ALPHA"],
+        label = L["Background Alpha"],
+        tooltip = L["Opacity of the toast background"],
         min = 0, max = 1, step = 0.05, isPercent = true,
         get = function() return db.profile.appearance.backgroundAlpha end,
         set = function(value)
@@ -208,8 +208,8 @@ local function CreateBackgroundSection(parent, db, yOffset)
     yOffset = yOffset - bgAlpha:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local bgTexture = W.CreateDropdown(parent, {
-        label = L["BACKGROUND_TEXTURE"],
-        tooltip = L["TOOLTIP_BACKGROUND_TEXTURE"],
+        label = L["Background Texture"],
+        tooltip = L["Texture for the toast background"],
         values = function() return BuildLSMValues("background") end,
         mediaType = "background",
         get = function() return db.profile.appearance.backgroundTexture end,
@@ -233,13 +233,13 @@ local function CreateBorderSection(parent, db, yOffset)
     local W = ns.Widgets
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, L["HEADER_BORDER_AND_GLOW"])
+    local header = W.CreateHeader(parent, L["Border and Glow"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local qualityBorder = W.CreateToggle(parent, {
-        label = L["QUALITY_BORDER"],
-        tooltip = L["TOOLTIP_QUALITY_BORDER"],
+        label = L["Quality Border"],
+        tooltip = L["Color the border based on item quality"],
         get = function() return db.profile.appearance.qualityBorder end,
         set = function(value) db.profile.appearance.qualityBorder = value; NotifyAppearanceChange() end,
     })
@@ -247,8 +247,8 @@ local function CreateBorderSection(parent, db, yOffset)
     yOffset = yOffset - qualityBorder:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local borderSize = W.CreateSlider(parent, {
-        label = L["BORDER_SIZE"],
-        tooltip = L["TOOLTIP_BORDER_SIZE"],
+        label = L["Border Size"],
+        tooltip = L["Thickness of the toast border"],
         min = 0, max = 20, step = 1,
         get = function() return db.profile.appearance.borderSize end,
         set = function(value) db.profile.appearance.borderSize = value; NotifyAppearanceChange() end,
@@ -257,8 +257,8 @@ local function CreateBorderSection(parent, db, yOffset)
     yOffset = yOffset - borderSize:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local borderInset = W.CreateSlider(parent, {
-        label = L["BORDER_INSET"],
-        tooltip = L["TOOLTIP_BORDER_INSET"],
+        label = L["Border Inset"],
+        tooltip = L["Inset of the border from the toast edge"],
         min = 0, max = 20, step = 1,
         get = function() return db.profile.appearance.borderInset end,
         set = function(value) db.profile.appearance.borderInset = value; NotifyAppearanceChange() end,
@@ -267,8 +267,8 @@ local function CreateBorderSection(parent, db, yOffset)
     yOffset = yOffset - borderInset:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local borderTexture = W.CreateDropdown(parent, {
-        label = L["BORDER_TEXTURE"],
-        tooltip = L["TOOLTIP_BORDER_TEXTURE"],
+        label = L["Border Texture"],
+        tooltip = L["Texture for the toast border"],
         values = function() return BuildLSMValues("border") end,
         mediaType = "border",
         get = function() return db.profile.appearance.borderTexture end,
@@ -281,8 +281,8 @@ local function CreateBorderSection(parent, db, yOffset)
     yOffset = yOffset - borderTexture:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local qualityGlow = W.CreateToggle(parent, {
-        label = L["QUALITY_GLOW"],
-        tooltip = L["TOOLTIP_QUALITY_GLOW"],
+        label = L["Quality Glow"],
+        tooltip = L["Add a quality-colored glow effect"],
         get = function() return db.profile.appearance.qualityGlow end,
         set = function(value) db.profile.appearance.qualityGlow = value; NotifyAppearanceChange() end,
     })
@@ -301,13 +301,13 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
     local W = ns.Widgets
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, L["HEADER_GLOWING_BORDER"])
+    local header = W.CreateHeader(parent, L["Glowing Border"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local statusBarTexture = W.CreateDropdown(parent, {
-        label = L["GLOW_TEXTURE"],
-        tooltip = L["TOOLTIP_GLOW_TEXTURE"],
+        label = L["Glow Texture"],
+        tooltip = L["Texture for the glowing border"],
         values = function() return BuildLSMValues("statusbar") end,
         mediaType = "statusbar",
         get = function() return db.profile.appearance.statusBarTexture end,
@@ -320,8 +320,8 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
     yOffset = yOffset - statusBarTexture:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local glowWidth = W.CreateSlider(parent, {
-        label = L["GLOW_WIDTH"],
-        tooltip = L["TOOLTIP_GLOW_WIDTH"],
+        label = L["Glow Width"],
+        tooltip = L["Width of the quality glow effect"],
         min = 0, max = 12, step = 1,
         get = function() return db.profile.appearance.glowWidth end,
         set = function(value) db.profile.appearance.glowWidth = value; NotifyAppearanceChange() end,
@@ -344,13 +344,13 @@ local function CreateIconSection(parent, db, yOffset)
     local W = ns.Widgets
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, L["HEADER_ICON"])
+    local header = W.CreateHeader(parent, L["Icon"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
     local iconSize = W.CreateSlider(parent, {
-        label = L["ICON_SIZE"],
-        tooltip = L["TOOLTIP_ICON_SIZE"],
+        label = L["Icon Size"],
+        tooltip = L["Size of the item icon on toasts"],
         min = 16, max = 64, step = 2,
         get = function() return db.profile.appearance.iconSize end,
         set = function(value) db.profile.appearance.iconSize = value; NotifyAppearanceChange() end,
@@ -387,7 +387,7 @@ end
 ns.Tabs = ns.Tabs or {}
 ns.Tabs[#ns.Tabs + 1] = {
     id = "appearance",
-    label = L["TAB_APPEARANCE"],
+    label = L["Appearance"],
     order = 5,
     createFunc = CreateContent,
 }
