@@ -170,10 +170,8 @@ local function BuildRollWonToast(rollData)
         itemSubType = nil,
         quantity = rollData.quantity or 1,
         looter = rollData.winnerName or UnitName(PLAYER_UNIT) or L["You"],
-        -- DragonLoot must set rollData.isSelf for non-name-based self-detection
-        -- rather than relying on localized strings
         isSelf = (type(rollData.isSelf) == "boolean" and rollData.isSelf)
-            or rollData.winnerName == UnitName(PLAYER_UNIT),
+            or (rollData.winnerName == UnitName(PLAYER_UNIT) or rollData.winnerName == L["You"]),
         isCurrency = false,
         timestamp = GetTime(),
     }

@@ -4,6 +4,23 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [3.1.0](https://github.com/Xerrion/DragonToast/compare/3.0.0...3.1.0) (2026-03-28)
+
+
+### 🚀 Features
+
+* **localization:** add Simplified Chinese (zhCN) translations, Notes, Category ([#143](https://github.com/Xerrion/DragonToast/issues/143)) ([572cebe](https://github.com/Xerrion/DragonToast/commit/572cebe5c01d088915e4bf96c0847c5da24b6fa6))
+
+
+### 🐛 Bug Fixes
+
+* **deDE:** restore English keys matching enUS.lua ([#140](https://github.com/Xerrion/DragonToast/issues/140)) ([#141](https://github.com/Xerrion/DragonToast/issues/141)) ([bdc09db](https://github.com/Xerrion/DragonToast/commit/bdc09db3be04f60ddb8035b09af7db25a6e6ee71))
+
+
+### 🚜 Refactor
+
+* convert locale keys to standard AceLocale format ([#144](https://github.com/Xerrion/DragonToast/issues/144)) ([38270ed](https://github.com/Xerrion/DragonToast/commit/38270ed91ab232f0b098e4be34b7decb1a8e31d7))
+
 ## [3.0.0](https://github.com/Xerrion/DragonToast/compare/2.1.3...3.0.0) (2026-03-15)
 
 
