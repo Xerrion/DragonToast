@@ -22,6 +22,7 @@ local function CreateFontStringSpy()
         _justifyH = nil,
         _textColor = nil,
         _font = nil,
+        _points = {},
     }
     function fs:SetText(text) self._text = text end
     function fs:Show() self._shown = true end
@@ -31,8 +32,13 @@ local function CreateFontStringSpy()
     function fs:SetTextColor(r, g, b, a)
         self._textColor = { r = r, g = g, b = b, a = a }
     end
-    function fs:SetPoint() end
-    function fs:ClearAllPoints() end
+    function fs:SetPoint(point, relativeTo, relativePoint, x, y)
+        self._points[#self._points + 1] = {
+            point = point, relativeTo = relativeTo,
+            relativePoint = relativePoint, x = x, y = y,
+        }
+    end
+    function fs:ClearAllPoints() self._points = {} end
     function fs:SetFont(path, size, outline) self._font = { path, size, outline } end
     return fs
 end
@@ -136,6 +142,17 @@ local function makeItemData(overrides)
     return data
 end
 
+--- Find the first anchor in a FontStringSpy's _points list matching the given point name.
+--- Returns the anchor table or nil.
+local function findAnchor(fontStringSpy, pointName)
+    for _, anchor in ipairs(fontStringSpy._points) do
+        if anchor.point == pointName then
+            return anchor
+        end
+    end
+    return nil
+end
+
 -- Controllable GetItemCount: delegates to _mock so tests can swap behavior
 -- after the module has already cached the local reference.
 local _mockGetItemCount = { fn = function() return 3 end }
@@ -229,6 +246,13 @@ describe("ToastFrame item count display", function()
         ns.Addon.db.profile.display.showIcon = true
         ns.Addon.db.profile.display.showLooter = true
 
+        -- Reset appearance config to known defaults
+        ns.Addon.db.profile.appearance.secondaryFontSize = 10
+
+        -- Reset display padding to known defaults
+        ns.Addon.db.profile.display.textPaddingH = 8
+        ns.Addon.db.profile.display.textPaddingV = 6
+
         -- Acquire a fresh frame from the real pool
         frame = ns.ToastFrame.Acquire()
 
@@ -287,5 +311,43 @@ describe("ToastFrame item count display", function()
 
         assert.is_true(frame.itemCount._shown)
         assert.equal("x0 in bags", frame.itemCount._text)
+    end)
+
+    it("anchors itemCount to content TOPRIGHT regardless of itemLevel visibility", function()
+        ns.Addon.db.profile.display.showItemLevel = false
+        local data = makeItemData()
+
+        ns.ToastFrame.Populate(frame, data)
+
+        -- itemLevel must be hidden
+        assert.is_false(frame.itemLevel._shown)
+
+        -- itemCount must be visible and anchored to content, not itemLevel
+        assert.is_true(frame.itemCount._shown)
+        local anchor = findAnchor(frame.itemCount, "TOPRIGHT")
+        assert.is_not_nil(anchor)
+        assert.is_true(anchor.relativeTo == frame.content, "expected relativeTo to be the content frame")
+        assert.equal("TOPRIGHT", anchor.relativePoint)
+
+        local padH = ns.Addon.db.profile.display.textPaddingH
+        local padV = ns.Addon.db.profile.display.textPaddingV
+        local secondaryFontSize = ns.Addon.db.profile.appearance.secondaryFontSize
+        assert.equal(-padH, anchor.x)
+        assert.equal(-padV - secondaryFontSize - 2, anchor.y)
+    end)
+
+    it("uses live secondaryFontSize for itemCount Y offset", function()
+        ns.Addon.db.profile.appearance.secondaryFontSize = 14
+        local data = makeItemData()
+
+        ns.ToastFrame.Populate(frame, data)
+
+        assert.is_true(frame.itemCount._shown)
+        local anchor = findAnchor(frame.itemCount, "TOPRIGHT")
+        assert.is_not_nil(anchor)
+
+        local padV = ns.Addon.db.profile.display.textPaddingV
+        -- Y offset must use the live font size (14), not the default (10)
+        assert.equal(-padV - 14 - 2, anchor.y)
     end)
 end)

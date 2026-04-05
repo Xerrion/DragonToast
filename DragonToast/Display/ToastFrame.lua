@@ -32,15 +32,14 @@ local DEFAULT_BORDER_SIZE = 1
 local DEFAULT_GLOW_WIDTH = 4
 local DEFAULT_ICON_SIZE = 36
 local DEFAULT_SECONDARY_FONT_SIZE = 10
-local DEFAULT_FRAME_WIDTH = 350
-local DEFAULT_FRAME_HEIGHT = 48
 local BASE_FRAME_LEVEL = 100
 local HOVERED_FRAME_STRATA = "HIGH"
 local FRAME_BORDER_OFFSET = 1
-local ICON_FRAME_BORDER_EXTRA = 2
-local ICON_FRAME_INSET = 4
-local TEXT_ONLY_LEFT_INSET = 6
 local ICON_BORDER_EDGE_SIZE = 1
+local ICON_FRAME_BORDER_EXTRA = 2 * ICON_BORDER_EDGE_SIZE
+local ICON_FRAME_INSET = 4
+
+local GLOW_ALPHA = 0.8
 local QUALITY_BORDER_ALPHA = 0.6
 local DEFAULT_BORDER_COLOR = { r = 0.3, g = 0.3, b = 0.3, a = 0.8 }
 local DEFAULT_BACKGROUND_COLOR = { r = 0.05, g = 0.05, b = 0.05, a = 0.7 }
@@ -98,6 +97,50 @@ local function ApplyFonts(frame, fontPath, fontSize, secondaryFontSize, fontOutl
     frame.looter:SetFont(fontPath, secondaryFontSize, fontOutline)
 end
 
+--- Anchor all text elements into their layout slots.
+--- Slot model:
+---   topLeft     = itemName         topRight    = itemLevel, itemCount (stacked)
+---   bottomLeft  = itemType         bottomRight = looter
+local function BuildSlotAnchors(frame, showIcon, padH, padV, iconGlowPad, db)
+    local secondaryFontSize = db.appearance.secondaryFontSize or DEFAULT_SECONDARY_FONT_SIZE
+
+    frame.itemName:ClearAllPoints()
+    frame.itemType:ClearAllPoints()
+    frame.itemLevel:ClearAllPoints()
+    frame.itemCount:ClearAllPoints()
+    frame.looter:ClearAllPoints()
+
+    if showIcon then
+        frame.iconFrame:ClearAllPoints()
+        frame.iconFrame:SetPoint("LEFT", frame.content, "LEFT", iconGlowPad + ICON_FRAME_INSET, 0)
+
+        -- topLeft: itemName anchored to iconFrame right edge
+        frame.itemName:SetPoint("LEFT", frame.iconFrame, "RIGHT", padH, 0)
+        frame.itemName:SetPoint("TOP", frame.content, "TOP", 0, -padV)
+        frame.itemName:SetPoint("RIGHT", frame.content, "RIGHT", -padH, 0)
+
+        -- bottomLeft: itemType anchored to iconFrame right edge
+        frame.itemType:SetPoint("LEFT", frame.iconFrame, "RIGHT", padH, 0)
+        frame.itemType:SetPoint("BOTTOM", frame.content, "BOTTOM", 0, padV)
+    else
+        -- No-icon path: padH replaces the former TEXT_ONLY_LEFT_INSET (6) for left inset; unified with icon path
+        frame.itemName:SetPoint("TOPLEFT", frame.content, "TOPLEFT", iconGlowPad + padH, -padV)
+        frame.itemName:SetPoint("RIGHT", frame.content, "RIGHT", -padH, 0)
+
+        -- bottomLeft: itemType flush with content edge
+        frame.itemType:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", iconGlowPad + padH, padV)
+    end
+
+    -- topRight: itemLevel at top-right corner
+    frame.itemLevel:SetPoint("TOPRIGHT", frame.content, "TOPRIGHT", -padH, -padV)
+
+    -- topRight (stacked): itemCount anchored directly to content, independent of itemLevel visibility
+    frame.itemCount:SetPoint("TOPRIGHT", frame.content, "TOPRIGHT", -padH, -padV - secondaryFontSize - 2)
+
+    -- bottomRight: looter at bottom-right corner
+    frame.looter:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", -padH, padV)
+end
+
 --- Position all content elements based on icon visibility and config
 local function ApplyLayout(frame, db, showIcon)
     local padV = db.display.textPaddingV or DEFAULT_TEXT_PADDING_V
@@ -107,44 +150,22 @@ local function ApplyLayout(frame, db, showIcon)
     local glowWidth = db.appearance.glowWidth or DEFAULT_GLOW_WIDTH
     local iconSize = db.appearance.iconSize or DEFAULT_ICON_SIZE
     local contentInset = borderSize > 0 and borderInset or 0
+    local iconGlowPad = db.appearance.qualityGlow and glowWidth or 0
 
     -- Update content frame inset to sit inside the border
     frame.content:ClearAllPoints()
     frame.content:SetPoint("TOPLEFT", frame, "TOPLEFT", contentInset, -contentInset)
     frame.content:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -contentInset, contentInset)
 
-    -- Clear all text anchors
-    frame.itemName:ClearAllPoints()
-    frame.itemType:ClearAllPoints()
-    frame.itemLevel:ClearAllPoints()
-    frame.itemCount:ClearAllPoints()
-    frame.looter:ClearAllPoints()
-
-    local iconGlowPad = db.appearance.qualityGlow and glowWidth or 0
-
     if showIcon then
-        -- iconFrame: size includes 1px border on each side
         frame.iconFrame:SetSize(iconSize + ICON_FRAME_BORDER_EXTRA, iconSize + ICON_FRAME_BORDER_EXTRA)
-        frame.iconFrame:ClearAllPoints()
-        frame.iconFrame:SetPoint("LEFT", frame.content, "LEFT", iconGlowPad + ICON_FRAME_INSET, 0)
         frame.iconFrame:Show()
         frame.icon:SetSize(iconSize, iconSize)
-
-        -- Text anchored relative to iconFrame
-        frame.itemName:SetPoint("LEFT", frame.iconFrame, "RIGHT", padH, 0)
-        frame.itemName:SetPoint("TOP", frame.content, "TOP", 0, -padV)
-        frame.itemType:SetPoint("LEFT", frame.iconFrame, "RIGHT", padH, 0)
-        frame.itemType:SetPoint("BOTTOM", frame.content, "BOTTOM", 0, padV)
     else
         frame.iconFrame:Hide()
-        frame.itemName:SetPoint("TOPLEFT", frame.content, "TOPLEFT", iconGlowPad + TEXT_ONLY_LEFT_INSET, -padV)
-        frame.itemType:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", iconGlowPad + TEXT_ONLY_LEFT_INSET, padV)
     end
 
-    frame.itemName:SetPoint("RIGHT", frame.content, "RIGHT", -padH, 0)
-    frame.itemLevel:SetPoint("TOPRIGHT", frame.content, "TOPRIGHT", -padH, -padV)
-    frame.itemCount:SetPoint("TOPRIGHT", frame.content, "TOPRIGHT", -padH, -padV - DEFAULT_SECONDARY_FONT_SIZE - 2)
-    frame.looter:SetPoint("BOTTOMRIGHT", frame.content, "BOTTOMRIGHT", -padH, padV)
+    BuildSlotAnchors(frame, showIcon, padH, padV, iconGlowPad, db)
 end
 
 --- Apply icon frame backdrop (always 1px solid border, no background)
@@ -237,9 +258,9 @@ local function ApplyGlow(frame, db, r, g, b)
         local statusBarPath = LSM:Fetch("statusbar", db.appearance.statusBarTexture)
         if statusBarPath then
             frame.qualityGlow:SetTexture(statusBarPath)
-            frame.qualityGlow:SetVertexColor(r, g, b, 0.8)
+            frame.qualityGlow:SetVertexColor(r, g, b, GLOW_ALPHA)
         else
-            frame.qualityGlow:SetColorTexture(r, g, b, 0.8)
+            frame.qualityGlow:SetColorTexture(r, g, b, GLOW_ALPHA)
         end
         frame.qualityGlow:Show()
     else
@@ -359,7 +380,7 @@ local function CreateToastTextures(frame)
     frame.qualityGlow:SetWidth(DEFAULT_GLOW_WIDTH)
     frame.qualityGlow:SetPoint("TOPLEFT", frame.content, "TOPLEFT", FRAME_BORDER_OFFSET, -FRAME_BORDER_OFFSET)
     frame.qualityGlow:SetPoint("BOTTOMLEFT", frame.content, "BOTTOMLEFT", FRAME_BORDER_OFFSET, FRAME_BORDER_OFFSET)
-    frame.qualityGlow:SetColorTexture(WHITE_TEXT_COLOR.r, WHITE_TEXT_COLOR.g, WHITE_TEXT_COLOR.b, 0.8)
+    frame.qualityGlow:SetColorTexture(WHITE_TEXT_COLOR.r, WHITE_TEXT_COLOR.g, WHITE_TEXT_COLOR.b, GLOW_ALPHA)
 
     -- Icon container frame with its own border (above content)
     frame.iconFrame = CreateFrame("Frame", nil, frame.content, "BackdropTemplate")
@@ -546,7 +567,6 @@ local function CreateToastFrame()
 
     -- Root frame: outer border + background only
     local frame = CreateFrame("Button", frameName, UIParent, "BackdropTemplate")
-    frame:SetSize(DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT)
     frame:SetFrameStrata("MEDIUM")
     frame:SetFrameLevel(BASE_FRAME_LEVEL + frameCount)
     frame:Hide()
