@@ -240,7 +240,7 @@ function ns.TestToasts.StartTestMode()
         ns.TestToasts.ShowTestToast()
     end, TEST_MODE_INTERVAL)
 
-    ns.Print("Test mode " .. ns.COLOR_GREEN .. "started" .. ns.COLOR_RESET .. " - toasts will keep appearing.")
+    ns.Print(L["Test mode started"])
 end
 
 function ns.TestToasts.StopTestMode()
@@ -249,7 +249,7 @@ function ns.TestToasts.StopTestMode()
     ns.Addon:CancelTimer(testModeTimer)
     testModeTimer = nil
 
-    ns.Print("Test mode " .. ns.COLOR_RED .. "stopped" .. ns.COLOR_RESET)
+    ns.Print(L["Test mode stopped"])
 end
 
 function ns.TestToasts.ToggleTestMode()
@@ -282,7 +282,7 @@ local function MakeStackTestItemData()
 end
 
 -- Create a progression loot data object representing an XP gain for stack testing.
--- The returned table has `isXP = true`, `xpAmount = 500`, uses the `L["FORMAT_PLUS_XP"]` label, and icon `894556`.
+-- The returned table has `isXP = true`, `xpAmount = 500`, uses the `L["+%s XP"]` label, and icon `894556`.
 -- @return Loot data table for a 500 XP progression toast.
 local function MakeStackTestXPData()
     return CreateProgressionTestLootData("isXP", "xpAmount", 500, L["+%s XP"], 894556)
@@ -298,7 +298,7 @@ end
 -- Creates a test loot data object representing an honor gain from an enemy player.
 -- @return A loot data table with `isHonor = true`, `honorAmount = 100`,
 --   `victimName = "Enemy Player"`, a localized label
---   (L["FORMAT_PLUS_HONOR"]), the honor icon, and standard base loot
+--   (L["+%s Honor"]), the honor icon, and standard base loot
 --   fields (quantity, looter, isSelf, isCurrency, timestamp).
 local function MakeStackTestHonorData()
     return CreateProgressionTestLootData(
@@ -309,7 +309,7 @@ end
 
 -- Creates a reputation progression loot data object used by stack-test commands.
 -- The returned table is configured for a reputation gain: `isReputation = true`, `reputationAmount = 250`,
--- `label` set from `L["FORMAT_PLUS_REPUTATION"]`, `icon` from `GetReputationIcon()`, and `factionName = "The Sha'tar"`.
+-- `label` set from `L["+%s Reputation"]`, `icon` from `GetReputationIcon()`, and `factionName = "The Sha'tar"`.
 -- @return A loot data table representing a 250-point reputation gain for "The Sha'tar".
 local function MakeStackTestReputationData()
     return CreateProgressionTestLootData(
@@ -366,8 +366,8 @@ function ns.TestToasts.RunStackTest(testType)
 
     local entry = STACK_TEST_DISPATCH[testType]
     if not entry then
-        ns.Print("Unknown test type: " .. ns.COLOR_WHITE .. (testType or "nil") .. ns.COLOR_RESET)
-        ns.Print("Usage: /dt test [stack|xp|gold|honor|reputation|all]")
+        ns.Print(L["Unknown test type: "] .. ns.COLOR_WHITE .. (testType or "nil") .. ns.COLOR_RESET)
+        ns.Print(L["Usage: /dt test [stack|xp|gold|honor|reputation|all]"])
         return
     end
 

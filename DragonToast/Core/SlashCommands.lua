@@ -14,52 +14,57 @@ local ADDON_NAME, ns = ...
 local print = print
 local string_lower = string.lower
 local string_match = string.match
+local L = LibStub("AceLocale-3.0"):GetLocale("DragonToast")
 
 -------------------------------------------------------------------------------
 -- Quality names for status display
 -------------------------------------------------------------------------------
 
 local QUALITY_NAMES = {
-    [0] = "|cff9d9d9dPoor|r",
-    [1] = "|cffffffffCommon|r",
-    [2] = "|cff1eff00Uncommon|r",
-    [3] = "|cff0070ddRare|r",
-    [4] = "|cffa335eeEpic|r",
-    [5] = "|cffff8000Legendary|r",
+    [0] = "|cff9d9d9d" .. L["Poor"] .. "|r",
+    [1] = "|cffffffff" .. L["Common"] .. "|r",
+    [2] = "|cff1eff00" .. L["Uncommon"] .. "|r",
+    [3] = "|cff0070dd" .. L["Rare"] .. "|r",
+    [4] = "|cffa335ee" .. L["Epic"] .. "|r",
+    [5] = "|cffff8000" .. L["Legendary"] .. "|r",
 }
 
 -------------------------------------------------------------------------------
 -- Status Display
 -------------------------------------------------------------------------------
 
+local function YesNo(cond)
+    return cond and ns.COLOR_GREEN .. L["Yes"] or ns.COLOR_RED .. L["No"]
+end
+
 local function PrintStatus()
     local db = ns.Addon.db.profile
 
-    print(ns.COLOR_GOLD .. "--- DragonToast Status ---" .. ns.COLOR_RESET)
-    print("  Enabled: " .. (db.enabled and ns.COLOR_GREEN .. "Yes" or ns.COLOR_RED .. "No") .. ns.COLOR_RESET)
-    print("  Min Quality: " .. (QUALITY_NAMES[db.filters.minQuality] or "Unknown"))
-    print("  Self Loot: " .. (db.filters.showSelfLoot and "Yes" or "No"))
-    print("  Group Loot: " .. (db.filters.showGroupLoot and "Yes" or "No"))
-    print("  Currency: " .. (db.filters.showCurrency and "Yes" or "No"))
-    print("  Gold: " .. (db.filters.showGold and "Yes" or "No"))
-    print("  Quest Items: " .. (db.filters.showQuestItems and "Yes" or "No"))
-    print("  XP Gains: " .. (db.filters.showXP and "Yes" or "No"))
-    print("  Honor Gains: " .. (db.filters.showHonor and "Yes" or "No"))
-    print("  Reputation Gains: " .. (db.filters.showReputation and "Yes" or "No"))
-    print("  Mail: " .. (db.filters.showMail and "Yes" or "No"))
-    print("  Max Toasts: " .. db.display.maxToasts)
-    print("  Growth: " .. db.display.growDirection)
-    print("  Animations: " .. (db.animation.enableAnimations and "Yes" or "No"))
-    print("  Hold Duration: " .. db.animation.holdDuration .. "s")
-    print("  Sound: " .. (db.sound.enabled and "Yes" or "No"))
-    print("  Defer in Combat: " .. (db.combat.deferInCombat and "Yes" or "No"))
-    print("  ElvUI Skin: " .. (db.elvui.useSkin and "Yes" or "No"))
-    print("  Minimap Icon: " .. (not db.minimap.hide and "Yes" or "No"))
-    print("  Anchor: " .. db.display.anchorPoint
+    print(ns.COLOR_GOLD .. L["--- DragonToast Status ---"] .. ns.COLOR_RESET)
+    print("  " .. L["Enabled"] .. ": " .. YesNo(db.enabled) .. ns.COLOR_RESET)
+    print("  " .. L["Min Quality"] .. ": " .. (QUALITY_NAMES[db.filters.minQuality] or L["Unknown"]))
+    print("  " .. L["Self Loot"] .. ": " .. YesNo(db.filters.showSelfLoot))
+    print("  " .. L["Group Loot"] .. ": " .. YesNo(db.filters.showGroupLoot))
+    print("  " .. L["Currency"] .. ": " .. YesNo(db.filters.showCurrency))
+    print("  " .. L["Gold"] .. ": " .. YesNo(db.filters.showGold))
+    print("  " .. L["Quest Items"] .. ": " .. YesNo(db.filters.showQuestItems))
+    print("  " .. L["XP Gains"] .. ": " .. YesNo(db.filters.showXP))
+    print("  " .. L["Honor Gains"] .. ": " .. YesNo(db.filters.showHonor))
+    print("  " .. L["Reputation Gains"] .. ": " .. YesNo(db.filters.showReputation))
+    print("  " .. L["Mail"] .. ": " .. YesNo(db.filters.showMail))
+    print("  " .. L["Max Toasts"] .. ": " .. db.display.maxToasts)
+    print("  " .. L["Growth"] .. ": " .. db.display.growDirection)
+    print("  " .. L["Animations"] .. ": " .. YesNo(db.animation.enableAnimations))
+    print("  " .. L["Hold Duration"] .. ": " .. db.animation.holdDuration .. L["s"])
+    print("  " .. L["Sound"] .. ": " .. YesNo(db.sound.enabled))
+    print("  " .. L["Defer in Combat"] .. ": " .. YesNo(db.combat.deferInCombat))
+    print("  " .. L["ElvUI Skin"] .. ": " .. YesNo(db.elvui.useSkin))
+    print("  " .. L["Minimap Icon"] .. ": " .. YesNo(not db.minimap.hide))
+    print("  " .. L["Anchor"] .. ": " .. db.display.anchorPoint
         .. " (" .. math.floor(db.display.anchorX) .. ", " .. math.floor(db.display.anchorY) .. ")")
     local tmStatus = (ns.TestToasts and ns.TestToasts.IsTestModeActive())
-        and ns.COLOR_GREEN .. "Active" or "Inactive"
-    print("  Test Mode: " .. tmStatus .. ns.COLOR_RESET)
+        and ns.COLOR_GREEN .. L["Active"] or L["Inactive"]
+    print("  " .. L["Test Mode"] .. ": " .. tmStatus .. ns.COLOR_RESET)
 end
 
 -------------------------------------------------------------------------------
@@ -67,26 +72,26 @@ end
 -------------------------------------------------------------------------------
 
 local HELP_ENTRIES = {
-    { "",                "Show this help" },
-    { " toggle",         "Toggle addon on/off" },
-    { " config",         "Open settings panel" },
-    { " lock",           "Toggle anchor lock (drag to move)" },
-    { " test",           "Show a test toast" },
-    { " test stack",     "Test item stacking (3 rapid items)" },
-    { " test xp",        "Test XP accumulation" },
-    { " test gold",      "Test gold accumulation" },
-    { " test honor",     "Test honor accumulation" },
-    { " test reputation", "Test reputation accumulation" },
-    { " test all",       "Run all stacking tests" },
-    { " testmode",       "Toggle continuous test toast generation" },
-    { " clear",          "Dismiss all toasts" },
-    { " reset",          "Reset anchor position to default" },
-    { " status",         "Show current settings" },
-    { " help",           "Show this help" },
+    { "",                 L["Show this help"] },
+    { " toggle",          L["Toggle addon on/off"] },
+    { " config",          L["Open settings panel"] },
+    { " lock",            L["Toggle anchor lock (drag to move)"] },
+    { " test",            L["Show a test toast"] },
+    { " test stack",      L["Test item stacking (3 rapid items)"] },
+    { " test xp",         L["Test XP accumulation"] },
+    { " test gold",       L["Test gold accumulation"] },
+    { " test honor",      L["Test honor accumulation"] },
+    { " test reputation", L["Test reputation accumulation"] },
+    { " test all",        L["Run all stacking tests"] },
+    { " testmode",        L["Toggle continuous test toast generation"] },
+    { " clear",           L["Dismiss all toasts"] },
+    { " reset",           L["Reset anchor position to default"] },
+    { " status",          L["Show current settings"] },
+    { " help",            L["Show this help"] },
 }
 
 local function PrintHelp()
-    print(ns.COLOR_GOLD .. "--- DragonToast Commands ---" .. ns.COLOR_RESET)
+    print(ns.COLOR_GOLD .. L["--- DragonToast Commands ---"] .. ns.COLOR_RESET)
     for _, entry in ipairs(HELP_ENTRIES) do
         print("  " .. ns.COLOR_WHITE .. "/dt" .. entry[1] .. ns.COLOR_RESET .. " -- " .. entry[2])
     end
@@ -107,12 +112,12 @@ local function ToggleAddon()
 
     if db.enabled then
         ns.Addon:OnEnable()
-        ns.Print("Addon " .. ns.COLOR_GREEN .. "enabled" .. ns.COLOR_RESET)
+        ns.Print(L["Addon enabled"])
         return
     end
 
     ns.Addon:OnDisable()
-    ns.Print("Addon " .. ns.COLOR_RED .. "disabled" .. ns.COLOR_RESET)
+    ns.Print(L["Addon disabled"])
 end
 
 function ns.HandleSlashCommand(input)
@@ -135,14 +140,14 @@ function ns.HandleSlashCommand(input)
 
     elseif cmd == "test" then
         if not ns.TestToasts then
-            ns.Print("TestToasts module is not loaded.")
+            ns.Print(L["TestToasts module is not loaded."])
             return
         end
         ns.TestToasts.ShowTestToast()
 
     elseif cmd:find("^test ") then
         if not ns.TestToasts then
-            ns.Print("TestToasts module is not loaded.")
+            ns.Print(L["TestToasts module is not loaded."])
             return
         end
         local subCmd = cmd:match("^test (.+)$")
@@ -150,14 +155,14 @@ function ns.HandleSlashCommand(input)
 
     elseif cmd == "testmode" then
         if not ns.TestToasts then
-            ns.Print("TestToasts module is not loaded.")
+            ns.Print(L["TestToasts module is not loaded."])
             return
         end
         ns.TestToasts.ToggleTestMode()
 
     elseif cmd == "clear" then
         ns.ToastManager.ClearAll()
-        ns.Print("All toasts cleared.")
+        ns.Print(L["All toasts cleared."])
 
     elseif cmd == "reset" then
         ns.ToastManager.ResetAnchor()
@@ -169,7 +174,7 @@ function ns.HandleSlashCommand(input)
         PrintHelp()
 
     else
-        ns.Print("Unknown command: " .. ns.COLOR_WHITE .. cmd .. ns.COLOR_RESET)
+        ns.Print(L["Unknown command: "] .. ns.COLOR_WHITE .. cmd .. ns.COLOR_RESET)
         PrintHelp()
     end
 end
