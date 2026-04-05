@@ -6,7 +6,6 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
-local LC = ns.LayoutConstants
 
 -------------------------------------------------------------------------------
 -- Cached globals
@@ -19,9 +18,11 @@ local StaticPopup_Show = StaticPopup_Show
 local StaticPopupDialogs = StaticPopupDialogs
 
 -------------------------------------------------------------------------------
--- Localization
+-- DragonWidgets references
 -------------------------------------------------------------------------------
 
+local W = ns.DW.Widgets
+local LC = ns.DW.LayoutConstants
 local L = ns.L
 
 -------------------------------------------------------------------------------
@@ -39,7 +40,9 @@ StaticPopupDialogs["DRAGONTOAST_OPTIONS_RESET_PROFILE"] = {
     button1 = L["Reset"],
     button2 = L["Cancel"],
     OnAccept = function()
-        dtns.Addon.db:ResetProfile()
+        local dt = ns.dtns
+        if not dt or not dt.Addon or not dt.Addon.db then return end
+        dt.Addon.db:ResetProfile()
     end,
     timeout = 0,
     whileDead = true,
@@ -53,9 +56,10 @@ StaticPopupDialogs["DRAGONTOAST_OPTIONS_DELETE_PROFILE"] = {
     button2 = L["Cancel"],
     OnAccept = function(self)
         local profileName = self.data
-        if profileName then
-            dtns.Addon.db:DeleteProfile(profileName)
-        end
+        if not profileName then return end
+        local dt = ns.dtns
+        if not dt or not dt.Addon or not dt.Addon.db then return end
+        dt.Addon.db:DeleteProfile(profileName)
     end,
     timeout = 0,
     whileDead = true,
@@ -105,7 +109,6 @@ end
 -- @return table The active profile dropdown widget.
 
 local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
-    local W = ns.Widgets
     local db = dtns.Addon.db
     local newProfileName = ""
 
@@ -113,8 +116,8 @@ local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
-    local descText = L["Profiles allow you to save different configurations for different characters."]
-    local desc = W.CreateDescription(parent, descText)
+    local desc = W.CreateDescription(parent,
+        L["Profiles allow you to save different configurations for different characters."])
     LC.AnchorWidget(desc, parent, yOffset)
     yOffset = yOffset - desc:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
@@ -168,7 +171,6 @@ end
 -- @return table The dropdown widget used to select a profile to copy from.
 -- @return table The dropdown widget used to select a profile to delete.
 local function CreateActionsSection(parent, yOffset, refreshAll)
-    local W = ns.Widgets
     local db = dtns.Addon.db
 
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
@@ -206,10 +208,7 @@ local function CreateActionsSection(parent, yOffset, refreshAll)
         values = GetOtherProfileValues,
         get = function() return "" end,
         set = function(value)
-            local dialog = StaticPopup_Show("DRAGONTOAST_OPTIONS_DELETE_PROFILE", value)
-            if dialog then
-                dialog.data = value
-            end
+            StaticPopup_Show("DRAGONTOAST_OPTIONS_DELETE_PROFILE", value)
         end,
     })
     LC.AnchorWidget(deleteDropdown, parent, yOffset)
@@ -262,7 +261,6 @@ end
 -- Register tab
 -------------------------------------------------------------------------------
 
-ns.Tabs = ns.Tabs or {}
 ns.Tabs[#ns.Tabs + 1] = {
     id = "profiles",
     label = L["Profiles"],

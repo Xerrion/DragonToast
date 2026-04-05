@@ -6,7 +6,6 @@
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
-local LC = ns.LayoutConstants
 
 -------------------------------------------------------------------------------
 -- Cached globals
@@ -18,9 +17,11 @@ local table_insert = table.insert
 local pairs = pairs
 
 -------------------------------------------------------------------------------
--- Localization
+-- DragonWidgets references
 -------------------------------------------------------------------------------
 
+local W = ns.DW.Widgets
+local LC = ns.DW.LayoutConstants
 local L = ns.L
 
 -------------------------------------------------------------------------------
@@ -33,7 +34,7 @@ local LSM = LibStub("LibSharedMedia-3.0", true)
 -------------------------------------------------------------------------------
 -- Helpers
 -- Builds a sorted list of available sound options for use in a dropdown.
--- Includes a leading `{ value = "None", text = L["NONE"] }` entry.
+-- Includes a leading `{ value = "None", text = "None" }` entry.
 -- If LibSharedMedia-3.0 is unavailable, returns an empty table.
 -- @return A table of `{ value = <soundName>, text = <displayName> }`
 --   entries, sorted alphabetically by `text`, with the "None" entry
@@ -59,7 +60,6 @@ end
 -- @return number The updated vertical offset after the section's widgets have been placed.
 
 local function CreateCoreSection(parent, yOffset)
-    local W = ns.Widgets
     local db = dtns.Addon.db
 
     local header = W.CreateHeader(parent, L["Core Settings"])
@@ -112,7 +112,6 @@ end
 -- @param yOffset The starting vertical offset for placing widgets; layout proceeds downward.
 -- @return The updated vertical offset after placing the section's widgets.
 local function CreateSoundSection(parent, yOffset)
-    local W = ns.Widgets
     local db = dtns.Addon.db
 
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
@@ -156,8 +155,6 @@ end
 -- @param yOffset The starting vertical offset (in pixels) from the top of the parent where the section is placed.
 -- @return The updated vertical offset after placing the section.
 local function CreateTestingSection(parent, yOffset)
-    local W = ns.Widgets
-
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Testing"])
@@ -217,7 +214,6 @@ end
 -- Register tab
 -------------------------------------------------------------------------------
 
-ns.Tabs = ns.Tabs or {}
 ns.Tabs[#ns.Tabs + 1] = {
     id = "general",
     label = L["General"],

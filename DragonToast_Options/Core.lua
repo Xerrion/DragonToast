@@ -1,17 +1,11 @@
 -------------------------------------------------------------------------------
 -- Core.lua
--- Entry point for DragonToast_Options companion addon
+-- DragonToast_Options bootstrap - bridges DragonWidgets for DragonToast config
 --
 -- Supported versions: Retail, MoP Classic, TBC Anniversary, Cata, Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
-
--------------------------------------------------------------------------------
--- Localization
--------------------------------------------------------------------------------
-
-ns.L = LibStub("AceLocale-3.0"):GetLocale("DragonToast")
 
 -------------------------------------------------------------------------------
 -- Cached WoW API
@@ -20,34 +14,59 @@ ns.L = LibStub("AceLocale-3.0"):GetLocale("DragonToast")
 local tinsert = table.insert
 
 -------------------------------------------------------------------------------
--- Widget and tab registries (populated by subsequent files)
+-- DragonWidgets bridge
 -------------------------------------------------------------------------------
 
-ns.Widgets = {}
+local DW = DragonWidgetsNS
+if not DW then
+    error("[DragonToast_Options] DragonWidgets is not loaded. Ensure DragonWidgets is installed and enabled.", 2)
+end
+
+ns.DW = DW
+
+-------------------------------------------------------------------------------
+-- Localization
+-------------------------------------------------------------------------------
+
+ns.L = LibStub("AceLocale-3.0"):GetLocale("DragonToast")
+
+-------------------------------------------------------------------------------
+-- Tab registry (populated by subsequent tab files)
+-------------------------------------------------------------------------------
+
 ns.Tabs = {}
+
+-------------------------------------------------------------------------------
+-- Shared dropdown values (used by multiple tab files)
+-------------------------------------------------------------------------------
+
+ns.QualityValues = {
+    { value = 0, text = "|cff9d9d9dPoor|r" },
+    { value = 1, text = "|cffffffffCommon|r" },
+    { value = 2, text = "|cff1eff00Uncommon|r" },
+    { value = 3, text = "|cff0070ddRare|r" },
+    { value = 4, text = "|cffa335eeEpic|r" },
+    { value = 5, text = "|cffff8000Legendary|r" },
+}
+
+-------------------------------------------------------------------------------
+-- Appearance-change listener
+--
+-- When DragonWidgets fires OnAppearanceChanged, propagate to DragonToast
+-- display modules that are currently loaded.
+-------------------------------------------------------------------------------
+
+DW.On("OnAppearanceChanged", function()
+    local dt = ns.dtns
+    if not dt then return end
+    dt.ToastManager:UpdateLayout()
+end)
 
 -------------------------------------------------------------------------------
 -- Panel state
 -------------------------------------------------------------------------------
 
-local optionsPanel
-local tabGroup
-
--------------------------------------------------------------------------------
--- Refresh all visible widget values from db
--------------------------------------------------------------------------------
-
-local function RefreshVisibleWidgets()
-    if not tabGroup then return end
-    local selectedId = tabGroup:GetSelectedTab()
-    if not selectedId then return end
-    for _, tab in ipairs(ns.Tabs) do
-        if tab.id == selectedId and tab.refreshFunc then
-            tab.refreshFunc()
-            break
-        end
-    end
-end
+local panelResult
 
 -------------------------------------------------------------------------------
 -- Create the options panel (called lazily on first Open)
@@ -60,17 +79,20 @@ local function CreateOptionsPanel()
         return
     end
 
-    local panel = ns.Widgets.CreatePanel("DragonToastOptionsFrame", 800, 600)
+    local tabDefs = {}
+    for i = 1, #ns.Tabs do
+        tinsert(tabDefs, ns.Tabs[i])
+    end
 
-    -- Tab group below title bar
-    tabGroup = ns.Widgets.CreateTabGroup(panel, ns.Tabs)
-    tabGroup:SetPoint("TOPLEFT", panel, "TOPLEFT", 8, -32)
-    tabGroup:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -8, 8)
+    panelResult = DW.CreateOptionsPanel({
+        name = "DragonToastOptionsFrame",
+        title = "DragonToast Options",
+        width = 800,
+        height = 600,
+        tabs = tabDefs,
+    })
 
-    -- ESC-closable
-    tinsert(UISpecialFrames, "DragonToastOptionsFrame")
-
-    optionsPanel = panel
+    ns.RefreshVisibleWidgets = panelResult.RefreshVisibleWidgets
 end
 
 -------------------------------------------------------------------------------
@@ -80,28 +102,22 @@ end
 DragonToast_Options = {}
 
 function DragonToast_Options.Open()
-    if not optionsPanel then
+    if not panelResult then
         CreateOptionsPanel()
     end
-    optionsPanel:Show()
-    RefreshVisibleWidgets()
+    if not panelResult then return end
+    panelResult.Open()
 end
 
 function DragonToast_Options.Close()
-    if not optionsPanel then return end
-    optionsPanel:Hide()
+    if not panelResult then return end
+    panelResult.Close()
 end
 
 function DragonToast_Options.Toggle()
-    if optionsPanel and optionsPanel:IsShown() then
-        DragonToast_Options.Close()
-    else
-        DragonToast_Options.Open()
+    if not panelResult then
+        CreateOptionsPanel()
     end
+    if not panelResult then return end
+    panelResult.Toggle()
 end
-
--------------------------------------------------------------------------------
--- Expose namespace bridge for widgets/tabs
--------------------------------------------------------------------------------
-
-ns.RefreshVisibleWidgets = RefreshVisibleWidgets

@@ -13,3 +13,6 @@
 [submodule "DragonToast/Libs/LibAnimate"]
 	path = DragonToast/Libs/LibAnimate
 	url = https://github.com/Xerrion/LibAnimate.git
+[submodule "DragonToast_Options/Libs/DragonWidgets"]
+	path = DragonToast_Options/Libs/DragonWidgets
+	url = https://github.com/Xerrion/DragonWidgets

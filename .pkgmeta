@@ -12,6 +12,7 @@ externals:
   DragonToast/Libs/LibDBIcon-1.0: https://repos.wowace.com/wow/libdbicon-1-0/trunk/LibDBIcon-1.0
   DragonToast/Libs/LibSharedMedia-3.0: https://repos.wowace.com/wow/libsharedmedia-3-0/trunk/LibSharedMedia-3.0
   DragonToast/Libs/LibAnimate: https://github.com/Xerrion/LibAnimate
+  DragonToast/DragonToast_Options/Libs/DragonWidgets: https://github.com/Xerrion/DragonWidgets
 
 ignore:
   - ".git*"

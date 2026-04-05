@@ -123,6 +123,9 @@ files["DragonToast_Options/"] = {
 
         -- DragonToast bridge
         "DragonToastNS",
+
+        -- DragonWidgets shared library
+        "DragonWidgetsNS",
     },
 }
 
