@@ -22,6 +22,16 @@ describe("HandleSlashCommand", function()
         originalPrint = _G.print
         _G.print = function() end
 
+        local localeStub = setmetatable({}, {
+            __index = function(_, key) return key end,
+        })
+        local aceLocaleStub = {
+            GetLocale = function(_self, _addonName) return localeStub end,
+        }
+        _G.LibStub = setmetatable({}, {
+            __call = function(_self, _libName) return aceLocaleStub end,
+        })
+
         clearCalled = false
         printedMessage = nil
 
@@ -65,6 +75,7 @@ describe("HandleSlashCommand", function()
 
     after_each(function()
         _G.print = originalPrint
+        _G.LibStub = nil
     end)
 
     it("trims and lowercases commands with surrounding whitespace", function()

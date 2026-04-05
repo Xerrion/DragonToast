@@ -513,12 +513,11 @@ function ns.ToastManager.ToggleLock()
     if overlay:IsShown() then
         overlay:EnableMouse(false)
         overlay:Hide()
-        ns.Print("Anchor " .. ns.COLOR_RED .. "locked" .. ns.COLOR_RESET)
+        ns.Print(L["Anchor locked"])
     else
         overlay:EnableMouse(true)
         overlay:Show()
-        ns.Print("Anchor " .. ns.COLOR_GREEN .. "unlocked" .. ns.COLOR_RESET
-            .. " -- drag to reposition")
+        ns.Print(L["Anchor unlocked -- drag to reposition"])
     end
 end
 
@@ -539,7 +538,7 @@ function ns.ToastManager.ResetAnchor()
     db.display.anchorX = DEFAULT_ANCHOR_X
     db.display.anchorY = DEFAULT_ANCHOR_Y
     ns.ToastManager.SetAnchor(DEFAULT_ANCHOR_POINT, DEFAULT_ANCHOR_X, DEFAULT_ANCHOR_Y)
-    ns.Print("Anchor position reset to default.")
+    ns.Print(L["Anchor position reset to default."])
 end
 
 -------------------------------------------------------------------------------
