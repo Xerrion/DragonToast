@@ -8,6 +8,7 @@
 local ADDON_NAME, ns = ...
 
 local C_AddOns = C_AddOns
+local L = LibStub("AceLocale-3.0"):GetLocale("DragonToast")
 
 -------------------------------------------------------------------------------
 -- Helpers
@@ -40,7 +41,7 @@ end
 
 function ns.OpenOptions()
     if not LoadOptions() then
-        ns.Print("DragonToast_Options addon not found. Please ensure it is installed.")
+        ns.Print(L["DragonToast_Options addon not found. Please ensure it is installed."])
         return
     end
 
@@ -59,7 +60,7 @@ end
 
 function ns.ToggleOptions()
     if not LoadOptions() then
-        ns.Print("DragonToast_Options addon not found. Please ensure it is installed.")
+        ns.Print(L["DragonToast_Options addon not found. Please ensure it is installed."])
         return
     end
 

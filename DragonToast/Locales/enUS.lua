@@ -36,6 +36,92 @@ L["Roll"] = true
 L["Transmog"] = true
 L["Unknown"] = true
 
+-- DragonToast/Core/Presets.lua
+L["Default"] = true
+L["Minimal"] = true
+L["Classic"] = true
+L["Dark"] = true
+L["Elegant"] = true
+L["Parchment"] = true
+L["Compact"] = true
+L["Neon"] = true
+L["Frost"] = true
+L["Stealth"] = true
+
+-- DragonToast/Core/ConfigWindow.lua
+L["DragonToast_Options addon not found. Please ensure it is installed."] = true
+
+-- DragonToast/Core/SlashCommands.lua
+L["--- DragonToast Status ---"] = true
+L["--- DragonToast Commands ---"] = true
+L["Enabled"] = true
+L["Disabled"] = true
+L["Yes"] = true
+L["No"] = true
+L["Poor"] = true
+L["Common"] = true
+L["Uncommon"] = true
+L["Rare"] = true
+L["Epic"] = true
+L["Legendary"] = true
+L["Min Quality"] = true
+L["Self Loot"] = true
+L["Group Loot"] = true
+L["Currency"] = true
+L["Gold"] = true
+L["Quest Items"] = true
+L["XP Gains"] = true
+L["Honor Gains"] = true
+L["Reputation Gains"] = true
+L["Growth"] = true
+L["Animations"] = true
+L["s"] = true
+L["ElvUI Skin"] = true
+L["Minimap Icon"] = true
+L["Active"] = true
+L["Inactive"] = true
+L["Show this help"] = true
+L["Toggle addon on/off"] = true
+L["Open settings panel"] = true
+L["Toggle anchor lock (drag to move)"] = true
+L["Show a test toast"] = true
+L["Test item stacking (3 rapid items)"] = true
+L["Test XP accumulation"] = true
+L["Test gold accumulation"] = true
+L["Test honor accumulation"] = true
+L["Test reputation accumulation"] = true
+L["Run all stacking tests"] = true
+L["Toggle continuous test toast generation"] = true
+L["Dismiss all toasts"] = true
+L["Reset anchor position to default"] = true
+L["Show current settings"] = true
+L["Addon enabled"] = true
+L["Addon disabled"] = true
+L["TestToasts module is not loaded."] = true
+L["All toasts cleared."] = true
+L["Unknown command: "] = true
+
+-- DragonToast/Core/MinimapIcon.lua
+L["Status: "] = true
+L["Left-Click"] = true
+L["Shift-Left-Click"] = true
+L["Right-Click"] = true
+L["Middle-Click"] = true
+L["Open settings"] = true
+L["Test toast"] = true
+L["Toggle on/off"] = true
+L["Toggle anchor lock"] = true
+
+-- DragonToast/Display/ToastManager.lua
+L["Anchor locked"] = true
+L["Anchor unlocked -- drag to reposition"] = true
+
+-- DragonToast/Display/TestToasts.lua
+L["Test mode started"] = true
+L["Test mode stopped"] = true
+L["Unknown test type: "] = true
+L["Usage: /dt test [stack|xp|gold|honor|reputation|all]"] = true
+
 -------------------------------------------------------------------------------
 -- DragonToast_Options
 -------------------------------------------------------------------------------

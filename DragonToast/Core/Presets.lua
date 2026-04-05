@@ -7,6 +7,12 @@
 local _, ns = ...
 
 -------------------------------------------------------------------------------
+-- Cached references
+-------------------------------------------------------------------------------
+
+local L = LibStub("AceLocale-3.0"):GetLocale("DragonToast")
+
+-------------------------------------------------------------------------------
 -- Preset definitions
 -- Each preset contains curated values for appearance fields. Fields not
 -- specified in a preset will remain at their current value when applied.
@@ -21,16 +27,16 @@ ns.Presets.order = {
 
 --- Human-readable names for each preset
 ns.Presets.names = {
-    default   = "Default",
-    minimal   = "Minimal",
-    classic   = "Classic",
-    dark      = "Dark",
-    elegant   = "Elegant",
-    parchment = "Parchment",
-    compact   = "Compact",
-    neon      = "Neon",
-    frost     = "Frost",
-    stealth   = "Stealth",
+    default   = L["Default"],
+    minimal   = L["Minimal"],
+    classic   = L["Classic"],
+    dark      = L["Dark"],
+    elegant   = L["Elegant"],
+    parchment = L["Parchment"],
+    compact   = L["Compact"],
+    neon      = L["Neon"],
+    frost     = L["Frost"],
+    stealth   = L["Stealth"],
 }
 
 --- Preset appearance values. Each key maps to a table of appearance fields

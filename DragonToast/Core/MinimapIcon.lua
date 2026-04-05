@@ -12,6 +12,7 @@ local ADDON_NAME, ns = ...
 -------------------------------------------------------------------------------
 
 local LibStub = LibStub
+local L = LibStub("AceLocale-3.0"):GetLocale("DragonToast")
 
 -------------------------------------------------------------------------------
 -- Minimap Icon Module
@@ -53,10 +54,10 @@ function ns.MinimapIcon.Initialize()
                 db.enabled = not db.enabled
                 if db.enabled then
                     ns.Addon:OnEnable()
-                    ns.Print("Addon " .. ns.COLOR_GREEN .. "enabled" .. ns.COLOR_RESET)
+                    ns.Print(L["Addon enabled"])
                 else
                     ns.Addon:OnDisable()
-                    ns.Print("Addon " .. ns.COLOR_RED .. "disabled" .. ns.COLOR_RESET)
+                    ns.Print(L["Addon disabled"])
                 end
             elseif button == "MiddleButton" then
                 -- Middle-click: toggle anchor lock
@@ -69,15 +70,15 @@ function ns.MinimapIcon.Initialize()
             tooltip:AddLine(" ")
 
             local db = ns.Addon.db.profile
-            local status = db.enabled and (ns.COLOR_GREEN .. "Enabled" .. ns.COLOR_RESET)
-                or (ns.COLOR_RED .. "Disabled" .. ns.COLOR_RESET)
-            tooltip:AddLine("Status: " .. status)
+            local status = db.enabled and (ns.COLOR_GREEN .. L["Enabled"] .. ns.COLOR_RESET)
+                or (ns.COLOR_RED .. L["Disabled"] .. ns.COLOR_RESET)
+            tooltip:AddLine(L["Status: "] .. status)
             tooltip:AddLine(" ")
 
-            tooltip:AddLine(ns.COLOR_WHITE .. "Left-Click" .. ns.COLOR_RESET .. " - Open settings")
-            tooltip:AddLine(ns.COLOR_WHITE .. "Shift-Left-Click" .. ns.COLOR_RESET .. " - Test toast")
-            tooltip:AddLine(ns.COLOR_WHITE .. "Right-Click" .. ns.COLOR_RESET .. " - Toggle on/off")
-            tooltip:AddLine(ns.COLOR_WHITE .. "Middle-Click" .. ns.COLOR_RESET .. " - Toggle anchor lock")
+            tooltip:AddLine(ns.COLOR_WHITE .. L["Left-Click"] .. ns.COLOR_RESET .. " - " .. L["Open settings"])
+            tooltip:AddLine(ns.COLOR_WHITE .. L["Shift-Left-Click"] .. ns.COLOR_RESET .. " - " .. L["Test toast"])
+            tooltip:AddLine(ns.COLOR_WHITE .. L["Right-Click"] .. ns.COLOR_RESET .. " - " .. L["Toggle on/off"])
+            tooltip:AddLine(ns.COLOR_WHITE .. L["Middle-Click"] .. ns.COLOR_RESET .. " - " .. L["Toggle anchor lock"])
         end,
     })
 
