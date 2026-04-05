@@ -9,32 +9,32 @@ local L = LibStub("AceLocale-3.0"):NewLocale(ADDON_NAME, "enUS", true, true)
 if not L then return end
 
 -- DragonToast/Core/Init.lua
-L["LOADED_MESSAGE"] = "Loaded. Type /dt help for commands."
-
--- DragonToast/Display/ToastManager.lua
-L["FORMAT_PLUS_HONOR"] = "+%s Honor"
-L["FORMAT_PLUS_REPUTATION"] = "+%s Reputation"
-L["FORMAT_PLUS_XP"] = "+%s XP"
-L["DRAG_TO_MOVE"] = "Drag to move"
+L["Loaded. Type /dt help for commands."] = true
 
 -- DragonToast/Display/ToastFrame.lua
-L["YOU"] = "You"
-L["FORMAT_ILVL"] = "ilvl %s"
+L["ilvl %s"] = true
+L["You"] = true
+
+-- DragonToast/Display/ToastManager.lua
+L["+%s Honor"] = true
+L["+%s Reputation"] = true
+L["+%s XP"] = true
+L["Drag to move"] = true
+
+-- DragonToast/Listeners/MailListener_Shared.lua
+L["Auction Sale"] = true
+L["Auction Won"] = true
+L["Mail"] = true
+L["Mail - %s"] = true
 
 -- DragonToast/Listeners/MessageBridge.lua
-L["DISENCHANT"] = "Disenchant"
-L["GREED"] = "Greed"
-L["NEED"] = "Need"
-L["PASS"] = "Pass"
-L["ROLL"] = "Roll"
-L["TRANSMOG"] = "Transmog"
-L["UNKNOWN"] = "Unknown"
-
--- DragonToast/Listeners/MailListener_Retail.lua
-L["AUCTION_SALE"] = "Auction Sale"
-L["AUCTION_WON"] = "Auction Won"
-L["MAIL"] = "Mail"
-L["FORMAT_MAIL_FROM"] = "Mail - %s"
+L["Disenchant"] = true
+L["Greed"] = true
+L["Need"] = true
+L["Pass"] = true
+L["Roll"] = true
+L["Transmog"] = true
+L["Unknown"] = true
 
 -------------------------------------------------------------------------------
 -- DragonToast_Options
@@ -190,6 +190,7 @@ L["Glowing Border"] = true
 L["Icon"] = true
 L["Icon Size"] = true
 L["Inset of the border from the toast edge"] = true
+L["Monochrome"] = true
 L["Monochrome Outline"] = true
 L["Opacity of the toast background"] = true
 L["Outline"] = true

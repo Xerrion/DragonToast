@@ -9,32 +9,32 @@ local L = LibStub("AceLocale-3.0"):NewLocale(ADDON_NAME, "deDE")
 if not L then return end
 
 -- DragonToast/Core/Init.lua
-L["LOADED_MESSAGE"] = "Geladen. Tippe /dt help für Befehle."
-
--- DragonToast/Display/ToastManager.lua
-L["FORMAT_PLUS_HONOR"] = "+%s Ehre"
-L["FORMAT_PLUS_REPUTATION"] = "+%s Ruf"
-L["FORMAT_PLUS_XP"] = "+%s EP"
-L["DRAG_TO_MOVE"] = "Ziehen zum Verschieben"
+L["Loaded. Type /dt help for commands."] = "Geladen. Tippe /dt help für Befehle."
 
 -- DragonToast/Display/ToastFrame.lua
-L["YOU"] = "Ihr"
-L["FORMAT_ILVL"] = "ilvl %s"
+L["ilvl %s"] = "ilvl %s"
+L["You"] = "Ihr"
+
+-- DragonToast/Display/ToastManager.lua
+L["+%s Honor"] = "+%s Ehre"
+L["+%s Reputation"] = "+%s Ruf"
+L["+%s XP"] = "+%s EP"
+L["Drag to move"] = "Ziehen zum Verschieben"
+
+-- DragonToast/Listeners/MailListener_Shared.lua
+L["Auction Sale"] = "Auktion erfolgreich"
+L["Auction Won"] = "Auktion gewonnen"
+L["Mail"] = "Post"
+L["Mail - %s"] = "Post - %s"
 
 -- DragonToast/Listeners/MessageBridge.lua
-L["DISENCHANT"] = "Entzaubern"
-L["GREED"] = "Gier"
-L["NEED"] = "Bedarf"
-L["PASS"] = "Passen"
-L["ROLL"] = "Würfel"
-L["TRANSMOG"] = "Transmogrifikation"
-L["UNKNOWN"] = "Unbekannt"
-
--- DragonToast/Listeners/MailListener_Retail.lua
-L["AUCTION_SALE"] = "Auktion erfolgreich"
-L["AUCTION_WON"] = "Auktion gewonnen"
-L["MAIL"] = "Post"
-L["FORMAT_MAIL_FROM"] = "Post - %s"
+L["Disenchant"] = "Entzaubern"
+L["Greed"] = "Gier"
+L["Need"] = "Bedarf"
+L["Pass"] = "Passen"
+L["Roll"] = "Würfel"
+L["Transmog"] = "Transmogrifikation"
+L["Unknown"] = "Unbekannt"
 
 -------------------------------------------------------------------------------
 -- DragonToast_Options
@@ -190,6 +190,7 @@ L["Glowing Border"] = "Leuchtender Rahmen"
 L["Icon"] = "Symbol"
 L["Icon Size"] = "Symbolgröße"
 L["Inset of the border from the toast edge"] = "Einfassung des Rahmens vom Toast-Rand"
+L["Monochrome"] = "Monochrom"
 L["Monochrome Outline"] = "Monochromer Umriss"
 L["Opacity of the toast background"] = "Transparenz des Toast-Hintergrunds"
 L["Outline"] = "Umriss"

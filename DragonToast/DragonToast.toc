@@ -3,6 +3,7 @@
 ## Interface-Mists: 50503
 ## Title: Dragon Toast
 ## Notes: Every drop deserves a toast. A dragon-forged loot feed for your adventures
+## Notes-zhCN: 物品、金币、经验、邮件等可获取项目的条幅动画通知。
 ## Author: Xerrion
 ## Version: @project-version@
 ## SavedVariables: DragonToastDB
@@ -11,6 +12,8 @@
 ## X-License: MIT
 ## X-Curse-Project-ID: 1468628
 ## X-Wago-ID: E6gvQAN1
+
+## Category-zhCN: 用户界面
 
 # Libraries
 Libs\embeds.xml

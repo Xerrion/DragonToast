@@ -293,7 +293,7 @@ local function ApplyRewardLooter(frame, db)
         return
     end
 
-    frame.looter:SetText(L["YOU"])
+    frame.looter:SetText(L["You"])
     frame.looter:SetTextColor(SELF_LOOTER_COLOR.r, SELF_LOOTER_COLOR.g, SELF_LOOTER_COLOR.b)
     frame.looter:Show()
 end
@@ -314,7 +314,7 @@ local function ApplyItemLooter(frame, db, lootData)
     end
 
     if lootData.isSelf then
-        frame.looter:SetText(L["YOU"])
+        frame.looter:SetText(L["You"])
         frame.looter:SetTextColor(SELF_LOOTER_COLOR.r, SELF_LOOTER_COLOR.g, SELF_LOOTER_COLOR.b)
     else
         frame.looter:SetText(lootData.looter)
@@ -648,7 +648,7 @@ local function PopulateItemContent(frame, lootData, db, r, g, b)
     -- Item level
     if db.display.showItemLevel and lootData.itemLevel and lootData.itemLevel > 0
         and not lootData.isCurrency then
-        frame.itemLevel:SetText(string_format(L["FORMAT_ILVL"], lootData.itemLevel))
+        frame.itemLevel:SetText(string_format(L["ilvl %s"], lootData.itemLevel))
         frame.itemLevel:Show()
     else
         frame.itemLevel:Hide()

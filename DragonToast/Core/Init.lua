@@ -153,7 +153,7 @@ function Addon:OnInitialize()
         ns.MinimapIcon.Initialize()
     end
 
-    ns.Print(L["LOADED_MESSAGE"])
+    ns.Print(L["Loaded. Type /dt help for commands."])
 end
 
 -- Performs addon enable-time setup: initializes the toast display system,
