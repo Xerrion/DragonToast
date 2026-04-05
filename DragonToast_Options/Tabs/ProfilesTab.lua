@@ -116,7 +116,8 @@ local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
-    local desc = W.CreateDescription(parent, L["Profiles allow you to save different configurations for different characters."])
+    local desc = W.CreateDescription(parent,
+        L["Profiles allow you to save different configurations for different characters."])
     LC.AnchorWidget(desc, parent, yOffset)
     yOffset = yOffset - desc:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 

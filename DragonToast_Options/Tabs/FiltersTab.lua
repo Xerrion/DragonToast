@@ -81,7 +81,8 @@ end
 
 local SOURCE_TOGGLES = {
     { key = "showSelfLoot",   label = L["Show Self Loot"],    tooltip = L["Show toasts when you loot items"] },
-    { key = "showGroupLoot",  label = L["Show Group Loot"],   tooltip = L["Show toasts when group members receive loot"] },
+    { key = "showGroupLoot",  label = L["Show Group Loot"],
+        tooltip = L["Show toasts when group members receive loot"] },
     { key = "showQuestItems", label = L["Show Quest Items"],  tooltip = L["Show toasts for quest item pickups"] },
     { key = "showMail",       label = L["Show Mail"],         tooltip = L["Show toasts for mail attachments"] },
 }
