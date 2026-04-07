@@ -1,6 +1,8 @@
 # DragonToast - Agent Guidelines
 
-Project-specific guidelines for DragonToast. See the parent `../AGENTS.md` for general WoW addon rules.
+DragonToast is an animated loot feed addon for World of Warcraft. It shows a stacking feed of toast notifications when items are looted, with smooth animations and ElvUI skin matching.
+
+**GitHub**: <https://github.com/Xerrion/DragonToast>
 
 ---
 
@@ -25,11 +27,91 @@ CI runs Luacheck via `nebularg/actions-luacheck@v1` on `pull_request_target` to 
 
 ### Testing
 
-Busted tests run in CI. Run locally with `busted --verbose`.
+**No automated test framework.** Test manually in-game:
+
+1. `/dt test` - Show a single test toast
+2. `/dt testmode` - Toggle continuous test toasts (2.5s interval) for live config preview
+3. `/dt clear` - Dismiss all active toasts
+4. `/dt config` - Open config window
+5. Rapid-fire `/dt test` (10+ times) to stress the frame pool
+6. Hover/unhover during animations to verify pause/resume
+7. `/console scriptErrors 1` to surface Lua errors
 
 ### Packaging
 
 No local build step. BigWigsMods packager runs automatically via `packager.yml` (dispatched by `release.yml`). Release flow: merge to `master` -> release-please PR -> merge that PR -> tag + GitHub Release -> release.yml dispatches packager.yml -> packager publishes to CurseForge, Wago, GitHub Releases.
+
+---
+
+## Code Style
+
+### Formatting
+
+- **4 spaces** for indentation (no tabs)
+- **120 character** max line length (enforced by Luacheck)
+- Spaces around operators: `local x = 1 + 2`
+- No trailing whitespace
+- Dashes, not em-dashes or en-dashes, in comments and docs
+
+### File Header
+
+Every `.lua` file starts with this block:
+
+```lua
+-------------------------------------------------------------------------------
+-- FileName.lua
+-- Brief description of the file
+--
+-- Supported versions: TBC Anniversary, Retail, MoP Classic
+-------------------------------------------------------------------------------
+```
+
+### Namespace and Imports
+
+All files use the shared private namespace. Frequently-used WoW API globals are cached as locals at the top of each file, after the header.
+
+```lua
+local ADDON_NAME, ns = ...
+
+-- Cached WoW API
+local CreateFrame = CreateFrame
+local GetItemInfo = GetItemInfo
+
+-- Ace3 libraries via LibStub
+local LSM = LibStub("LibSharedMedia-3.0")
+```
+
+### Naming Conventions
+
+| Type               | Convention        | Example                             |
+|--------------------|-------------------|-------------------------------------|
+| Files              | PascalCase        | `ToastFrame.lua`                    |
+| Global variables   | PascalCase        | `DragonToastDB`                     |
+| Local variables    | camelCase         | `local frameCount`                  |
+| Functions (public) | PascalCase        | `ns.ToastFrame.Acquire()`           |
+| Functions (local)  | PascalCase        | `local function CreateToastFrame()` |
+| Constants          | UPPER_SNAKE       | `local MAX_RETRIES = 5`             |
+| Color codes        | COLOR_UPPER       | `ns.COLOR_GOLD`                     |
+| Unused args        | Underscore prefix | `local _unused`                     |
+
+### Error Handling
+
+- **GetItemInfo may return nil** on first call. Always use the AceTimer retry pattern (up to 5 retries, 0.2s each).
+- Defensive nil checks before calling optional module functions: `if ns.Module.Func then ns.Module.Func() end`
+- Use `pcall` for operations that may not exist on all WoW versions.
+- Cancel AceTimers before nullifying references, or closures fire on recycled frames.
+
+### Types
+- Default to plain Lua 5.1 with no annotations
+- Only add LuaLS annotations when the file already uses them or for public library APIs
+- Keep annotations minimal and accurate; do not introduce new tooling
+
+### Functions and Structure
+- Keep functions under 50 lines; extract helpers when longer
+- Prefer early returns over deep nesting
+- Prefer composition over inheritance
+- Keep logic separated by layer when possible: Core (WoW API), Engine (pure Lua),
+  Data (tables), Presentation (UI)
 
 ---
 
@@ -56,9 +138,11 @@ All modules attach to `ns`: `ns.Addon`, `ns.ToastManager`, `ns.ToastFrame`, `ns.
 | AceConsole         | `SLASH_*` globals                        |
 | LibSharedMedia-3.0 | Hardcoded font/texture paths             |
 
+For local dev, Ace3 is a git submodule at `Libs/Ace3/`. The `.pkgmeta` externals only resolve during CI packaging.
+
 ### Version-Specific Loading
 
-Three target versions: TBC Anniversary (20505, primary), MoP Classic (50503), and Retail (120001, secondary).
+Three target versions: TBC Anniversary (20505, primary), MoP Classic (50502/50503), and Retail (110207, secondary).
 
 Version-specific files load via BigWigsMods packager comment directives in the TOC (`#@retail@` / `#@tbc-anniversary@` / `#@version-mists@`). Do NOT use `## Interface-*` mid-file directives. Locally, all listener files load; runtime guards in each version-specific listener ensure only the correct one initializes.
 
@@ -83,6 +167,8 @@ When "Match ElvUI Style" is enabled: font face uses `E.media.normFont`, font siz
 ---
 
 ## Cross-Addon Messaging API
+
+DragonToast exposes a generic messaging API via `ns.MessageBridge` so external addons can suppress toasts and queue custom toast notifications without depending on internal implementation details.
 
 ### Generic Messages
 
@@ -130,6 +216,30 @@ The safety timer auto-clears a source if the matching UNSUPPRESS message never a
 
 These will be removed when all senders migrate to the generic API.
 
+### Example: External Addon Integration
+
+```lua
+-- Suppress toasts while your custom loot frame is open
+local AceEvent = LibStub("AceEvent-3.0")
+
+-- When your loot frame opens
+AceEvent:SendMessage("DRAGONTOAST_SUPPRESS", "MyLootAddon")
+
+-- Queue a custom toast
+AceEvent:SendMessage("DRAGONTOAST_QUEUE_TOAST", {
+    itemName = "Thunderfury, Blessed Blade of the Windseeker",
+    itemIcon = 134585,
+    itemQuality = 5,
+    itemLink = itemLink,
+    quantity = 1,
+    looter = UnitName("player"),
+    isSelf = true,
+})
+
+-- When your loot frame closes
+AceEvent:SendMessage("DRAGONTOAST_UNSUPPRESS", "MyLootAddon")
+```
+
 ---
 
 ## CI/CD
@@ -149,7 +259,65 @@ Branch protection on `master`: PRs required, Luacheck status check required, bra
 
 1. **GetItemInfo caching** - Returns nil on first call for uncached items. Use retry pattern.
 2. **Localized loot patterns** - `CHAT_MSG_LOOT` strings are locale-dependent. Build patterns from Blizzard globals.
-3. **AceTimer cleanup** - Cancel timers before nullifying references, or closures fire on recycled frames.
+3. **AceTimer cleanup** - Cancel timers before nullifying references.
 4. **ElvUI skin ordering** - `SkinToast()` must respect user Appearance settings, not override them.
 5. **TOC conditional loading** - Use packager comment directives, not `## Interface:` mid-file.
 6. **pull_request_target** - GitHub does not trigger `pull_request` for PRs from GITHUB_TOKEN. Use `pull_request_target`.
+
+---
+
+## GitHub Workflow
+
+### Issues
+- Title format: `[Bug]: description` / `[Feature]: description`
+- Always apply: one `C-*` (category), one `A-*` (area), one `D-*` (difficulty), one `P-*` (platform) label
+- Use the repo's GitHub issue templates (bug-report or feature-request)
+- Add new issues to the appropriate project and set status to **"To triage"**
+
+### GitHub Projects
+- **DragonToast - Bugs**: project #6 (`C-Bug` issues)
+- **DragonToast - Feature Requests**: project #7 (`C-Feature` issues)
+- Status columns: **To triage → Backlog → Ready → In progress → In review → Done**
+- Move status as work progresses: filed (To triage) → scoped (Backlog) → branch created (In progress) → PR open (In review) → merged (Done)
+
+### Branching and PRs
+- Branch from `master`: `feat/<number>-short-desc`, `fix/<number>-short-desc`, `refactor/<number>-short-desc`
+- One PR per issue; reference `Closes #N` in the PR body
+- Fill the PR template fully (type of change, testing, checklist)
+- CI must pass (`gh pr checks <N> --repo Xerrion/DragonToast`) before merging
+- Wait for CodeRabbit AI review to complete and address any findings before merging
+- When replying to CodeRabbit review comments, always use `@coderabbitai` and always reply to the **specific comment thread** (not as a top-level PR comment)
+- Squash merge only: `gh pr merge <N> --squash --delete-branch`
+- **Never merge release-please PRs** (`chore(master): release X.Y.Z`) - the repo owner merges these manually
+
+### Commits
+- Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`, `chore:`
+- Reference issue numbers: `feat: show inventory item count on loot toasts (#151)`
+
+---
+
+## Working Agreement for Agents
+- Addon-level AGENTS.md overrides root rules when present
+- Do not add new dependencies without discussing trade-offs
+- Run luacheck before and after changes
+- If only manual tests exist, document what you verified in-game
+- Verify changes in the game client when possible
+- Keep changes small and focused; prefer composition over inheritance
+- Use the `wow-addon` agent to verify WoW API signatures before implementation - never guess
+- See the root `AGENTS.md` Skill Routing table for the full skill-loading matrix for `coder` delegations
+
+---
+
+## Communication Style
+
+When responding to or commenting on issues, always write in **first-person singular** ("I")
+as the repo owner -- never use "we" or "our team". Speak as if you are the developer personally.
+
+**Writing style:**
+- Direct, structured, solution-driven. Get to the point fast. Text is a tool, not decoration.
+- Think in systems. Break things into flows, roles, rules, and frameworks.
+- Bias toward precision. Concrete output, copy-paste-ready solutions, clear constraints. Low
+  tolerance for fluff.
+- Tone is calm and rational with small flashes of humor and self-awareness.
+- When confident in a topic, become more informal and creative.
+- When something matters, become sharp and focused.
