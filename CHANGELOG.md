@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [3.2.1](https://github.com/Xerrion/DragonToast/compare/3.2.0...3.2.1) (2026-04-06)
+
+
+### 🐛 Bug Fixes
+
+* hide item bag count on other players' loot toasts ([#157](https://github.com/Xerrion/DragonToast/issues/157)) ([#158](https://github.com/Xerrion/DragonToast/issues/158)) ([2074d29](https://github.com/Xerrion/DragonToast/commit/2074d293e81a94687f7522bb6eb409c6b228b080))
+
 ## [3.2.0](https://github.com/Xerrion/DragonToast/compare/3.1.0...3.2.0) (2026-04-05)
 
 
