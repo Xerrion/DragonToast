@@ -231,7 +231,7 @@ function M.CreateNamespace()
                     anchorPoint = "RIGHT",
                     anchorX = -20,
                     anchorY = 0,
-                    spacing = 4,
+                    spacing = 8,
                     showQuantity = true,
                 },
                 filters = {

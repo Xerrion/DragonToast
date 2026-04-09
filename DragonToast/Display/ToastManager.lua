@@ -35,7 +35,7 @@ local isInitialized = false
 -- Constants
 -------------------------------------------------------------------------------
 
-local TOAST_SPACING = 4    -- pixels between toasts
+local TOAST_SPACING = 8    -- pixels between toasts
 local DUPLICATE_WINDOW = 2 -- seconds to consider same item a duplicate
 
 local DUPLICATE_KIND_ITEM = "item"
