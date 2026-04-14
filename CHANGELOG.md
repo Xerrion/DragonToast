@@ -4,6 +4,18 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [3.3.0](https://github.com/Xerrion/DragonToast/compare/3.2.1...3.3.0) (2026-04-14)
+
+
+### 🚀 Features
+
+* stack toasts for their full visible lifetime, not a fixed window ([#163](https://github.com/Xerrion/DragonToast/issues/163)) ([#164](https://github.com/Xerrion/DragonToast/issues/164)) ([0fcc912](https://github.com/Xerrion/DragonToast/commit/0fcc912e3f2a0c55e2c8cae0e6d7ed06606b2a75))
+
+
+### ⚙️ Miscellaneous Tasks
+
+* increase default toast spacing from 4 to 8 pixels ([#161](https://github.com/Xerrion/DragonToast/issues/161)) ([#162](https://github.com/Xerrion/DragonToast/issues/162)) ([a5528ba](https://github.com/Xerrion/DragonToast/commit/a5528ba564522ab23fb4f61bda6cf34b6627d518))
+
 ## [3.2.1](https://github.com/Xerrion/DragonToast/compare/3.2.0...3.2.1) (2026-04-06)
 
 
