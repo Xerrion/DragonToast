@@ -15,10 +15,6 @@ function M.SetTime(t)
     mockTime = t
 end
 
-function M.AdvanceTime(dt)
-    mockTime = mockTime + dt
-end
-
 -- luacheck: push ignore 121 122
 
 -------------------------------------------------------------------------------

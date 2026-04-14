@@ -242,9 +242,9 @@ describe("ToastManager", function()
             assert.equal(1, idx)
         end)
 
-        it("returns nil when timestamp exceeds DUPLICATE_WINDOW", function()
+        it("returns nil when active toast is exiting", function()
             T.ShowToast(makeXPData())
-            mock.AdvanceTime(T.DUPLICATE_WINDOW + 0.1)
+            T.activeToasts[1]._isExiting = true
             assert.is_nil(T.FindDuplicate(makeXPData()))
         end)
 
@@ -371,6 +371,29 @@ describe("ToastManager", function()
             assert.is_nil(idx)
 
             ns.Addon.db.profile.display.maxToasts = 5
+        end)
+
+        it("does not merge into a stale queued entry (older than DUPLICATE_WINDOW)", function()
+            -- Fill active toasts so the first event is queued
+            for i = 1, ns.Addon.db.profile.display.maxToasts do
+                T.ShowToast(makeItemData({ itemID = 1000 + i }))
+            end
+
+            -- Queue an XP entry
+            T.ShowToast(makeXPData({ xpAmount = 200, timestamp = GetTime() }))
+            local sizeBefore = T.QueueSize(T.toastQueue)
+
+            -- Advance time past DUPLICATE_WINDOW
+            mock.SetTime(GetTime() + T.DUPLICATE_WINDOW + 0.1)
+
+            -- Queue another XP entry - should NOT merge with the stale queued entry
+            T.ShowToast(makeXPData({ xpAmount = 300, timestamp = GetTime() }))
+            local sizeAfter = T.QueueSize(T.toastQueue)
+
+            assert.equal(sizeBefore + 1, sizeAfter) -- two separate entries in queue
+            -- The stale entry must not have been mutated
+            local staleEntry = T.toastQueue[T.toastQueue.first]
+            assert.equal(200, staleEntry.xpAmount)
         end)
 
     end)
@@ -578,11 +601,11 @@ describe("ToastManager", function()
             assert.equal(60000, T.activeToasts[1].lootData.copperAmount)
         end)
 
-        it("event after DUPLICATE_WINDOW creates separate toast", function()
+        it("event onto exiting toast creates separate toast", function()
             TM.QueueToast(makeXPData({ xpAmount = 100 }))
             assert.equal(1, #T.activeToasts)
 
-            mock.AdvanceTime(T.DUPLICATE_WINDOW + 0.1)
+            T.activeToasts[1]._isExiting = true
             TM.QueueToast(makeXPData({ xpAmount = 200 }))
             assert.equal(2, #T.activeToasts)
         end)

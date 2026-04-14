@@ -327,11 +327,10 @@ end
 local function FindDuplicate(lootData)
     if lootData.isCurrency and not lootData.copperAmount and not lootData.currencyID then return nil end
 
-    local now = GetTime()
-
-    -- Search active toasts first
+    -- Active toasts stack for their full visible lifetime (until _isExiting).
+    -- No time window is applied here - if the toast is still on screen, it accepts stacks.
     for i, toast in ipairs(activeToasts) do
-        if not toast._isExiting and toast.lootData and IsRecentLoot(toast.lootData.timestamp, now) then
+        if not toast._isExiting and toast.lootData then
             local duplicateKind = GetDuplicateKind(toast.lootData, lootData)
             if duplicateKind then
                 return toast, i, duplicateKind
@@ -339,7 +338,11 @@ local function FindDuplicate(lootData)
         end
     end
 
-    -- Search pending queues (toastQueue, then combatQueue)
+    -- Queued entries are time-gated: entries older than DUPLICATE_WINDOW do not receive
+    -- stacks and a new entry is queued instead. This intentionally differs from the active
+    -- path - queued items have no visible frame to signal liveness, so the time window
+    -- acts as a staleness guard.
+    local now = GetTime()
     local queues = { toastQueue, combatQueue }
     for _, queue in ipairs(queues) do
         for idx = queue.first, queue.last do
