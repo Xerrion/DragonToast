@@ -345,8 +345,9 @@ function ns.LootListenerShared.Create(config)
         local itemLink, quantity, looter, isSelf = ParseLootMessage(msg, lootCategories, playerName)
         if not itemLink then return end
 
-        Utils.RetryWithTimer(
+        Utils.WaitForItem(
             owner,
+            itemLink,
             function() return BuildLootData(itemLink, quantity, looter or UNKNOWN, isSelf) end,
             PassesFilter
         )

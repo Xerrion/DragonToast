@@ -30,6 +30,7 @@ local toastQueue = QueueUtils.New()            -- overflow queue (FIFO, O(1) pus
 local combatQueue = QueueUtils.New()           -- deferred-during-combat queue (FIFO, O(1) push/pop)
 local anchorFrame = nil    -- invisible anchor frame for positioning
 local isInitialized = false
+local flushStaggerTimer = nil  -- pending AceTimer handle for staggered queue flush
 
 -------------------------------------------------------------------------------
 -- Constants
@@ -450,12 +451,27 @@ function ns.ToastManager.QueueToast(lootData)
     ShowToast(lootData)
 end
 
-function ns.ToastManager.FlushQueue()
-    -- Process overflow queue
-    while QueueUtils.Size(toastQueue) > 0 and #activeToasts < ns.Addon.db.profile.display.maxToasts do
+local function FlushNext()
+    flushStaggerTimer = nil
+    local db = ns.Addon.db.profile
+    local stagger = db.display.queueStagger or 0
+    while QueueUtils.Size(toastQueue) > 0 and #activeToasts < db.display.maxToasts do
         local lootData = QueueUtils.Pop(toastQueue)
         ShowToast(lootData)
+        if stagger > 0 then
+            flushStaggerTimer = ns.Addon:ScheduleTimer(FlushNext, stagger)
+            return
+        end
     end
+end
+
+function ns.ToastManager.FlushQueue()
+    -- Cancel any pending stagger timer before starting a new flush pass
+    if flushStaggerTimer then
+        ns.Addon:CancelTimer(flushStaggerTimer)
+        flushStaggerTimer = nil
+    end
+    FlushNext()
 end
 
 local function FlushCombatQueue()
@@ -494,6 +510,10 @@ function ns.ToastManager.OnToastFinished(toast)
 end
 
 function ns.ToastManager.ClearAll()
+    if flushStaggerTimer then
+        ns.Addon:CancelTimer(flushStaggerTimer)
+        flushStaggerTimer = nil
+    end
     ns.TestToasts.StopTestMode()
     -- Cancel all animations and hide all toasts
     for _, toast in ipairs(activeToasts) do

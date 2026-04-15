@@ -31,6 +31,7 @@ local defaults = {
 
         display = {
             maxToasts = 7,
+            queueStagger = 0.1,
             toastWidth = 350,
             toastHeight = 48,
             growDirection = "UP",
@@ -124,6 +125,7 @@ local SIMPLE_MIGRATIONS = {
     { version = 6, section = "filters", key = "showReputation", default = true },
     { version = 7, section = "animation", key = "pauseOnHover",  default = true },
     { version = 8, section = "display",   key = "showItemCount", default = false },
+    { version = 9, section = "display",   key = "queueStagger", default = 0.1 },
 }
 
 local function MigrateProfile(db)

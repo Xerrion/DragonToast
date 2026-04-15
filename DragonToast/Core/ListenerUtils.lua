@@ -14,6 +14,16 @@ local tonumber = tonumber
 local math_floor = math.floor
 local string_format = string.format
 local table_concat = table.concat
+local table_insert = table.insert
+local ipairs = ipairs
+local next = next
+
+-- Pending item lookups: itemID (number) -> { buildFunc, filterFunc }
+-- Multiple entries can share the same itemID (e.g. two loots of the same item in quick succession)
+-- Use an array of entries per itemID to handle that correctly.
+local pendingItems = {}
+local itemEventRegistered = false
+local registeredAddon = nil
 
 local COPPER_PER_SILVER = 100
 local COPPER_PER_GOLD = 10000
@@ -169,5 +179,62 @@ function Utils.RetryWithTimer(addon, buildFunc, filterFunc, retries)
         addon:ScheduleTimer(function()
             Utils.RetryWithTimer(addon, buildFunc, filterFunc, retries + 1)
         end, Utils.RETRY_INTERVAL)
+    end
+end
+
+-------------------------------------------------------------------------------
+-- WaitForItem(addon, itemLink, buildFunc, filterFunc)
+-- Waits for GetItemInfo to be available for itemLink, then builds and queues
+-- a toast. Uses GET_ITEM_INFO_RECEIVED instead of polling to avoid up-to-1s
+-- lag on uncached items.
+-------------------------------------------------------------------------------
+
+function Utils.WaitForItem(addon, itemLink, buildFunc, filterFunc)
+    local data = buildFunc()
+    if data then
+        if filterFunc(data) then
+            ns.ToastManager.QueueToast(data)
+        end
+        return
+    end
+
+    -- Item not cached yet - extract itemID and register for the event
+    local itemID = tonumber(itemLink:match("item:(%d+)"))
+    if not itemID then return end
+
+    if not pendingItems[itemID] then
+        pendingItems[itemID] = {}
+    end
+    table_insert(pendingItems[itemID], { buildFunc = buildFunc, filterFunc = filterFunc })
+
+    if not itemEventRegistered then
+        itemEventRegistered = true
+        registeredAddon = addon
+        addon:RegisterEvent("GET_ITEM_INFO_RECEIVED", function(_, id, success)
+            local entries = pendingItems[id]
+            if not entries then return end
+
+            pendingItems[id] = nil
+
+            if success ~= true then
+                -- Item data unavailable - silently drop
+                ns.DebugPrint("WaitForItem: item " .. tostring(id) .. " data unavailable (success=" ..
+                    tostring(success) .. ")")
+            else
+                for _, entry in ipairs(entries) do
+                    local builtData = entry.buildFunc()
+                    if builtData and entry.filterFunc(builtData) then
+                        ns.ToastManager.QueueToast(builtData)
+                    end
+                end
+            end
+
+            -- Unregister when no more pending items
+            if not next(pendingItems) then
+                itemEventRegistered = false
+                registeredAddon:UnregisterEvent("GET_ITEM_INFO_RECEIVED")
+                registeredAddon = nil
+            end
+        end)
     end
 end
