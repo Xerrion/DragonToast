@@ -4,6 +4,19 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [3.4.1](https://github.com/Xerrion/DragonToast/compare/3.4.0...3.4.1) (2026-04-20)
+
+
+### 🐛 Bug Fixes
+
+* guard loot and money chat listeners against secret string taint ([#176](https://github.com/Xerrion/DragonToast/issues/176)) ([#178](https://github.com/Xerrion/DragonToast/issues/178)) ([1885fce](https://github.com/Xerrion/DragonToast/commit/1885fce51b76835a2340479430b0b0674c78e9b4))
+* guard OnToastFinished in OnLeave against active lifecycle phases ([#171](https://github.com/Xerrion/DragonToast/issues/171)) ([#175](https://github.com/Xerrion/DragonToast/issues/175)) ([61feaf3](https://github.com/Xerrion/DragonToast/commit/61feaf3e84298d86f6e15ad893a96f9a29195eda))
+
+
+### ⚙️ Miscellaneous Tasks
+
+* auto-assign all new issues to Xerrion ([#172](https://github.com/Xerrion/DragonToast/issues/172)) ([b02e44b](https://github.com/Xerrion/DragonToast/commit/b02e44bc9a1b1a07d0ee3093797a50f072ba61d7))
+
 ## [3.4.0](https://github.com/Xerrion/DragonToast/compare/3.3.0...3.4.0) (2026-04-15)
 
 
