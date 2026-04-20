@@ -11,12 +11,16 @@ local Utils = ns.ListenerUtils
 -- Cache Lua globals
 local tostring = tostring
 local tonumber = tonumber
+local type = type
 local math_floor = math.floor
 local string_format = string.format
 local table_concat = table.concat
 local table_insert = table.insert
 local ipairs = ipairs
 local next = next
+
+-- Cache WoW API
+local C_ChatInfo = C_ChatInfo
 
 -- Pending item lookups: itemID (number) -> { buildFunc, filterFunc }
 -- Multiple entries can share the same itemID (e.g. two loots of the same item in quick succession)
@@ -156,6 +160,26 @@ function Utils.FormatGold(copper)
     if copperRemainder > 0 then parts[#parts + 1] = copperRemainder .. COPPER_SUFFIX end
     if #parts == 0 then parts[#parts + 1] = ZERO_COPPER_TEXT end
     return string_format("|T%d:0:0:0:0|t%s", Utils.GOLD_ICON, table_concat(parts, " "))
+end
+
+-------------------------------------------------------------------------------
+-- IsIndexableChatMessage(msg, lineID)
+--
+-- Retail occasionally emits CHAT_MSG_* payloads as Blizzard "secret"
+-- (censored) strings. Any index / match operation on them raises a
+-- tainted-string error. Callers guard handlers with a string type check
+-- and a C_ChatInfo.IsChatLineCensored probe before touching the message.
+-- The C_ChatInfo namespace does not exist on TBC / MoP Classic, so it is
+-- nil-checked here.
+-------------------------------------------------------------------------------
+
+function Utils.IsIndexableChatMessage(msg, lineID)
+    if type(msg) ~= "string" then return false end
+    if C_ChatInfo and C_ChatInfo.IsChatLineCensored and lineID
+        and C_ChatInfo.IsChatLineCensored(lineID) then
+        return false
+    end
+    return true
 end
 
 -------------------------------------------------------------------------------

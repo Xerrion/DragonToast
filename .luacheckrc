@@ -51,6 +51,7 @@ files["DragonToast/"] = {
 
     read_globals = {
         -- WoW API
+        "C_ChatInfo",
         "IsInInstance", "UnitName", "UnitClass",
         "UnitFactionGroup",
         "GetItemInfo", "GetItemQualityColor", "GetItemCount", "C_Item", "C_Container",
@@ -60,6 +61,7 @@ files["DragonToast/"] = {
         "ChatFrame_OpenChat", "IsShiftKeyDown",
         "InCombatLockdown", "hooksecurefunc",
         "InterfaceOptionsFrame_OpenToCategory", "Settings",
+        "geterrorhandler",
 
         -- WoW Globals
         "Enum", "RAID_CLASS_COLORS", "ITEM_QUALITY_COLORS",
