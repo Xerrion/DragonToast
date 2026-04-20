@@ -16,7 +16,6 @@ local Utils = ns.ListenerUtils
 local GetItemInfo = GetItemInfo
 local GetTime = GetTime
 local UnitName = UnitName
-local C_ChatInfo = C_ChatInfo
 local error = error
 local geterrorhandler = geterrorhandler
 local ipairs = ipairs
@@ -27,23 +26,8 @@ local tostring = tostring
 local type = type
 
 -------------------------------------------------------------------------------
--- Chat message sanity guard
---
--- Retail occasionally emits CHAT_MSG_LOOT / CHAT_MSG_MONEY payloads as
--- Blizzard "secret" (censored) strings. Any index / match operation on them
--- raises a tainted-string error. Guard handlers with a string type check and
--- a C_ChatInfo.IsChatLineCensored probe before touching the message. The
--- C_ChatInfo namespace does not exist on TBC / MoP Classic, so nil-check it.
+-- Chat message sanity guard - see Utils.IsIndexableChatMessage
 -------------------------------------------------------------------------------
-
-local function IsIndexableChatMessage(msg, lineID)
-    if type(msg) ~= "string" then return false end
-    if C_ChatInfo and C_ChatInfo.IsChatLineCensored and lineID
-        and C_ChatInfo.IsChatLineCensored(lineID) then
-        return false
-    end
-    return true
-end
 
 local PLAYER_UNIT = "player"
 
@@ -369,7 +353,7 @@ function ns.LootListenerShared.Create(config)
         -- event+text, lineID is the 10th element of the remaining varargs.
         local lineID = select(10, ...)
         -- Skip non-string or censored (tainted) payloads to avoid retail secret-string errors.
-        if not IsIndexableChatMessage(msg, lineID) then return end
+        if not Utils.IsIndexableChatMessage(msg, lineID) then return end
 
         local playerName = UnitName(PLAYER_UNIT) or UNKNOWN
         -- Parse under pcall; a tainted string can still slip through if Blizzard changes the
@@ -394,7 +378,7 @@ function ns.LootListenerShared.Create(config)
         -- event+text, lineID is the 10th element of the remaining varargs.
         local lineID = select(10, ...)
         -- Skip non-string or censored (tainted) payloads to avoid retail secret-string errors.
-        if not IsIndexableChatMessage(msg, lineID) then return end
+        if not Utils.IsIndexableChatMessage(msg, lineID) then return end
 
         local db = owner.db.profile
         if not db.enabled or not db.filters.showGold then return end
