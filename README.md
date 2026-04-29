@@ -4,116 +4,147 @@
 
 # Dragon Toast
 
-*Every drop deserves a toast: a dragon-forged loot feed for your adventures.*  
+*Every drop deserves a toast: a dragon-forged loot feed for your adventures.*
 
 [![Latest Release](https://img.shields.io/github/v/release/Xerrion/DragonToast?style=for-the-badge)](https://github.com/Xerrion/DragonToast/releases/latest)
-[![License](https://img.shields.io/github/license/Xerrion/DragonToast?style=for-the-badge)](LICENSE)
+[![License](https://img.shields.io/github/license/Xerrion/DragonToast?style=for-the-badge)](https://github.com/Xerrion/DragonToast/blob/master/LICENSE)
 [![WoW Versions](https://img.shields.io/badge/WoW-TBC%20Anniversary%20%C2%B7%20MoP%20Classic%20%C2%B7%20Retail-blue?style=for-the-badge&logo=battledotnet)](https://worldofwarcraft.blizzard.com/)
+[![CurseForge](https://img.shields.io/badge/CurseForge-1468628-F16436?style=for-the-badge&logo=curseforge)](https://www.curseforge.com/wow/addons/dragon-toast)
+[![Wago](https://img.shields.io/badge/Wago-E6gvQAN1-C1272D?style=for-the-badge)](https://addons.wago.io/addons/dragon-toast)
 [![Lint](https://img.shields.io/github/actions/workflow/status/Xerrion/DragonToast/lint.yml?style=for-the-badge&label=lint)](https://github.com/Xerrion/DragonToast/actions)
 
 </div>
 
+DragonToast displays clean, configurable toast notifications for in-game events: loot, gold, currency, quest items, XP,
+honor, reputation, mail, and roll wins.
+
 ## 🐉 Features
 
-- Animated toast notifications for all loot types: items, gold, currency, quest items, XP, and honor gains
-- Quality-colored item names with configurable minimum quality filter
-- Stacking feed with configurable max toasts and growth direction (up/down)
-- Smooth entrance, attention, and exit animations
-- Duplicate stacking (x2, x3...) and consecutive XP gain aggregation
-- ElvUI skin matching: automatically uses ElvUI fonts, textures, and borders when detected
-- Toggleable toast info: icon, item level, type/subtype, looter name, quantity
-- Shift-click to link items in chat, hover for tooltip
-- Combat deferral: queue toasts during combat, flush when combat ends
-- Optional loot sounds via LibSharedMedia
-- Minimap icon with quick-access controls (left-click config, right-click toggle, shift-click test)
-- Full LibSharedMedia-3.0 support for fonts, textures, and sounds
+- Toasts for items, gold, currency, quest items, XP, honor, reputation, mail, and roll wins
+- Event-driven item loading and staggered queue for smooth performance during heavy loot sessions
+- Stacking toasts that respect their full visible lifetime for natural feed growth
+- Inventory item count badge displayed on item toasts (configurable)
+- Configurable slot-based layout with adjustable stack direction, spacing, and max toast count
+- Hover-pause - holding your cursor over a toast extends its visible lifetime for reading tooltips
+- Built-in skin presets for quick visual restyling (Minimal, Dark, Neon, Parchment, and more)
+- LibSharedMedia integration: full control over fonts, background textures, and borders
+- Sound picker with bundled default notification sounds
+- Defer-in-combat option to delay toast display until after combat ends
+- DragonLoot AceComm integration: suppresses duplicate loot toasts and queues celebration toasts for roll wins
+- Companion `DragonToast_Options` LoadOnDemand addon (embeds DragonWidgets shared library)
+- 11 locales: English, German, Spanish (EU/MX), French, Italian, Korean, Portuguese, Russian, and Chinese (CN/TW)
 
 ## 🎮 Supported Versions
 
-| Version         | Interface              | Status       |
-|:----------------|:-----------------------|:-------------|
-| TBC Anniversary | 20505                  | ✅ Primary   |
-| Mists Classic   | 50502, 50503           | ✅ Supported |
-| Retail          | 110207, 120001, 120000 | ✅ Secondary |
+| Version         | Interface | Status       |
+|:----------------|:----------|:-------------|
+| TBC Anniversary | 20505     | ✅ Primary   |
+| Mists Classic   | 50503     | ✅ Supported |
+| Retail          | 120005    | ✅ Secondary |
 
 ## 📦 Installation
 
 ### Download
 
-[![CurseForge](https://img.shields.io/badge/CurseForge-Download-F16436?style=for-the-badge&logo=curseforge)](https://www.curseforge.com/wow/addons/dragon-toast)
-[![Wago](https://img.shields.io/badge/Wago-Download-C1272D?style=for-the-badge)](https://addons.wago.io/addons/dragon-toast)
-[![GitHub](https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&logo=github)](https://github.com/Xerrion/DragonToast/releases/latest)
+The recommended way to install DragonToast is via a management client like CurseForge or Wago.
+
+- **CurseForge**: [Download](https://www.curseforge.com/wow/addons/dragon-toast)
+- **Wago**: [Download](https://addons.wago.io/addons/dragon-toast)
+- **GitHub**: [Latest Release](https://github.com/Xerrion/DragonToast/releases/latest)
 
 ### Manual Install
 
-1. Download the latest release from one of the sources above
-2. Extract the `DragonToast` folder into your AddOns directory:
+1. Download the latest release.
+2. Extract the `DragonToast` and `DragonToast_Options` folders into your AddOns directory.
+3. Restart World of Warcraft or type `/reload`.
 
-   ```text
-   World of Warcraft/_retail_/Interface/AddOns/DragonToast/
-   ```
+## 🔌 Sub-addons
 
-3. Restart WoW or type `/reload`
+DragonToast is split into two parts to keep memory usage low:
+- **DragonToast**: The main engine and listeners. Always loaded.
+- **DragonToast_Options**: The configuration panel. Loads on demand only when you open the settings.
 
-## ⌨️ Commands
+## 🍞 Toast Types
 
-Use `/dt` or `/dragontoast`.
+| Type | Description |
+|:-----|:------------|
+| Loot | Items looted by yourself or group members with quality filtering |
+| XP | Experience gains with consecutive aggregation |
+| Honor | Honor gains with faction-specific icon support |
+| Reputation | Reputation gains with standing information |
+| Mail | Notifications for new mail, auction sales, and won auctions |
+| Currency | Track gold, badges, and other currency gains |
+| Roll-Win | Celebration toasts for items won via rolls (requires DragonLoot) |
 
-Typing `/dt` by itself shows the help list. Use `/dt toggle` if you want to enable or disable the addon.
+## ⌨️ Slash Commands
 
-| Command | What it does |
-|:--------|:-------------|
-| `/dt` | Show the help list |
-| `/dt help` | Show the help list |
-| `/dt toggle` | Turn DragonToast on or off |
-| `/dt config` | Open the settings panel |
-| `/dt lock` | Lock or unlock the toast anchor so you can move it |
-| `/dt test` | Show a single test toast |
-| `/dt test stack` | Test item stacking with rapid item toasts |
-| `/dt test xp` | Test XP stacking |
-| `/dt test gold` | Test gold stacking |
-| `/dt test honor` | Test honor stacking |
-| `/dt test reputation` | Test reputation stacking |
-| `/dt test all` | Run all stacking tests |
-| `/dt testmode` | Toggle continuous test toasts |
+Use `/dt` or the alias `/dragontoast`.
+
+| Command | Description |
+|:--------|:------------|
+| `/dt help` | Show the command list |
+| `/dt toggle` | Toggle the addon on or off |
+| `/dt config` | Open the options panel (aliases: `options`, `settings`) |
+| `/dt lock` | Toggle the anchor frame for repositioning (aliases: `unlock`, `move`) |
+| `/dt test` | Show a sample toast |
+| `/dt reset` | Reset the toast anchor position |
 | `/dt clear` | Dismiss all active toasts |
-| `/dt reset` | Reset the toast anchor to its default position |
-| `/dt status` | Show your current DragonToast settings |
+| `/dt status` | Show current configuration status |
 
 ## ⚙️ Configuration
 
-- **General**: Enable/disable addon, show minimap icon, defer toasts during combat, test mode toggle, show test toast, clear all toasts
-- **Filters**: Minimum item quality (Poor through Legendary), loot sources (self, group), reward types (gold, currency, quest items, XP, honor)
-- **Display**: Layout (max toasts, growth direction, spacing), toast size (width, height), toast content (icon, item level, type/subtype, quantity, looter name, gold format, text padding), position (unlock anchor, reset position)
-- **Animation**: Enable/disable animations, timing (entrance duration, display duration, fade-out duration), entrance (animation style, distance), attention (animation style, minimum quality, repeat count, delay), exit (animation style, distance), repositioning speed
-- **Appearance**: Font (face, primary/secondary size, outline), background (color, opacity, texture), border and glow (quality-colored border, thickness, texture, quality glow strip, glow width, glow texture), icon size, ElvUI style matching
-- **Sound**: Enable/disable notification sound, sound effect picker via LibSharedMedia
-- **Profiles**: AceDB profile management (create, copy, delete, reset)
+Settings are stored in the `DragonToastDB` global and managed via the options panel:
 
-Access settings with `/dt config` or click the minimap icon.
+| Tab | Settings |
+|:----|:---------|
+| General | Addon toggle, anchor lock, minimap icon, combat deferral, sound toggle |
+| Filters | Quality threshold, loot sources, and individual toggles for each toast type |
+| Display | Toast dimensions, slot count, stack direction, spacing, and bag count badge |
+| Animation | Entrance/exit styles and durations, attention animations, and hover-pause |
+| Appearance | Skin presets, fonts, backgrounds, quality borders, and ElvUI style matching |
+| Profiles | Standard AceDB profile management (create, copy, reset) |
 
 ## 🔌 Integration API
 
-DragonToast provides a generic AceEvent messaging API for other addons to control toast behavior:
+DragonToast listens for AceComm-3.0 messages. Other addons can trigger or suppress toasts without a hard dependency.
 
-| Message | Payload | Purpose |
-|:--------|:--------|:--------|
-| `DRAGONTOAST_SUPPRESS` | `source` (string) | Suppress item toasts while your addon handles loot |
-| `DRAGONTOAST_UNSUPPRESS` | `source` (string) | Resume normal toast display |
-| `DRAGONTOAST_QUEUE_TOAST` | `toastData` (table) | Queue a custom toast notification |
+| Message | Payload | Description |
+|:--------|:--------|:------------|
+| `DRAGONTOAST_SUPPRESS` | `source` (string) | Suppress normal loot toasts (120s safety timer) |
+| `DRAGONTOAST_UNSUPPRESS` | `source` (string) | Clear suppression for the given source |
+| `DRAGONTOAST_QUEUE_TOAST` | `data` (table) | Queue a toast with a custom data payload |
 
-Messages are fire-and-forget via `AceEvent:SendMessage()` - no dependency on DragonToast required. See [AGENTS.md](AGENTS.md) for the full toast data contract and integration guide.
+### Example Usage
+
+```lua
+-- Queue a custom toast via AceEvent-3.0
+local payload = {
+    itemName = "Sulfuras, Hand of Ragnaros",
+    itemIcon = 132711,
+    itemQuality = 5,
+    quantity = 1,
+    isSelf = true
+}
+LibStub("AceEvent-3.0"):SendMessage("DRAGONTOAST_QUEUE_TOAST", payload)
+```
+
+## 🌍 Localization
+
+DragonToast is fully localized for 11 regions: enUS, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, and zhTW.
+Translation contributions are always welcome via GitHub pull requests.
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, coding standards, and the PR process. All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+Contributions are welcome! If you are a developer, please refer to the `AGENTS.md` file in the repository root for
+detailed coding standards and architecture documentation. The project uses `luacheck` for linting and `busted` for
+unit testing.
 
 ## ❤️ Support
 
-If you would like to support Dragon Toast, you can sponsor the project on [GitHub Sponsors](https://github.com/sponsors/Xerrion) or buy me a coffee on [Ko-fi](https://ko-fi.com/Xerrion).
+If you would like to support the development of DragonToast, you can sponsor the project on [GitHub Sponsors](https://github.com/sponsors/Xerrion) or buy me a coffee on [Ko-fi](https://ko-fi.com/Xerrion).
 
 ## 📄 License
 
 This project is licensed under the **MIT License**. See the [LICENSE](https://github.com/Xerrion/DragonToast/blob/master/LICENSE) file for details.
 
-Made with ❤️ by [Xerrion](https://github.com/Xerrion)
+Made with ❤️ by [Xerrion]
