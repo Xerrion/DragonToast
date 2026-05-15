@@ -69,6 +69,16 @@ local function CreateLayoutSection(parent, yOffset)
     LC.AnchorWidget(maxToasts, parent, yOffset)
     yOffset = yOffset - maxToasts:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
+    local queueStagger = W.CreateSlider(parent, {
+        label = L["Queue Stagger"],
+        tooltip = L["Delay between showing consecutive toasts from the queue (in seconds)"],
+        min = 0, max = 1, step = 0.05,
+        get = function() return db.profile.display.queueStagger end,
+        set = function(value) db.profile.display.queueStagger = value end,
+    })
+    LC.AnchorWidget(queueStagger, parent, yOffset)
+    yOffset = yOffset - queueStagger:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+
     local growDirection = W.CreateDropdown(parent, {
         label = L["Grow Direction"],
         tooltip = L["Direction toasts stack from the anchor"],
