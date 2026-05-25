@@ -169,16 +169,14 @@ local function ProcessSnapshot(snapshot)
         if PassesFilter(lootData) then
             ns.ToastManager.QueueToast(lootData)
         end
-        return
+    elseif snapshot.type == "item" then
+        Utils.WaitForItem(
+            owner,
+            "item:" .. snapshot.itemID,
+            function() return BuildMailItemData(snapshot) end,
+            PassesFilter
+        )
     end
-
-    if snapshot.type ~= "item" then return end
-
-    Utils.RetryWithTimer(
-        owner,
-        function() return BuildMailItemData(snapshot) end,
-        PassesFilter
-    )
 end
 
 local function QueueSnapshot(queue, snapshot)
