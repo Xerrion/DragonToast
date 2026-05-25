@@ -4,6 +4,18 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [3.5.0](https://github.com/Xerrion/DragonToast/compare/3.4.2...3.5.0) (2026-05-25)
+
+
+### 🚀 Features
+
+* event-driven mail item loading and queue stagger UI ([#166](https://github.com/Xerrion/DragonToast/issues/166)) ([#185](https://github.com/Xerrion/DragonToast/issues/185)) ([516fd21](https://github.com/Xerrion/DragonToast/commit/516fd21868efe7a2a099e5d78e54dd2ada61e92d))
+
+
+### ⚙️ Miscellaneous Tasks
+
+* ignore .deliverables/ orchestration scratchpad ([52f215b](https://github.com/Xerrion/DragonToast/commit/52f215b3d534c5f79938b1cb86f4cd7c917a11e9))
+
 ## [3.4.2](https://github.com/Xerrion/DragonToast/compare/3.4.1...3.4.2) (2026-04-22)
 
 
