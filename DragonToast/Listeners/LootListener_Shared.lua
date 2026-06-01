@@ -114,7 +114,7 @@ local function BuildConfiguredPattern(patternConfig, context)
         error("LootListener_Shared.Create - " .. context .. ".fallbackString must be a non-empty string", 3)
     end
 
-    return Utils.BuildPattern(patternConfig.globalString or patternConfig.fallbackString)
+    return Utils.BuildPattern(patternConfig.globalString or patternConfig.fallbackString, true)
 end
 
 local function BuildPatternPair(pairConfig, context)
@@ -284,18 +284,18 @@ end
 
 local function ParseLootMessage(msg, lootCategories, playerName)
     for _, category in ipairs(lootCategories) do
-        local itemLink, quantity = TrySelfPair(msg, category.self)
-        if itemLink then
-            return itemLink, quantity, playerName, true
-        end
-    end
-
-    for _, category in ipairs(lootCategories) do
         if category.other then
             local looter, itemLink, quantity = TryOtherPair(msg, category.other)
             if itemLink then
                 return itemLink, quantity, looter, false
             end
+        end
+    end
+
+    for _, category in ipairs(lootCategories) do
+        local itemLink, quantity = TrySelfPair(msg, category.self)
+        if itemLink then
+            return itemLink, quantity, playerName, true
         end
     end
 
