@@ -4,6 +4,13 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [3.5.2](https://github.com/Xerrion/DragonToast/compare/3.5.1...3.5.2) (2026-06-17)
+
+
+### ⚙️ Miscellaneous Tasks
+
+* update TOC Interface versions ([#190](https://github.com/Xerrion/DragonToast/issues/190)) ([184e406](https://github.com/Xerrion/DragonToast/commit/184e40608c58505966701e26b5b9c21f9a09253b))
+
 ## [3.5.1](https://github.com/Xerrion/DragonToast/compare/3.5.0...3.5.1) (2026-06-08)
 
 
