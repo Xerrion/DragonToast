@@ -368,6 +368,7 @@ local STACK_TEST_ALL_GROUPS = {
     { label = "gold",       make = MakeStackTestGoldData,       delay = STACK_TEST_GOLD_DELAY },
     { label = "honor",      make = MakeStackTestHonorData,      delay = STACK_TEST_HONOR_DELAY },
     { label = "reputation", make = MakeStackTestReputationData, delay = STACK_TEST_REPUTATION_DELAY },
+    { label = "reputation loss", make = MakeStackTestReputationLossData, delay = STACK_TEST_REPUTATION_DELAY },
 }
 
 function ns.TestToasts.RunStackTest(testType)
