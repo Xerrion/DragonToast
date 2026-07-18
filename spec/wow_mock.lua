@@ -43,6 +43,17 @@ function GetMoney()
     return M._money or 0
 end
 
+function GetNumFactions()
+    return #(M._factionRows or {})
+end
+
+function GetFactionInfo(index)
+    local row = (M._factionRows or {})[index]
+    if not row then return nil end
+    return row.name, nil, nil, nil, nil, row.barValue, nil, nil, row.isHeader,
+        nil, nil, nil, nil, row.factionID
+end
+
 -------------------------------------------------------------------------------
 -- Frame mock
 -------------------------------------------------------------------------------
@@ -215,7 +226,9 @@ function M.CreateNamespace()
     }
 
     ns.ReputationListener = {
-        GetReputationIcon = function() return 134400 end,
+        GetReputationIcon = function(direction)
+            return direction == "loss" and "ReputationLoss" or "ReputationGain"
+        end,
     }
 
     -- Mock Addon (Ace3 mixin)
@@ -246,6 +259,7 @@ function M.CreateNamespace()
                     showHonor = true,
                     showMail = true,
                     showReputation = true,
+                    showReputationLoss = true,
                 },
                 combat = {
                     deferInCombat = false,
@@ -277,6 +291,7 @@ function M.CreateNamespace()
         end,
         CancelTimer = function() end,
         RegisterEvent = function() end,
+        UnregisterEvent = function() end,
     }
 
     -- Mock AceLocale (identity passthrough: L["key"] returns "key")
@@ -285,6 +300,7 @@ function M.CreateNamespace()
         FORMAT_PLUS_XP = "+%s XP",
         FORMAT_PLUS_HONOR = "+%s Honor",
         FORMAT_PLUS_REPUTATION = "+%s Reputation",
+        FORMAT_MINUS_REPUTATION = "-%s Reputation",
         FORMAT_ILVL = "ilvl %s",
         FORMAT_MAIL_FROM = "Mail - %s",
         CONFIRM_DELETE_PROFILE = "Are you sure you want to delete the profile \"%s\"?",
@@ -329,6 +345,7 @@ function M.Reset(ns)
     M._inCombat = false
     M._suppressed = false
     M._money = 0
+    M._factionRows = {}
 
     -- Clear active toasts
     local t = ns.ToastManager._test

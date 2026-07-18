@@ -112,7 +112,10 @@ local CURRENCY_TOGGLES = {
     { key = "showCurrency",   label = L["Show Currency"],     tooltip = L["Show toasts for currency gains"] },
     { key = "showXP",         label = L["Show XP"],           tooltip = L["Show toasts for experience gains"] },
     { key = "showHonor",      label = L["Show Honor"],        tooltip = L["Show toasts for honor gains"] },
-    { key = "showReputation", label = L["Show Reputation"],   tooltip = L["Show toasts for reputation gains"] },
+    { key = "showReputation", label = L["Show Reputation Gains"],
+        tooltip = L["Show toasts for reputation gains"] },
+    { key = "showReputationLoss", label = L["Show Reputation Losses"],
+        tooltip = L["Show toasts for reputation losses"] },
 }
 
 -- Creates the "Currency and Rewards" section and its filter toggles, anchored at the given vertical offset.

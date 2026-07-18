@@ -48,6 +48,7 @@ local GOLD_ACCENT_COLOR = { r = 1, g = 0.82, b = 0 }
 local MONEY_LOSS_COLOR = { r = 1, g = 0.2, b = 0.2 }
 local HONOR_TOAST_COLOR = { r = 1, g = 0.24, b = 0.17 }
 local REPUTATION_TOAST_COLOR = { r = 0.35, g = 0.85, b = 0.55 }
+local REPUTATION_LOSS_TOAST_COLOR = { r = 0.95, g = 0.3, b = 0.3 }
 local WHITE_TEXT_COLOR = { r = 1, g = 1, b = 1 }
 local MUTED_TEXT_COLOR = { r = 0.7, g = 0.7, b = 0.7 }
 local SECONDARY_TEXT_COLOR = { r = 0.5, g = 0.5, b = 0.5 }
@@ -280,6 +281,9 @@ local function GetToastColor(lootData)
     end
 
     if lootData.isReputation then
+        if lootData.reputationDirection == "loss" then
+            return REPUTATION_LOSS_TOAST_COLOR.r, REPUTATION_LOSS_TOAST_COLOR.g, REPUTATION_LOSS_TOAST_COLOR.b
+        end
         return REPUTATION_TOAST_COLOR.r, REPUTATION_TOAST_COLOR.g, REPUTATION_TOAST_COLOR.b
     end
 

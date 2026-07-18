@@ -14,8 +14,14 @@ local L = ns.L
 -------------------------------------------------------------------------------
 
 local GetTime = GetTime
+local GetFactionInfo = GetFactionInfo
+local GetNumFactions = GetNumFactions
 local UnitName = UnitName
+local ipairs = ipairs
+local pairs = pairs
+local table_sort = table.sort
 local tonumber = tonumber
+local type = type
 local string_format = string.format
 local string_match = string.match
 
@@ -27,8 +33,11 @@ local owner
 -- Constants
 -------------------------------------------------------------------------------
 
-local REPUTATION_ICON_FALLBACK = Utils.QUESTION_MARK_ICON
+local REPUTATION_GAIN_ICON = "Interface\\AddOns\\DragonToast\\Media\\ReputationGain"
+local REPUTATION_LOSS_ICON = "Interface\\AddOns\\DragonToast\\Media\\ReputationLoss"
 local REPUTATION_QUALITY = 1
+local REPUTATION_DIRECTION_GAIN = "gain"
+local REPUTATION_DIRECTION_LOSS = "loss"
 
 -------------------------------------------------------------------------------
 -- Pattern Building
@@ -91,33 +100,29 @@ end
 
 -------------------------------------------------------------------------------
 -- Toast Data
--- Create a toast data table representing a reputation gain.
--- @param reputationAmount number The amount of reputation gained.
--- @param factionName string The name of the faction whose reputation changed.
--- @param icon string|nil The icon texture to display for the toast; may be nil to use a fallback.
--- @return table A table containing toast fields:
---   - isReputation: true
---   - reputationAmount: number
---   - factionName: string
---   - itemIcon: string|nil
---   - itemName: string (localized formatted reputation text)
---   - itemQuality: number
---   - itemLevel: number
---   - itemType: nil
---   - itemSubType: nil
---   - quantity: number
---   - looter: string
---   - isSelf: boolean
---   - isCurrency: boolean
---   - timestamp: number (seconds since epoch from GetTime)
 
-local function BuildReputationToast(reputationAmount, factionName, icon)
+local function NormalizeDirection(direction)
+    if direction == REPUTATION_DIRECTION_LOSS then return REPUTATION_DIRECTION_LOSS end
+    return REPUTATION_DIRECTION_GAIN
+end
+
+local function GetDefaultReputationIcon(direction)
+    if NormalizeDirection(direction) == REPUTATION_DIRECTION_LOSS then return REPUTATION_LOSS_ICON end
+    return REPUTATION_GAIN_ICON
+end
+
+local function BuildReputationToast(reputationAmount, factionName, direction, factionID, icon)
+    local normalizedDirection = NormalizeDirection(direction)
+    local label = normalizedDirection == REPUTATION_DIRECTION_LOSS and L["-%s Reputation"] or L["+%s Reputation"]
+
     return {
         isReputation = true,
         reputationAmount = reputationAmount,
+        reputationDirection = normalizedDirection,
+        factionID = factionID,
         factionName = factionName,
-        itemIcon = icon,
-        itemName = string_format(L["+%s Reputation"], ns.FormatNumber(reputationAmount)),
+        itemIcon = icon or GetDefaultReputationIcon(normalizedDirection),
+        itemName = string_format(label, ns.FormatNumber(reputationAmount)),
         itemQuality = REPUTATION_QUALITY,
         itemLevel = 0,
         itemType = nil,
@@ -130,6 +135,57 @@ local function BuildReputationToast(reputationAmount, factionName, icon)
     }
 end
 
+local function BuildFactionSnapshot()
+    local snapshot = {}
+
+    for index = 1, GetNumFactions() do
+        local factionName, _, _, _, _, barValue, _, _, isHeader, _, _, _, _, factionID = GetFactionInfo(index)
+        if not isHeader and type(factionID) == "number" and factionName and factionName ~= ""
+            and type(barValue) == "number" then
+            snapshot[factionID] = {
+                factionID = factionID,
+                factionName = factionName,
+                barValue = barValue,
+            }
+        end
+    end
+
+    return snapshot
+end
+
+local function DiffFactionSnapshots(previousSnapshot, currentSnapshot)
+    local changes = {}
+
+    for factionID, current in pairs(currentSnapshot) do
+        local previous = previousSnapshot[factionID]
+        if previous then
+            local delta = current.barValue - previous.barValue
+            if delta ~= 0 then
+                changes[#changes + 1] = {
+                    factionID = factionID,
+                    factionName = current.factionName,
+                    amount = delta < 0 and -delta or delta,
+                    reputationDirection = delta < 0 and REPUTATION_DIRECTION_LOSS or REPUTATION_DIRECTION_GAIN,
+                }
+            end
+        end
+    end
+
+    table_sort(changes, function(left, right) return left.factionID < right.factionID end)
+    return changes
+end
+
+local function FindFactionIDByName(snapshot, factionName)
+    local matchedFactionID
+    for factionID, faction in pairs(snapshot) do
+        if faction.factionName == factionName then
+            if matchedFactionID then return nil end
+            matchedFactionID = factionID
+        end
+    end
+    return matchedFactionID
+end
+
 -------------------------------------------------------------------------------
 -- Factory
 -------------------------------------------------------------------------------
@@ -137,8 +193,10 @@ end
 function ns.ReputationListenerShared.Create(config)
     config = config or {}
 
-    local reputationIcon = config.icon or REPUTATION_ICON_FALLBACK
+    local reputationGainIcon = config.gainIcon or config.icon or REPUTATION_GAIN_ICON
+    local reputationLossIcon = config.lossIcon or REPUTATION_LOSS_ICON
     local patterns = {}
+    local factionSnapshot = {}
 
     local function OnChatMsgCombatFactionChange(_, text)
         local db = owner.db.profile
@@ -149,7 +207,29 @@ function ns.ReputationListenerShared.Create(config)
         if not reputationAmount or reputationAmount <= 0 then return end
         if not factionName or factionName == "" then return end
 
-        ns.ToastManager.QueueToast(BuildReputationToast(reputationAmount, factionName, reputationIcon))
+        local factionID = FindFactionIDByName(factionSnapshot, factionName)
+        ns.ToastManager.QueueToast(BuildReputationToast(
+            reputationAmount, factionName, REPUTATION_DIRECTION_GAIN, factionID, reputationGainIcon
+        ))
+    end
+
+    local function OnUpdateFaction()
+        local previousSnapshot = factionSnapshot
+        local currentSnapshot = BuildFactionSnapshot()
+        local changes = DiffFactionSnapshots(previousSnapshot, currentSnapshot)
+        factionSnapshot = currentSnapshot
+
+        local db = owner.db.profile
+        if not db.enabled or not db.filters.showReputationLoss then return end
+
+        for _, change in ipairs(changes) do
+            if change.reputationDirection == REPUTATION_DIRECTION_LOSS then
+                ns.ToastManager.QueueToast(BuildReputationToast(
+                    change.amount, change.factionName, change.reputationDirection,
+                    change.factionID, reputationLossIcon
+                ))
+            end
+        end
     end
 
     local listener = {}
@@ -158,17 +238,32 @@ function ns.ReputationListenerShared.Create(config)
         owner = addon
         patterns = BuildPatterns()
         addon:RegisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE", OnChatMsgCombatFactionChange)
+        addon:RegisterEvent("UPDATE_FACTION", OnUpdateFaction)
+        factionSnapshot = BuildFactionSnapshot()
         ns.DebugPrint("ReputationListener initialized")
     end
 
     function listener.Shutdown()
-        owner:UnregisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE")
+        if owner then
+            owner:UnregisterEvent("CHAT_MSG_COMBAT_FACTION_CHANGE")
+            owner:UnregisterEvent("UPDATE_FACTION")
+        end
+        owner = nil
+        patterns = {}
+        factionSnapshot = {}
         ns.DebugPrint("ReputationListener shutdown")
     end
 
-    function listener.GetReputationIcon()
-        return reputationIcon
+    function listener.GetReputationIcon(direction)
+        if NormalizeDirection(direction) == REPUTATION_DIRECTION_LOSS then return reputationLossIcon end
+        return reputationGainIcon
     end
 
     return listener
 end
+
+ns.ReputationListenerShared._test = {
+    BuildFactionSnapshot = BuildFactionSnapshot,
+    DiffFactionSnapshots = DiffFactionSnapshots,
+    BuildReputationToast = BuildReputationToast,
+}

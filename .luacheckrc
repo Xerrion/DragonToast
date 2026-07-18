@@ -52,7 +52,7 @@ files["DragonToast/"] = {
     read_globals = {
         -- WoW API
         "C_ChatInfo",
-        "IsInInstance", "UnitName", "UnitClass",
+        "IsInInstance", "UnitName", "UnitClass", "GetNumFactions", "GetFactionInfo",
         "UnitFactionGroup",
         "GetItemInfo", "GetItemQualityColor", "GetItemCount", "C_Item", "C_Container",
         "C_CurrencyInfo",
@@ -139,7 +139,7 @@ files["spec/**"] = {
     globals = {
         -- WoW API mocks (set as globals in wow_mock.lua)
         "GetTime", "GetMoney", "InCombatLockdown", "PlaySoundFile", "UnitName",
-        "GetCoinTextureString", "CreateFrame", "UIParent", "LibStub", "wipe",
+        "GetCoinTextureString", "GetNumFactions", "GetFactionInfo", "CreateFrame", "UIParent", "LibStub", "wipe",
 
         -- WoW money globals (set in ListenerUtils_spec.lua)
         "GOLD_AMOUNT", "SILVER_AMOUNT", "COPPER_AMOUNT",

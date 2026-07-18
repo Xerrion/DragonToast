@@ -51,6 +51,7 @@ local function PrintStatus()
     print("  " .. L["XP Gains"] .. ": " .. YesNo(db.filters.showXP))
     print("  " .. L["Honor Gains"] .. ": " .. YesNo(db.filters.showHonor))
     print("  " .. L["Reputation Gains"] .. ": " .. YesNo(db.filters.showReputation))
+    print("  " .. L["Reputation Losses"] .. ": " .. YesNo(db.filters.showReputationLoss))
     print("  " .. L["Mail"] .. ": " .. YesNo(db.filters.showMail))
     print("  " .. L["Max Toasts"] .. ": " .. db.display.maxToasts)
     print("  " .. L["Growth"] .. ": " .. db.display.growDirection)
@@ -82,6 +83,7 @@ local HELP_ENTRIES = {
     { " test gold",       L["Test gold accumulation"] },
     { " test honor",      L["Test honor accumulation"] },
     { " test reputation", L["Test reputation accumulation"] },
+    { " test reputationloss", L["Test reputation loss accumulation"] },
     { " test all",        L["Run all stacking tests"] },
     { " testmode",        L["Toggle continuous test toast generation"] },
     { " clear",           L["Dismiss all toasts"] },

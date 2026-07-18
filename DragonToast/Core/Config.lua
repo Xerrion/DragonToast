@@ -27,6 +27,7 @@ local defaults = {
             showXP = true,
             showHonor = true,
             showReputation = true,
+            showReputationLoss = true,
             showMail = true,
         },
 
@@ -128,6 +129,7 @@ local SIMPLE_MIGRATIONS = {
     { version = 8, section = "display",   key = "showItemCount", default = false },
     { version = 9, section = "display",   key = "queueStagger", default = 0.1 },
     { version = 10, section = "filters", key = "showMoneyLoss", default = true },
+    { version = 11, section = "filters", key = "showReputationLoss", default = true },
 }
 
 local function MigrateProfile(db)
