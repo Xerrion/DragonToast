@@ -43,7 +43,8 @@ local DUPLICATE_KIND_ITEM = "item"
 local DUPLICATE_KIND_XP = "xp"
 local DUPLICATE_KIND_HONOR = "honor"
 local DUPLICATE_KIND_REPUTATION = "reputation"
-local DUPLICATE_KIND_GOLD = "gold"
+local DUPLICATE_KIND_GOLD_GAIN = "goldGain"
+local DUPLICATE_KIND_GOLD_LOSS = "goldLoss"
 local DUPLICATE_KIND_CURRENCY = "currency"
 local ANCHOR_FRAME_SIZE = 1
 local DRAG_OVERLAY_WIDTH = 120
@@ -72,7 +73,11 @@ local function GetDuplicateKind(existingLootData, incomingLootData)
     end
 
     if incomingLootData.copperAmount and existingLootData.copperAmount then
-        return DUPLICATE_KIND_GOLD
+        local incomingDirection = incomingLootData.moneyDirection or "gain"
+        local existingDirection = existingLootData.moneyDirection or "gain"
+        if incomingDirection == existingDirection then
+            return incomingDirection == "loss" and DUPLICATE_KIND_GOLD_LOSS or DUPLICATE_KIND_GOLD_GAIN
+        end
     end
 
     if incomingLootData.currencyID and existingLootData.currencyID == incomingLootData.currencyID then
@@ -82,6 +87,7 @@ local function GetDuplicateKind(existingLootData, incomingLootData)
     if not incomingLootData.isXP and not existingLootData.isXP
         and not incomingLootData.isHonor and not existingLootData.isHonor
         and not incomingLootData.isReputation and not existingLootData.isReputation
+        and not incomingLootData.copperAmount and not existingLootData.copperAmount
         and not incomingLootData.currencyID and not existingLootData.currencyID
         and existingLootData.itemID == incomingLootData.itemID
         and existingLootData.isSelf == incomingLootData.isSelf then
@@ -97,7 +103,8 @@ end
 -- @param incomingLootData Table containing the new loot values to merge into targetLootData.
 -- @param duplicateKind Identifier of the duplicate category; one of
 --   DUPLICATE_KIND_XP, DUPLICATE_KIND_HONOR, DUPLICATE_KIND_REPUTATION,
---   DUPLICATE_KIND_GOLD, DUPLICATE_KIND_CURRENCY, or
+--   DUPLICATE_KIND_GOLD_GAIN, DUPLICATE_KIND_GOLD_LOSS,
+--   DUPLICATE_KIND_CURRENCY, or
 --   DUPLICATE_KIND_ITEM. Determines which fields are aggregated and
 --   whether the display name is updated.
 -- @param timestamp Optional numeric time value to assign to
@@ -117,7 +124,7 @@ local function ApplyDuplicateStack(targetLootData, incomingLootData, duplicateKi
             + (incomingLootData.reputationAmount or 0)
         targetLootData.itemName = string_format(L["+%s Reputation"],
             ns.ToastManager.FormatNumber(targetLootData.reputationAmount))
-    elseif duplicateKind == DUPLICATE_KIND_GOLD then
+    elseif duplicateKind == DUPLICATE_KIND_GOLD_GAIN or duplicateKind == DUPLICATE_KIND_GOLD_LOSS then
         targetLootData.copperAmount = targetLootData.copperAmount + incomingLootData.copperAmount
     elseif duplicateKind == DUPLICATE_KIND_CURRENCY then
         targetLootData.quantity = (targetLootData.quantity or 1) + (incomingLootData.quantity or 1)
@@ -135,7 +142,7 @@ local function GetQueuedStackTimestamp(duplicateKind, incomingLootData, now)
         return nil
     end
 
-    if duplicateKind == DUPLICATE_KIND_GOLD then
+    if duplicateKind == DUPLICATE_KIND_GOLD_GAIN or duplicateKind == DUPLICATE_KIND_GOLD_LOSS then
         return incomingLootData.timestamp
     end
 

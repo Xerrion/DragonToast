@@ -107,7 +107,8 @@ local function CreateSourcesSection(parent, yOffset)
 end
 
 local CURRENCY_TOGGLES = {
-    { key = "showGold",       label = L["Show Gold"],         tooltip = L["Show toasts for gold gains"] },
+    { key = "showGold",       label = L["Show Gold Gains"],   tooltip = L["Show toasts for gold gains"] },
+    { key = "showMoneyLoss",  label = L["Show Money Losses"], tooltip = L["Show toasts for money losses"] },
     { key = "showCurrency",   label = L["Show Currency"],     tooltip = L["Show toasts for currency gains"] },
     { key = "showXP",         label = L["Show XP"],           tooltip = L["Show toasts for experience gains"] },
     { key = "showHonor",      label = L["Show Honor"],        tooltip = L["Show toasts for honor gains"] },

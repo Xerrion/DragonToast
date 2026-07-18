@@ -153,6 +153,7 @@ local function BuildMailMoneyData(snapshot)
         itemIcon = Utils.GOLD_ICON,
         quantity = 1,
         copperAmount = snapshot.copperAmount,
+        moneyDirection = "gain",
         looter = UnitName(PLAYER_UNIT),
         isSelf = true,
         isCurrency = true,

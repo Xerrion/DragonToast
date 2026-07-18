@@ -19,6 +19,7 @@ local GetCoinTextureString = GetCoinTextureString
 local GetTime = GetTime
 local UIParent = UIParent
 local STANDARD_TEXT_FONT = STANDARD_TEXT_FONT
+local math_abs = math.abs
 local math_ceil = math.ceil
 local string_format = string.format
 local GetItemCount = C_Item and C_Item.GetItemCount or GetItemCount
@@ -44,6 +45,7 @@ local QUALITY_BORDER_ALPHA = 0.6
 local DEFAULT_BORDER_COLOR = { r = 0.3, g = 0.3, b = 0.3, a = 0.8 }
 local DEFAULT_BACKGROUND_COLOR = { r = 0.05, g = 0.05, b = 0.05, a = 0.7 }
 local GOLD_ACCENT_COLOR = { r = 1, g = 0.82, b = 0 }
+local MONEY_LOSS_COLOR = { r = 1, g = 0.2, b = 0.2 }
 local HONOR_TOAST_COLOR = { r = 1, g = 0.24, b = 0.17 }
 local REPUTATION_TOAST_COLOR = { r = 0.35, g = 0.85, b = 0.55 }
 local WHITE_TEXT_COLOR = { r = 1, g = 1, b = 1 }
@@ -638,6 +640,14 @@ local function FormatMoney(copperAmount, format)
     end
 end
 
+local function FormatMoneyDisplay(lootData, format)
+    local amount = FormatMoney(math_abs(lootData.copperAmount), format)
+    if lootData.moneyDirection == "loss" then
+        return "-" .. amount
+    end
+    return amount
+end
+
 -- Populates the toast's item-related display fields (name, quantity,
 -- item level, type, and looter) according to the provided loot data and
 -- display configuration.
@@ -656,13 +666,15 @@ end
 local function PopulateItemContent(frame, lootData, db, r, g, b)
     -- Money or item name
     if lootData.copperAmount and lootData.itemSubType == "Gold" then
-        frame.itemName:SetText(FormatMoney(lootData.copperAmount, db.display.goldFormat))
+        frame.itemName:SetText(FormatMoneyDisplay(lootData, db.display.goldFormat))
     else
         frame.itemName:SetText(lootData.itemName)
     end
 
     -- Currency color
-    if lootData.isCurrency then
+    if lootData.moneyDirection == "loss" then
+        frame.itemName:SetTextColor(MONEY_LOSS_COLOR.r, MONEY_LOSS_COLOR.g, MONEY_LOSS_COLOR.b)
+    elseif lootData.isCurrency then
         frame.itemName:SetTextColor(GOLD_ACCENT_COLOR.r, GOLD_ACCENT_COLOR.g, GOLD_ACCENT_COLOR.b)
     else
         frame.itemName:SetTextColor(r, g, b)

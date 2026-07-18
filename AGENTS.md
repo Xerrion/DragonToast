@@ -71,6 +71,8 @@ Optional fields (auto-filled if missing):
 - `isRollWin` (boolean) - roll-win flag (bypasses suppression)
 - `isXP` (boolean) - XP flag (bypasses suppression, enables XP stacking)
 - `isHonor` (boolean) - honor flag (bypasses suppression, enables honor stacking)
+- `copperAmount` (number) - non-negative money magnitude in copper
+- `moneyDirection` (`"gain"` or `"loss"`) - money movement direction; omitted values remain gains for compatibility
 
 ### Suppression Mechanism
 

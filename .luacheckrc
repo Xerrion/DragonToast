@@ -26,7 +26,7 @@ read_globals = {
     "pcall", "sort",
 
     -- WoW API - General
-    "CreateFrame", "GetTime", "UIParent", "GameTooltip",
+    "CreateFrame", "GetTime", "GetMoney", "UIParent", "GameTooltip",
     "PlaySound", "PlaySoundFile",
     "C_Timer",
 
@@ -138,7 +138,7 @@ files["spec/**"] = {
     std = "+busted",
     globals = {
         -- WoW API mocks (set as globals in wow_mock.lua)
-        "GetTime", "InCombatLockdown", "PlaySoundFile", "UnitName",
+        "GetTime", "GetMoney", "InCombatLockdown", "PlaySoundFile", "UnitName",
         "GetCoinTextureString", "CreateFrame", "UIParent", "LibStub", "wipe",
 
         -- WoW money globals (set in ListenerUtils_spec.lua)

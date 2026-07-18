@@ -39,6 +39,10 @@ function GetCoinTextureString(copper)
     return tostring(copper) .. "c"
 end
 
+function GetMoney()
+    return M._money or 0
+end
+
 -------------------------------------------------------------------------------
 -- Frame mock
 -------------------------------------------------------------------------------
@@ -236,6 +240,7 @@ function M.CreateNamespace()
                     showGroupLoot = true,
                     showCurrency = true,
                     showGold = true,
+                    showMoneyLoss = true,
                     showQuestItems = true,
                     showXP = true,
                     showHonor = true,
@@ -323,6 +328,7 @@ function M.Reset(ns)
     mockTime = 0
     M._inCombat = false
     M._suppressed = false
+    M._money = 0
 
     -- Clear active toasts
     local t = ns.ToastManager._test

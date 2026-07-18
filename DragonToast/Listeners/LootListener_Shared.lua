@@ -14,6 +14,7 @@ local Utils = ns.ListenerUtils
 -------------------------------------------------------------------------------
 
 local GetItemInfo = GetItemInfo
+local GetMoney = GetMoney
 local GetTime = GetTime
 local UnitName = UnitName
 local error = error
@@ -32,6 +33,7 @@ local type = type
 local PLAYER_UNIT = "player"
 
 local owner
+local playerMoney
 
 -------------------------------------------------------------------------------
 -- Default money patterns (shared across all version wrappers)
@@ -209,7 +211,7 @@ local function BuildLootData(itemLink, quantity, looter, isSelf)
     }
 end
 
-local function BuildMoneyData(amount, copperAmount, looter, isSelf)
+local function BuildMoneyData(amount, copperAmount, looter, isSelf, moneyDirection)
     return {
         itemLink = nil,
         itemID = nil,
@@ -221,6 +223,7 @@ local function BuildMoneyData(amount, copperAmount, looter, isSelf)
         itemIcon = Utils.GOLD_ICON,
         quantity = 1,
         copperAmount = copperAmount,
+        moneyDirection = moneyDirection or "gain",
         looter = looter,
         isSelf = isSelf,
         isCurrency = true,
@@ -331,6 +334,12 @@ local function QueueMoneyToast(amount, looter, isSelf)
     end
 end
 
+local function QueueMoneyLossToast(copperAmount)
+    local playerName = UnitName(PLAYER_UNIT) or UNKNOWN
+    local lootData = BuildMoneyData(tostring(copperAmount), copperAmount, playerName, true, "loss")
+    ns.ToastManager.QueueToast(lootData)
+end
+
 -------------------------------------------------------------------------------
 -- Factory
 -------------------------------------------------------------------------------
@@ -395,16 +404,42 @@ function ns.LootListenerShared.Create(config)
         QueueMoneyToast(amount, looter, isSelf)
     end
 
+    local function OnPlayerEnteringWorld()
+        playerMoney = GetMoney()
+    end
+
+    local function OnPlayerMoney()
+        local currentMoney = GetMoney()
+        if playerMoney == nil then
+            playerMoney = currentMoney
+            return
+        end
+
+        local delta = currentMoney - playerMoney
+        playerMoney = currentMoney
+        if delta >= 0 then return end
+
+        local db = owner.db.profile
+        if not db.enabled or not db.filters.showMoneyLoss then return end
+
+        QueueMoneyLossToast(-delta)
+    end
+
     function listener.Initialize(addon)
         owner = addon
         addon:RegisterEvent("CHAT_MSG_LOOT", OnChatMsgLoot)
         addon:RegisterEvent("CHAT_MSG_MONEY", OnChatMsgMoney)
+        addon:RegisterEvent("PLAYER_ENTERING_WORLD", OnPlayerEnteringWorld)
+        addon:RegisterEvent("PLAYER_MONEY", OnPlayerMoney)
         ns.DebugPrint(config.versionName .. " Loot Listener initialized")
     end
 
     function listener.Shutdown()
         owner:UnregisterEvent("CHAT_MSG_LOOT")
         owner:UnregisterEvent("CHAT_MSG_MONEY")
+        owner:UnregisterEvent("PLAYER_ENTERING_WORLD")
+        owner:UnregisterEvent("PLAYER_MONEY")
+        playerMoney = nil
         ns.DebugPrint(config.versionName .. " Loot Listener shut down")
     end
 

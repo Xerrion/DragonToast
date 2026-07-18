@@ -323,6 +323,20 @@ describe("ToastFrame item count display", function()
         assert.is_false(frame.itemCount._shown)
     end)
 
+    it("displays a loss as a red signed money magnitude", function()
+        local data = makeItemData({
+            copperAmount = 12345,
+            itemSubType = "Gold",
+            isCurrency = true,
+            moneyDirection = "loss",
+        })
+
+        ns.ToastFrame.Populate(frame, data)
+
+        assert.equal("-1g 23s 45c", frame.itemName._text)
+        assert.same({ r = 1, g = 0.2, b = 0.2, a = nil }, frame.itemName._textColor)
+    end)
+
     it("anchors itemCount to content TOPRIGHT regardless of itemLevel visibility", function()
         ns.Addon.db.profile.display.showItemLevel = false
         local data = makeItemData()
