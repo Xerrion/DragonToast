@@ -22,6 +22,7 @@ local defaults = {
             showGroupLoot = true,
             showCurrency = true,
             showGold = true,
+            showMoneyLoss = true,
             showQuestItems = true,
             showXP = true,
             showHonor = true,
@@ -126,6 +127,7 @@ local SIMPLE_MIGRATIONS = {
     { version = 7, section = "animation", key = "pauseOnHover",  default = true },
     { version = 8, section = "display",   key = "showItemCount", default = false },
     { version = 9, section = "display",   key = "queueStagger", default = 0.1 },
+    { version = 10, section = "filters", key = "showMoneyLoss", default = true },
 }
 
 local function MigrateProfile(db)

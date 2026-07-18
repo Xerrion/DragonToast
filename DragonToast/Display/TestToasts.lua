@@ -86,7 +86,9 @@ local function CreateProgressionTestLootData(flagField, amountField, amount, lab
     return lootData
 end
 
-local function CreateMoneyTestLootData(copperAmount, quality, itemLevel, itemType, itemSubType, itemIcon)
+local function CreateMoneyTestLootData(
+    copperAmount, quality, itemLevel, itemType, itemSubType, itemIcon, moneyDirection
+)
     return CreateTestLootData({
         itemLink = nil,
         itemID = nil,
@@ -98,6 +100,7 @@ local function CreateMoneyTestLootData(copperAmount, quality, itemLevel, itemTyp
         itemSubType = itemSubType,
         itemIcon = itemIcon,
         isCurrency = true,
+        moneyDirection = moneyDirection or "gain",
     })
 end
 
@@ -155,6 +158,8 @@ local function GetTestItems()
           icon = 132744, id = 32754 },
         { name = "Gold Loot", quality = 1, level = 0, type = "Currency", subType = "Gold",
           icon = 133784, id = 99998, isMoney = true, copperAmount = 12345 },
+        { name = "Money Loss", quality = 1, level = 0, type = "Currency", subType = "Gold",
+          icon = 133784, id = 99995, isMoney = true, copperAmount = 6789, moneyDirection = "loss" },
         { name = "+1,234 XP", quality = 1, level = 0, type = nil, subType = nil,
           icon = 894556, id = 99999, isXP = true, xpAmount = 1234 },
         { name = "+150 Honor", quality = 1, level = 0, type = nil, subType = nil,
@@ -207,7 +212,7 @@ local function BuildTestLootData(test)
     elseif test.isMoney then
         return CreateMoneyTestLootData(
             test.copperAmount, test.quality, test.level,
-            test.type, test.subType, test.icon
+            test.type, test.subType, test.icon, test.moneyDirection
         )
     else
         return CreateItemTestLootData(test, math_random(1, 3))

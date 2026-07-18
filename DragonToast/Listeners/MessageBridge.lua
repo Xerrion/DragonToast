@@ -97,6 +97,11 @@ end
 local function OnQueueToast(_, toastData)
     if type(toastData) ~= "table" then return end
     if not toastData.itemName or not toastData.itemIcon or not toastData.itemQuality then return end
+    if toastData.moneyDirection ~= nil
+        and toastData.moneyDirection ~= "gain"
+        and toastData.moneyDirection ~= "loss" then
+        return
+    end
 
     local db = ns.Addon.db.profile
     if not db.enabled then return end

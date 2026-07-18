@@ -55,6 +55,7 @@ local function CreateAddon(eventHandlers)
                     showSelfLoot = true,
                     showGroupLoot = true,
                     showGold = true,
+                    showMoneyLoss = true,
                     showQuestItems = true,
                 },
             },
@@ -91,11 +92,15 @@ local function CreateLootListenerHarness(lootCategories)
         versionName = "Spec",
         lootCategories = lootCategories,
     })
-    listener.Initialize(CreateAddon(eventHandlers))
+    local addon = CreateAddon(eventHandlers)
+    listener.Initialize(addon)
 
     return {
         queuedToasts = queuedToasts,
         chatLoot = eventHandlers.CHAT_MSG_LOOT,
+        eventHandlers = eventHandlers,
+        addon = addon,
+        listener = listener,
     }
 end
 
@@ -202,5 +207,72 @@ describe("LootListenerShared loot parsing", function()
         assert.equal(ITEM_LINK, lootData.itemLink)
         assert.equal(ITEM_NAME, lootData.itemName)
         assert.equal(1, lootData.quantity)
+    end)
+end)
+
+describe("LootListenerShared money loss detection", function()
+    before_each(function()
+        mock._money = 0
+        mock.SetTime(100)
+    end)
+
+    it("registers and unregisters money lifecycle events", function()
+        local harness = CreateDefaultHarness()
+
+        assert.is_function(harness.eventHandlers.PLAYER_ENTERING_WORLD)
+        assert.is_function(harness.eventHandlers.PLAYER_MONEY)
+
+        harness.listener.Shutdown()
+
+        assert.is_nil(harness.eventHandlers.PLAYER_ENTERING_WORLD)
+        assert.is_nil(harness.eventHandlers.PLAYER_MONEY)
+    end)
+
+    it("baselines on entering world and queues each later loss", function()
+        local harness = CreateDefaultHarness()
+        mock._money = 10000
+        harness.eventHandlers.PLAYER_ENTERING_WORLD()
+        assert.equal(0, #harness.queuedToasts)
+
+        mock._money = 7500
+        harness.eventHandlers.PLAYER_MONEY()
+        mock._money = 7000
+        harness.eventHandlers.PLAYER_MONEY()
+
+        assert.equal(2, #harness.queuedToasts)
+        assert.equal(2500, harness.queuedToasts[1].copperAmount)
+        assert.equal(500, harness.queuedToasts[2].copperAmount)
+        assert.equal("loss", harness.queuedToasts[1].moneyDirection)
+    end)
+
+    it("does not toast first samples or non-negative deltas", function()
+        local harness = CreateDefaultHarness()
+        mock._money = 10000
+        harness.eventHandlers.PLAYER_MONEY()
+        harness.eventHandlers.PLAYER_MONEY()
+        mock._money = 11000
+        harness.eventHandlers.PLAYER_MONEY()
+
+        assert.equal(0, #harness.queuedToasts)
+    end)
+
+    it("updates the baseline while disabled and while the loss filter is off", function()
+        local harness = CreateDefaultHarness()
+        mock._money = 10000
+        harness.eventHandlers.PLAYER_ENTERING_WORLD()
+
+        harness.addon.db.profile.enabled = false
+        mock._money = 9000
+        harness.eventHandlers.PLAYER_MONEY()
+        harness.addon.db.profile.enabled = true
+        harness.addon.db.profile.filters.showMoneyLoss = false
+        mock._money = 8000
+        harness.eventHandlers.PLAYER_MONEY()
+        harness.addon.db.profile.filters.showMoneyLoss = true
+        mock._money = 7500
+        harness.eventHandlers.PLAYER_MONEY()
+
+        assert.equal(1, #harness.queuedToasts)
+        assert.equal(500, harness.queuedToasts[1].copperAmount)
     end)
 end)

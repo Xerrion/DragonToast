@@ -99,6 +99,14 @@ local function makeGoldData(overrides)
     return data
 end
 
+local function makeMoneyLossData(overrides)
+    local data = makeGoldData({ moneyDirection = "loss" })
+    if overrides then
+        for k, v in pairs(overrides) do data[k] = v end
+    end
+    return data
+end
+
 local function makeCurrencyData(overrides)
     local data = {
         itemID = 99999,
@@ -235,6 +243,12 @@ describe("ToastManager", function()
             assert.equal(1, idx)
         end)
 
+        it("matches losses only to losses", function()
+            T.ShowToast(makeMoneyLossData())
+            assert.is_not_nil(T.FindDuplicate(makeMoneyLossData()))
+            assert.is_nil(T.FindDuplicate(makeGoldData()))
+        end)
+
         it("matches item by itemID and isSelf", function()
             T.ShowToast(makeItemData())
             local existing, idx = T.FindDuplicate(makeItemData())
@@ -328,6 +342,17 @@ describe("ToastManager", function()
             ns.Addon.db.profile.display.maxToasts = 5
         end)
 
+        it("keeps queued gains and losses separate while stacking losses", function()
+            ns.Addon.db.profile.display.maxToasts = 0
+            T.ShowToast(makeGoldData({ copperAmount = 10000 }))
+            T.ShowToast(makeMoneyLossData({ copperAmount = 2000 }))
+            T.ShowToast(makeMoneyLossData({ copperAmount = 3000 }))
+
+            assert.equal(2, T.QueueSize(T.toastQueue))
+            assert.equal(5000, T.toastQueue[T.toastQueue.first + 1].copperAmount)
+            ns.Addon.db.profile.display.maxToasts = 5
+        end)
+
         it("stacks currency by currencyID in queue", function()
             ns.Addon.db.profile.display.maxToasts = 0
             T.ShowToast(makeCurrencyData({ currencyID = 1191, quantity = 2 }))
@@ -361,6 +386,17 @@ describe("ToastManager", function()
             assert.is_not_nil(existing)
             assert.is_nil(idx)
             assert.equal(3, existing.quantity)
+        end)
+
+        it("keeps combat-deferred gains and losses separate while stacking losses", function()
+            T.QueuePush(T.combatQueue, makeGoldData({ copperAmount = 10000 }))
+            T.QueuePush(T.combatQueue, makeMoneyLossData({ copperAmount = 2000 }))
+
+            local existing = T.FindDuplicate(makeMoneyLossData({ copperAmount = 3000 }))
+
+            assert.equal(2, T.QueueSize(T.combatQueue))
+            assert.equal(5000, existing.copperAmount)
+            assert.equal("loss", existing.moneyDirection)
         end)
 
         it("returns nil index for queue matches", function()
@@ -427,6 +463,17 @@ describe("ToastManager", function()
             T.ShowToast(makeGoldData({ copperAmount = 20000 }))
             assert.equal(1, #T.activeToasts)
             assert.equal(30000, T.activeToasts[1].lootData.copperAmount)
+        end)
+
+        it("stacks losses without netting them against gains", function()
+            T.ShowToast(makeGoldData({ copperAmount = 10000 }))
+            T.ShowToast(makeMoneyLossData({ copperAmount = 2000 }))
+            T.ShowToast(makeMoneyLossData({ copperAmount = 3000 }))
+
+            assert.equal(2, #T.activeToasts)
+            assert.equal(5000, T.activeToasts[1].lootData.copperAmount)
+            assert.equal("loss", T.activeToasts[1].lootData.moneyDirection)
+            assert.equal(10000, T.activeToasts[2].lootData.copperAmount)
         end)
 
         it("stacks items: increments quantity", function()
