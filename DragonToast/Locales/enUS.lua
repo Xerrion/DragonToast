@@ -18,6 +18,7 @@ L["You"] = true
 -- DragonToast/Display/ToastManager.lua
 L["+%s Honor"] = true
 L["+%s Reputation"] = true
+L["-%s Reputation"] = true
 L["+%s XP"] = true
 L["Drag to move"] = true
 
@@ -73,6 +74,7 @@ L["Quest Items"] = true
 L["XP Gains"] = true
 L["Honor Gains"] = true
 L["Reputation Gains"] = true
+L["Reputation Losses"] = true
 L["Growth"] = true
 L["Animations"] = true
 L["s"] = true
@@ -90,6 +92,7 @@ L["Test XP accumulation"] = true
 L["Test gold accumulation"] = true
 L["Test honor accumulation"] = true
 L["Test reputation accumulation"] = true
+L["Test reputation loss accumulation"] = true
 L["Run all stacking tests"] = true
 L["Toggle continuous test toast generation"] = true
 L["Dismiss all toasts"] = true
@@ -120,7 +123,7 @@ L["Anchor unlocked -- drag to reposition"] = true
 L["Test mode started"] = true
 L["Test mode stopped"] = true
 L["Unknown test type: "] = true
-L["Usage: /dt test [stack|xp|gold|honor|reputation|all]"] = true
+L["Usage: /dt test [stack|xp|gold|honor|reputation|reputationloss|all]"] = true
 
 -------------------------------------------------------------------------------
 -- DragonToast_Options
@@ -161,7 +164,8 @@ L["Show Group Loot"] = true
 L["Show Honor"] = true
 L["Show Mail"] = true
 L["Show Quest Items"] = true
-L["Show Reputation"] = true
+L["Show Reputation Gains"] = true
+L["Show Reputation Losses"] = true
 L["Show Self Loot"] = true
 L["Show XP"] = true
 L["Show Money Losses"] = true
@@ -173,6 +177,7 @@ L["Show toasts for honor gains"] = true
 L["Show toasts for mail attachments"] = true
 L["Show toasts for quest item pickups"] = true
 L["Show toasts for reputation gains"] = true
+L["Show toasts for reputation losses"] = true
 L["Show toasts when group members receive loot"] = true
 L["Show toasts when you loot items"] = true
 

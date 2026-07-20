@@ -21,6 +21,7 @@ honor, reputation, mail, and roll wins.
 ## 🐉 Features
 
 - Toasts for items, gold, currency, quest items, XP, honor, reputation, mail, and roll wins
+- Separate reputation gain and loss notifications; losses reflect net changes between discoverable faction snapshots
 - Event-driven item loading and staggered queue for smooth performance during heavy loot sessions
 - Stacking toasts that respect their full visible lifetime for natural feed growth
 - Inventory item count badge displayed on item toasts (configurable)
@@ -71,7 +72,7 @@ DragonToast is split into two parts to keep memory usage low:
 | Loot | Items looted by yourself or group members with quality filtering |
 | XP | Experience gains with consecutive aggregation |
 | Honor | Honor gains with faction-specific icon support |
-| Reputation | Reputation gains with standing information |
+| Reputation | Direction-aware reputation gains and net observable losses with separate filters |
 | Mail | Notifications for new mail, auction sales, and won auctions |
 | Currency | Track gold, badges, and other currency gains |
 | Roll-Win | Celebration toasts for items won via rolls (requires DragonLoot) |

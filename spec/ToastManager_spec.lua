@@ -76,6 +76,24 @@ local function makeHonorData(overrides)
     return data
 end
 
+local function makeReputationData(overrides)
+    local data = {
+        isReputation = true,
+        reputationAmount = 100,
+        reputationDirection = "gain",
+        factionID = 932,
+        factionName = "The Sha'tar",
+        itemIcon = "ReputationGain",
+        itemName = "+100 Reputation",
+        itemQuality = 1,
+        timestamp = GetTime(),
+    }
+    if overrides then
+        for k, v in pairs(overrides) do data[k] = v end
+    end
+    return data
+end
+
 local function makeGoldData(overrides)
     local data = {
         itemLink = nil,
@@ -236,6 +254,17 @@ describe("ToastManager", function()
             assert.equal(1, idx)
         end)
 
+        it("matches reputation by faction ID and normalized direction", function()
+            T.ShowToast(makeReputationData({ reputationDirection = nil }))
+            assert.is_not_nil(T.FindDuplicate(makeReputationData({ reputationDirection = "gain" })))
+        end)
+
+        it("keeps reputation gains and losses separate in active toasts", function()
+            T.ShowToast(makeReputationData())
+            T.ShowToast(makeReputationData({ reputationDirection = "loss" }))
+            assert.equal(2, #T.activeToasts)
+        end)
+
         it("matches Gold toast to active Gold toast", function()
             T.ShowToast(makeGoldData())
             local existing, idx = T.FindDuplicate(makeGoldData())
@@ -327,6 +356,18 @@ describe("ToastManager", function()
             assert.is_nil(idx)
             assert.equal(125, existing.honorAmount)
 
+            ns.Addon.db.profile.display.maxToasts = 5
+        end)
+
+        it("keeps reputation gains and losses separate in normal and combat queues", function()
+            ns.Addon.db.profile.display.maxToasts = 0
+            T.ShowToast(makeReputationData())
+            T.ShowToast(makeReputationData({ reputationDirection = "loss" }))
+            assert.equal(2, T.QueueSize(T.toastQueue))
+            T.QueueReset(T.toastQueue)
+            T.QueuePush(T.combatQueue, makeReputationData())
+            local existing = T.FindDuplicate(makeReputationData({ reputationDirection = "loss" }))
+            assert.is_nil(existing)
             ns.Addon.db.profile.display.maxToasts = 5
         end)
 
@@ -456,6 +497,15 @@ describe("ToastManager", function()
             assert.equal(1, #T.activeToasts)
             assert.equal(125, T.activeToasts[1].lootData.honorAmount)
             assert.truthy(T.activeToasts[1].lootData.itemName:find("125"))
+        end)
+
+        it("stacks same-direction reputation and preserves the loss label", function()
+            T.ShowToast(makeReputationData({ reputationAmount = 50, reputationDirection = "loss" }))
+            T.ShowToast(makeReputationData({ reputationAmount = 75, reputationDirection = "loss" }))
+            assert.equal(1, #T.activeToasts)
+            assert.equal(125, T.activeToasts[1].lootData.reputationAmount)
+            assert.equal("loss", T.activeToasts[1].lootData.reputationDirection)
+            assert.equal("-125 Reputation", T.activeToasts[1].lootData.itemName)
         end)
 
         it("stacks Gold: sums copperAmount", function()

@@ -44,10 +44,10 @@ local function CreateFontStringSpy()
 end
 
 local function CreateTextureSpy()
-    return {
+    local texture = {
         SetAllPoints = function() end,
         SetColorTexture = function() end,
-        SetTexture = function() end,
+        SetTexture = function(self, value) self._texture = value end,
         SetVertexColor = function() end,
         SetTexCoord = function() end,
         SetSize = function() end,
@@ -57,6 +57,7 @@ local function CreateTextureSpy()
         Show = function() end,
         Hide = function() end,
     }
+    return texture
 end
 
 local function CreateRichMockFrame()
@@ -373,5 +374,22 @@ describe("ToastFrame item count display", function()
         local padV = ns.Addon.db.profile.display.textPaddingV
         -- Y offset must use the live font size (14), not the default (10)
         assert.equal(-padV - 14 - 2, anchor.y)
+    end)
+
+    it("uses the loss icon, label, and red color for reputation losses", function()
+        local data = makeItemData({
+            isReputation = true,
+            reputationAmount = 250,
+            reputationDirection = "loss",
+            factionName = "The Sha'tar",
+            itemName = "-250 Reputation",
+            itemIcon = "ReputationLoss",
+        })
+        ns.ToastFrame.Populate(frame, data)
+        assert.equal("ReputationLoss", frame.icon._texture)
+        assert.equal("-250 Reputation", frame.itemName._text)
+        assert.equal(0.95, frame.itemName._textColor.r)
+        assert.equal(0.3, frame.itemName._textColor.g)
+        assert.equal(0.3, frame.itemName._textColor.b)
     end)
 end)

@@ -54,6 +54,10 @@ local DEFAULT_ANCHOR_POINT = "RIGHT"
 local DEFAULT_ANCHOR_X = -20
 local DEFAULT_ANCHOR_Y = 0
 
+local function NormalizeReputationDirection(direction)
+    return direction == "loss" and "loss" or "gain"
+end
+
 local function IsRecentLoot(timestamp, now)
     return timestamp and (now - timestamp) < DUPLICATE_WINDOW
 end
@@ -68,8 +72,13 @@ local function GetDuplicateKind(existingLootData, incomingLootData)
     end
 
     if incomingLootData.isReputation and existingLootData.isReputation
-        and existingLootData.factionName == incomingLootData.factionName then
-        return DUPLICATE_KIND_REPUTATION
+        and NormalizeReputationDirection(existingLootData.reputationDirection)
+            == NormalizeReputationDirection(incomingLootData.reputationDirection) then
+        if existingLootData.factionID and incomingLootData.factionID then
+            if existingLootData.factionID == incomingLootData.factionID then return DUPLICATE_KIND_REPUTATION end
+        elseif existingLootData.factionName == incomingLootData.factionName then
+            return DUPLICATE_KIND_REPUTATION
+        end
     end
 
     if incomingLootData.copperAmount and existingLootData.copperAmount then
@@ -122,7 +131,10 @@ local function ApplyDuplicateStack(targetLootData, incomingLootData, duplicateKi
     elseif duplicateKind == DUPLICATE_KIND_REPUTATION then
         targetLootData.reputationAmount = (targetLootData.reputationAmount or 0)
             + (incomingLootData.reputationAmount or 0)
-        targetLootData.itemName = string_format(L["+%s Reputation"],
+        local direction = NormalizeReputationDirection(targetLootData.reputationDirection)
+        targetLootData.reputationDirection = direction
+        local label = direction == "loss" and L["-%s Reputation"] or L["+%s Reputation"]
+        targetLootData.itemName = string_format(label,
             ns.ToastManager.FormatNumber(targetLootData.reputationAmount))
     elseif duplicateKind == DUPLICATE_KIND_GOLD_GAIN or duplicateKind == DUPLICATE_KIND_GOLD_LOSS then
         targetLootData.copperAmount = targetLootData.copperAmount + incomingLootData.copperAmount

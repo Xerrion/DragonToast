@@ -124,7 +124,8 @@ end
 -------------------------------------------------------------------------------
 
 local HONOR_ICON_FALLBACK = 136986
-local REPUTATION_ICON_FALLBACK = 136814
+local REPUTATION_GAIN_ICON_FALLBACK = "Interface\\AddOns\\DragonToast\\Media\\ReputationGain"
+local REPUTATION_LOSS_ICON_FALLBACK = "Interface\\AddOns\\DragonToast\\Media\\ReputationLoss"
 
 local testItems
 
@@ -135,11 +136,11 @@ local function GetHonorIcon()
     return HONOR_ICON_FALLBACK
 end
 
-local function GetReputationIcon()
+local function GetReputationIcon(direction)
     if ns.ReputationListener and ns.ReputationListener.GetReputationIcon then
-        return ns.ReputationListener.GetReputationIcon()
+        return ns.ReputationListener.GetReputationIcon(direction)
     end
-    return REPUTATION_ICON_FALLBACK
+    return direction == "loss" and REPUTATION_LOSS_ICON_FALLBACK or REPUTATION_GAIN_ICON_FALLBACK
 end
 
 local function GetTestItems()
@@ -166,8 +167,11 @@ local function GetTestItems()
           icon = GetHonorIcon(), id = 99997, isHonor = true, honorAmount = 150,
           victimName = "Enemy Player" },
         { name = "+250 Reputation", quality = 1, level = 0, type = nil, subType = nil,
-          icon = GetReputationIcon(), id = 99996, isReputation = true,
-          reputationAmount = 250, factionName = "The Sha'tar" },
+          icon = GetReputationIcon("gain"), id = 99996, isReputation = true,
+          reputationAmount = 250, reputationDirection = "gain", factionName = "The Sha'tar" },
+        { name = "-250 Reputation", quality = 1, level = 0, type = nil, subType = nil,
+          icon = GetReputationIcon("loss"), id = 99995, isReputation = true,
+          reputationAmount = 250, reputationDirection = "loss", factionName = "The Sha'tar" },
     }
     return testItems
 end
@@ -203,10 +207,13 @@ local function BuildTestLootData(test)
         return lootData
     elseif test.isReputation then
         local amount = test.reputationAmount + math_random(0, 200)
+        local direction = test.reputationDirection == "loss" and "loss" or "gain"
+        local label = direction == "loss" and L["-%s Reputation"] or L["+%s Reputation"]
         local lootData = CreateProgressionTestLootData(
-            "isReputation", "reputationAmount", amount, L["+%s Reputation"],
-            test.icon, "factionName", test.factionName
+            "isReputation", "reputationAmount", amount, label,
+            GetReputationIcon(direction), "factionName", test.factionName
         )
+        lootData.reputationDirection = direction
         lootData.itemQuality = test.quality
         return lootData
     elseif test.isMoney then
@@ -312,15 +319,20 @@ local function MakeStackTestHonorData()
     )
 end
 
--- Creates a reputation progression loot data object used by stack-test commands.
--- The returned table is configured for a reputation gain: `isReputation = true`, `reputationAmount = 250`,
--- `label` set from `L["+%s Reputation"]`, `icon` from `GetReputationIcon()`, and `factionName = "The Sha'tar"`.
--- @return A loot data table representing a 250-point reputation gain for "The Sha'tar".
-local function MakeStackTestReputationData()
-    return CreateProgressionTestLootData(
+local function MakeStackTestReputationData(direction)
+    local normalizedDirection = direction == "loss" and "loss" or "gain"
+    local label = normalizedDirection == "loss" and L["-%s Reputation"] or L["+%s Reputation"]
+    local lootData = CreateProgressionTestLootData(
         "isReputation", "reputationAmount", 250, L["+%s Reputation"],
-        GetReputationIcon(), "factionName", "The Sha'tar"
+        GetReputationIcon(normalizedDirection), "factionName", "The Sha'tar"
     )
+    lootData.itemName = string_format(label, ns.FormatNumber(lootData.reputationAmount))
+    lootData.reputationDirection = normalizedDirection
+    return lootData
+end
+
+local function MakeStackTestReputationLossData()
+    return MakeStackTestReputationData("loss")
 end
 
 local function FireStackToast(lootData, delay)
@@ -347,6 +359,7 @@ local STACK_TEST_DISPATCH = {
     honor = { label = "honor",      make = MakeStackTestHonorData },
     rep   = { label = "reputation", make = MakeStackTestReputationData },
     reputation = { label = "reputation", make = MakeStackTestReputationData },
+    reputationloss = { label = "reputation loss", make = MakeStackTestReputationLossData },
 }
 
 local STACK_TEST_ALL_GROUPS = {
@@ -355,6 +368,7 @@ local STACK_TEST_ALL_GROUPS = {
     { label = "gold",       make = MakeStackTestGoldData,       delay = STACK_TEST_GOLD_DELAY },
     { label = "honor",      make = MakeStackTestHonorData,      delay = STACK_TEST_HONOR_DELAY },
     { label = "reputation", make = MakeStackTestReputationData, delay = STACK_TEST_REPUTATION_DELAY },
+    { label = "reputation loss", make = MakeStackTestReputationLossData, delay = STACK_TEST_REPUTATION_DELAY },
 }
 
 function ns.TestToasts.RunStackTest(testType)
@@ -372,7 +386,7 @@ function ns.TestToasts.RunStackTest(testType)
     local entry = STACK_TEST_DISPATCH[testType]
     if not entry then
         ns.Print(L["Unknown test type: "] .. ns.COLOR_WHITE .. (testType or "nil") .. ns.COLOR_RESET)
-        ns.Print(L["Usage: /dt test [stack|xp|gold|honor|reputation|all]"])
+        ns.Print(L["Usage: /dt test [stack|xp|gold|honor|reputation|reputationloss|all]"])
         return
     end
 
