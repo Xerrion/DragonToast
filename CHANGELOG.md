@@ -4,6 +4,14 @@
 
 * fix changelog list items ([#65](https://github.com/Xerrion/DragonToast/issues/65)) ([1c399f4](https://github.com/Xerrion/DragonToast/commit/1c399f41beacb7b0b8b07ddd63df7422190ece88))
 
+## [3.6.0](https://github.com/Xerrion/DragonToast/compare/3.5.3...3.6.0) (2026-07-20)
+
+
+### 🚀 Features
+
+* add money loss toast notifications ([#194](https://github.com/Xerrion/DragonToast/issues/194)) ([#196](https://github.com/Xerrion/DragonToast/issues/196)) ([d9d6c8a](https://github.com/Xerrion/DragonToast/commit/d9d6c8aa7cf6dc3ea20ca3cabe4a9fa3e115238f))
+* add reputation change toast notifications ([#195](https://github.com/Xerrion/DragonToast/issues/195)) ([#198](https://github.com/Xerrion/DragonToast/issues/198)) ([5c9b1b6](https://github.com/Xerrion/DragonToast/commit/5c9b1b6436d1b04504fe0abd0dc598325081a4ff))
+
 ## [3.5.3](https://github.com/Xerrion/DragonToast/compare/3.5.2...3.5.3) (2026-07-09)
 
 
