@@ -33,9 +33,10 @@ describe("ReputationListener", function()
     local addon
     local queued
     local handlers
+    local savedGlobals
+    local savedFactionRows
 
-    before_each(function()
-        mock._factionRows = {}
+    local function CreateListener()
         ns = LoadListener()
         queued = {}
         handlers = {}
@@ -46,6 +47,31 @@ describe("ReputationListener", function()
             UnregisterEvent = function(_, event) handlers[event] = nil end,
         }
         listener = ns.ReputationListenerShared.Create()
+    end
+
+    before_each(function()
+        savedGlobals = {
+            C_Reputation = _G.C_Reputation,
+            GetNumFactions = _G.GetNumFactions,
+            GetFactionInfo = _G.GetFactionInfo,
+            FACTION_STANDING_INCREASED = _G.FACTION_STANDING_INCREASED,
+            FACTION_STANDING_INCREASED_BONUS = _G.FACTION_STANDING_INCREASED_BONUS,
+            FACTION_STANDING_INCREASED_ACH_BONUS = _G.FACTION_STANDING_INCREASED_ACH_BONUS,
+        }
+        savedFactionRows = mock._factionRows
+        mock._factionRows = {}
+        _G.C_Reputation = nil
+        CreateListener()
+    end)
+
+    after_each(function()
+        _G.C_Reputation = savedGlobals.C_Reputation
+        _G.GetNumFactions = savedGlobals.GetNumFactions
+        _G.GetFactionInfo = savedGlobals.GetFactionInfo
+        _G.FACTION_STANDING_INCREASED = savedGlobals.FACTION_STANDING_INCREASED
+        _G.FACTION_STANDING_INCREASED_BONUS = savedGlobals.FACTION_STANDING_INCREASED_BONUS
+        _G.FACTION_STANDING_INCREASED_ACH_BONUS = savedGlobals.FACTION_STANDING_INCREASED_ACH_BONUS
+        mock._factionRows = savedFactionRows
     end)
 
     it("captures a silent initial baseline", function()
@@ -81,6 +107,46 @@ describe("ReputationListener", function()
         assert.equal("gain", queued[1].reputationDirection)
         assert.equal(250, queued[1].reputationAmount)
         assert.equal(7, queued[1].factionID)
+    end)
+
+    it("emits modern-only reputation changes while skipping absent and invalid rows", function()
+        local rows = {
+            [1] = { factionID = 1, name = "Header", currentStanding = 100, isHeader = true },
+            [3] = { factionID = 2590, name = "Council of Dornogal", currentStanding = 500 },
+            [4] = { name = "Missing ID", currentStanding = 100 },
+            [5] = { factionID = 2, name = "", currentStanding = 100 },
+            [6] = { factionID = 3, name = "Missing Standing" },
+        }
+        _G.C_Reputation = {
+            GetNumFactions = function() return 6 end,
+            GetFactionDataByIndex = function(index) return rows[index] end,
+        }
+        _G.GetNumFactions = nil
+        _G.GetFactionInfo = nil
+        CreateListener()
+
+        listener.Initialize(addon)
+        assert.equal(0, #queued)
+
+        rows[1].currentStanding = 50
+        rows[3].currentStanding = 375
+        rows[4].currentStanding = 50
+        rows[5].currentStanding = 50
+        handlers.UPDATE_FACTION()
+
+        assert.equal(1, #queued)
+        assert.equal(125, queued[1].reputationAmount)
+        assert.equal("loss", queued[1].reputationDirection)
+        assert.equal(2590, queued[1].factionID)
+        assert.equal("Council of Dornogal", queued[1].factionName)
+
+        handlers.CHAT_MSG_COMBAT_FACTION_CHANGE(nil, "Reputation with Council of Dornogal increased by 250.")
+
+        assert.equal(2, #queued)
+        assert.equal(250, queued[2].reputationAmount)
+        assert.equal("gain", queued[2].reputationDirection)
+        assert.equal(2590, queued[2].factionID)
+        assert.equal("Council of Dornogal", queued[2].factionName)
     end)
 
     it("omits faction ID when a parsed name is ambiguous", function()
