@@ -54,7 +54,7 @@ files["DragonToast/"] = {
         "C_ChatInfo",
         "IsInInstance", "UnitName", "UnitClass", "GetNumFactions", "GetFactionInfo",
         "UnitFactionGroup",
-        "GetItemInfo", "GetItemQualityColor", "GetItemCount", "C_Item", "C_Container",
+        "GetItemQualityColor", "GetItemCount", "C_Item", "C_Container",
         "C_CurrencyInfo", "C_Reputation",
         "GetInboxHeaderInfo", "GetInboxItem", "GetInboxInvoiceInfo", "GetInboxText",
         "TakeInboxItem", "TakeInboxMoney", "AutoLootMailItem",
@@ -81,7 +81,6 @@ files["DragonToast/"] = {
         "CURRENCY_GAINED", "CURRENCY_GAINED_MULTIPLE",
         "GOLD_AMOUNT", "SILVER_AMOUNT", "COPPER_AMOUNT",
         "GOLD_AMOUNT_TEXTURE", "SILVER_AMOUNT_TEXTURE", "COPPER_AMOUNT_TEXTURE",
-        "GetCoinTextureString",
         "UNKNOWN",
         "COMBATLOG_XPGAIN_FIRSTPERSON",
         "COMBATLOG_XPGAIN_FIRSTPERSON_UNNAMED",
@@ -139,7 +138,7 @@ files["spec/**"] = {
     globals = {
         -- WoW API mocks (set as globals in wow_mock.lua)
         "GetTime", "GetMoney", "InCombatLockdown", "PlaySoundFile", "UnitName",
-        "GetCoinTextureString", "GetNumFactions", "GetFactionInfo", "CreateFrame", "UIParent", "LibStub", "wipe",
+        "C_CurrencyInfo", "GetNumFactions", "GetFactionInfo", "CreateFrame", "UIParent", "LibStub", "wipe",
 
         -- WoW money globals (set in ListenerUtils_spec.lua)
         "GOLD_AMOUNT", "SILVER_AMOUNT", "COPPER_AMOUNT",

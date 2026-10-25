@@ -14,12 +14,12 @@ local QueueUtils = ns.QueueUtils
 -- Cached WoW API
 -------------------------------------------------------------------------------
 
-local GetCoinTextureString = GetCoinTextureString
+local GetCoinTextureString = C_CurrencyInfo.GetCoinTextureString
 local GetInboxHeaderInfo = GetInboxHeaderInfo
 local GetInboxItem = GetInboxItem
 local GetInboxInvoiceInfo = GetInboxInvoiceInfo
 local GetInboxText = GetInboxText
-local GetItemInfo = GetItemInfo
+local GetItemInfo = C_Item.GetItemInfo
 local GetTime = GetTime
 local UnitName = UnitName
 local hooksecurefunc = hooksecurefunc
@@ -118,8 +118,8 @@ local function PassesFilter(lootData)
 end
 
 local function BuildMailItemData(snapshot)
-    local itemName, _, itemQuality, itemLevel, _, _, itemSubType,
-        _, _, itemTexture, _, _, _, _, _, _, _, itemLink = GetItemInfo(snapshot.itemID)
+    local itemName, itemLink, itemQuality, itemLevel, _, _, itemSubType,
+        _, _, itemTexture = GetItemInfo(snapshot.itemID)
 
     if not itemName then return nil end
 

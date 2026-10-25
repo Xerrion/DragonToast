@@ -13,6 +13,7 @@ local ADDON_NAME, ns = ...
 
 local GetTime = GetTime
 local UnitName = UnitName
+local GetCoinTextureString = C_CurrencyInfo.GetCoinTextureString
 local string_format = string.format
 local math_random = math.random
 
