@@ -8,7 +8,17 @@ local mock = require("spec.wow_mock")
 local ITEM_LINK = "|cffffffff|Hitem:12345::::::::|h[Amani Training Dummy]|h|r"
 local ITEM_NAME = "Amani Training Dummy"
 
+local LOOT_GLOBALS = {
+    "C_Item", "GetItemInfo", "GOLD_AMOUNT", "SILVER_AMOUNT", "COPPER_AMOUNT",
+    "GOLD_AMOUNT_TEXTURE", "SILVER_AMOUNT_TEXTURE", "COPPER_AMOUNT_TEXTURE", "UNKNOWN", "geterrorhandler",
+}
+
 local function SetLootGlobals()
+    local savedGlobals = {}
+    for _, name in ipairs(LOOT_GLOBALS) do
+        savedGlobals[name] = rawget(_G, name)
+    end
+
     rawset(_G, "GOLD_AMOUNT", "%dg")
     rawset(_G, "SILVER_AMOUNT", "%ds")
     rawset(_G, "COPPER_AMOUNT", "%dc")
@@ -16,15 +26,26 @@ local function SetLootGlobals()
     rawset(_G, "SILVER_AMOUNT_TEXTURE", "%d|Tsilver|t")
     rawset(_G, "COPPER_AMOUNT_TEXTURE", "%d|Tcopper|t")
     rawset(_G, "UNKNOWN", "Unknown")
-    rawset(_G, "GetItemInfo", function(itemLink)
-        local itemName = itemLink and itemLink:match("%[(.-)%]")
-        if not itemName then return nil end
+    rawset(_G, "GetItemInfo", nil)
+    rawset(_G, "C_Item", {
+        GetItemInfo = function(itemLink)
+            local itemName = itemLink and itemLink:match("%[(.-)%]")
+            if not itemName then return nil end
 
-        return itemName, itemLink, 1, 1, 1, "Miscellaneous", "Junk", 1, "", 134400
-    end)
+            return itemName, itemLink, 1, 1, 1, "Miscellaneous", "Junk", 1, "", 134400
+        end,
+    })
     rawset(_G, "geterrorhandler", function()
         return function(message) error(message, 0) end
     end)
+
+    return savedGlobals
+end
+
+local function RestoreLootGlobals(savedGlobals)
+    for _, name in ipairs(LOOT_GLOBALS) do
+        rawset(_G, name, savedGlobals[name])
+    end
 end
 
 local function LoadListenerUtils(ns)
@@ -73,8 +94,6 @@ local function CreateAddon(eventHandlers)
 end
 
 local function CreateLootListenerHarness(lootCategories)
-    SetLootGlobals()
-
     local ns = mock.CreateNamespace()
     local queuedToasts = {}
     local eventHandlers = {}
@@ -143,8 +162,15 @@ local function DispatchLoot(harness, message)
 end
 
 describe("LootListenerShared loot parsing", function()
+    local savedGlobals
+
     before_each(function()
+        savedGlobals = SetLootGlobals()
         mock.SetTime(100)
+    end)
+
+    after_each(function()
+        RestoreLootGlobals(savedGlobals)
     end)
 
     it("parses CleanerLootMessages other-player loot without self attribution", function()
@@ -211,9 +237,16 @@ describe("LootListenerShared loot parsing", function()
 end)
 
 describe("LootListenerShared money loss detection", function()
+    local savedGlobals
+
     before_each(function()
+        savedGlobals = SetLootGlobals()
         mock._money = 0
         mock.SetTime(100)
+    end)
+
+    after_each(function()
+        RestoreLootGlobals(savedGlobals)
     end)
 
     it("registers and unregisters money lifecycle events", function()

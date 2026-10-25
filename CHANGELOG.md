@@ -3,6 +3,9 @@
 ### Bug Fixes
 
 * Fix reputation listener initialization and update errors on Retail by using the modern reputation APIs while preserving Classic support.
+* Replace removed item API globals in loot and mail-item toast generation with supported namespaced APIs.
+* Fix money toast rendering, mail-money notifications, and gold test commands after legacy currency API removal.
+* Restore mail-item tooltips and shift-click links by reading the correct item-link API return value.
 
 ## [1.8.2](https://github.com/Xerrion/DragonToast/compare/1.8.1...1.8.2) (2026-02-25)
 

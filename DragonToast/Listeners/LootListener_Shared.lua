@@ -13,7 +13,7 @@ local Utils = ns.ListenerUtils
 -- Cached WoW API
 -------------------------------------------------------------------------------
 
-local GetItemInfo = GetItemInfo
+local GetItemInfo = C_Item.GetItemInfo
 local GetMoney = GetMoney
 local GetTime = GetTime
 local UnitName = UnitName

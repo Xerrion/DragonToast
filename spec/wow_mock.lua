@@ -35,9 +35,11 @@ function UnitName()
     return "TestPlayer"
 end
 
-function GetCoinTextureString(copper)
-    return tostring(copper) .. "c"
-end
+C_CurrencyInfo = {
+    GetCoinTextureString = function(copper)
+        return tostring(copper) .. "c"
+    end,
+}
 
 function GetMoney()
     return M._money or 0

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- ToastFrame_spec.lua
--- Unit tests for ToastFrame item count display logic
+-- Unit tests for ToastFrame display logic
 --
 -- Supported versions: TBC Anniversary, Retail, MoP Classic
 -------------------------------------------------------------------------------
@@ -165,11 +165,19 @@ end
 -- Tests
 -------------------------------------------------------------------------------
 
-describe("ToastFrame item count display", function()
+describe("ToastFrame display", function()
     local ns
     local frame
+    local originalGetCoinTextureString
+    local originalGoldAmount, originalSilverAmount, originalCopperAmount
 
     setup(function()
+        originalGetCoinTextureString = _G.GetCoinTextureString
+        originalGoldAmount, originalSilverAmount, originalCopperAmount =
+            _G.GOLD_AMOUNT, _G.SILVER_AMOUNT, _G.COPPER_AMOUNT
+        _G.GetCoinTextureString = nil
+        _G.GOLD_AMOUNT, _G.SILVER_AMOUNT, _G.COPPER_AMOUNT = "%d Gold", "%d Silver", "%d Copper"
+
         -- Override CreateFrame and UIParent with richer mocks before loading
         -- luacheck: ignore 122
         rawset(_G, "CreateFrame", function()
@@ -239,6 +247,12 @@ describe("ToastFrame item count display", function()
         chunk("DragonToast", ns)
     end)
 
+    teardown(function()
+        _G.GetCoinTextureString = originalGetCoinTextureString
+        _G.GOLD_AMOUNT, _G.SILVER_AMOUNT, _G.COPPER_AMOUNT =
+            originalGoldAmount, originalSilverAmount, originalCopperAmount
+    end)
+
     before_each(function()
         -- Reset display config to known defaults
         ns.Addon.db.profile.display.showItemCount = true
@@ -246,6 +260,7 @@ describe("ToastFrame item count display", function()
         ns.Addon.db.profile.display.showItemType = true
         ns.Addon.db.profile.display.showIcon = true
         ns.Addon.db.profile.display.showLooter = true
+        ns.Addon.db.profile.display.goldFormat = "short"
 
         -- Reset appearance config to known defaults
         ns.Addon.db.profile.appearance.secondaryFontSize = 10
@@ -262,6 +277,9 @@ describe("ToastFrame item count display", function()
     end)
 
     after_each(function()
+        if ns.ToastManager.ClearAll then
+            ns.ToastManager.ClearAll()
+        end
         if frame then
             ns.ToastFrame.Release(frame)
             frame = nil
@@ -324,18 +342,46 @@ describe("ToastFrame item count display", function()
         assert.is_false(frame.itemCount._shown)
     end)
 
-    it("displays a loss as a red signed money magnitude", function()
-        local data = makeItemData({
-            copperAmount = 12345,
-            itemSubType = "Gold",
-            isCurrency = true,
-            moneyDirection = "loss",
-        })
+    for _, moneyFormat in ipairs({
+        { name = "icons", value = "icons", expected = "12345c" },
+        { name = "short", value = "short", expected = "1g 23s 45c" },
+        { name = "long", value = "long", expected = "1 Gold 23 Silver 45 Copper" },
+    }) do
+        for _, direction in ipairs({ "gain", "loss" }) do
+            it("renders money " .. direction .. "s using " .. moneyFormat.name, function()
+                ns.Addon.db.profile.display.goldFormat = moneyFormat.value
+                local data = makeItemData({
+                    copperAmount = 12345,
+                    itemSubType = "Gold",
+                    isCurrency = true,
+                    moneyDirection = direction,
+                })
 
-        ns.ToastFrame.Populate(frame, data)
+                ns.ToastFrame.Populate(frame, data)
 
-        assert.equal("-1g 23s 45c", frame.itemName._text)
-        assert.same({ r = 1, g = 0.2, b = 0.2, a = nil }, frame.itemName._textColor)
+                local expectedText = (direction == "loss" and "-" or "") .. moneyFormat.expected
+                local expectedColor = direction == "loss"
+                    and { r = 1, g = 0.2, b = 0.2, a = nil }
+                    or { r = 1, g = 0.82, b = 0, a = nil }
+                assert.equal(expectedText, frame.itemName._text)
+                assert.same(expectedColor, frame.itemName._textColor)
+            end)
+        end
+    end
+
+    it("renders and stacks generated gold test toasts without the legacy coin API", function()
+        ns.Addon.db.profile.display.goldFormat = "icons"
+        mock.LoadToastManager(ns)
+        local chunk = assert(loadfile("DragonToast/Display/TestToasts.lua"))
+        chunk("DragonToast", ns)
+
+        ns.TestToasts.RunStackTest("gold")
+
+        local activeToasts = ns.ToastManager._test.activeToasts
+        assert.equal(1, #activeToasts)
+        assert.equal("150000c", activeToasts[1].itemName._text)
+        assert.equal(133784, activeToasts[1].icon._texture)
+        assert.is_false(activeToasts[1].itemLevel._shown)
     end)
 
     it("anchors itemCount to content TOPRIGHT regardless of itemLevel visibility", function()
