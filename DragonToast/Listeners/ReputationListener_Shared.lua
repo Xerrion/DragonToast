@@ -16,6 +16,11 @@ local L = ns.L
 local GetTime = GetTime
 local GetFactionInfo = GetFactionInfo
 local GetNumFactions = GetNumFactions
+local GetFactionDataByIndex
+if C_Reputation and C_Reputation.GetNumFactions and C_Reputation.GetFactionDataByIndex then
+    GetNumFactions = C_Reputation.GetNumFactions
+    GetFactionDataByIndex = C_Reputation.GetFactionDataByIndex
+end
 local UnitName = UnitName
 local ipairs = ipairs
 local pairs = pairs
@@ -135,11 +140,22 @@ local function BuildReputationToast(reputationAmount, factionName, direction, fa
     }
 end
 
+local function GetFactionSnapshotValues(index)
+    if GetFactionDataByIndex then
+        local factionData = GetFactionDataByIndex(index)
+        if not factionData then return nil end
+        return factionData.name, factionData.currentStanding, factionData.isHeader, factionData.factionID
+    end
+
+    local factionName, _, _, _, _, barValue, _, _, isHeader, _, _, _, _, factionID = GetFactionInfo(index)
+    return factionName, barValue, isHeader, factionID
+end
+
 local function BuildFactionSnapshot()
     local snapshot = {}
 
     for index = 1, GetNumFactions() do
-        local factionName, _, _, _, _, barValue, _, _, isHeader, _, _, _, _, factionID = GetFactionInfo(index)
+        local factionName, barValue, isHeader, factionID = GetFactionSnapshotValues(index)
         if not isHeader and type(factionID) == "number" and factionName and factionName ~= ""
             and type(barValue) == "number" then
             snapshot[factionID] = {

@@ -55,7 +55,7 @@ files["DragonToast/"] = {
         "IsInInstance", "UnitName", "UnitClass", "GetNumFactions", "GetFactionInfo",
         "UnitFactionGroup",
         "GetItemInfo", "GetItemQualityColor", "GetItemCount", "C_Item", "C_Container",
-        "C_CurrencyInfo",
+        "C_CurrencyInfo", "C_Reputation",
         "GetInboxHeaderInfo", "GetInboxItem", "GetInboxInvoiceInfo", "GetInboxText",
         "TakeInboxItem", "TakeInboxMoney", "AutoLootMailItem",
         "ChatFrame_OpenChat", "IsShiftKeyDown",

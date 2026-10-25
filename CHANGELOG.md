@@ -1,3 +1,9 @@
+## Unreleased
+
+### Bug Fixes
+
+* Fix reputation listener initialization and update errors on Retail by using the modern reputation APIs while preserving Classic support.
+
 ## [1.8.2](https://github.com/Xerrion/DragonToast/compare/1.8.1...1.8.2) (2026-02-25)
 
 ### ⚙️ Miscellaneous Tasks
