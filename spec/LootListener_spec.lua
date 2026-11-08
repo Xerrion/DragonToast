@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- LootListener_spec.lua
--- Unit tests for shared loot listener message parsing
+-- Unit tests for shared loot parsing and client adapters
 -------------------------------------------------------------------------------
 
 local mock = require("spec.wow_mock")
@@ -11,6 +11,8 @@ local ITEM_NAME = "Amani Training Dummy"
 local LOOT_GLOBALS = {
     "C_Item", "GetItemInfo", "GOLD_AMOUNT", "SILVER_AMOUNT", "COPPER_AMOUNT",
     "GOLD_AMOUNT_TEXTURE", "SILVER_AMOUNT_TEXTURE", "COPPER_AMOUNT_TEXTURE", "UNKNOWN", "geterrorhandler",
+    "WOW_PROJECT_ID", "WOW_PROJECT_MAINLINE", "WOW_PROJECT_CAMELOT",
+    "WOW_PROJECT_BURNING_CRUSADE_CLASSIC", "WOW_PROJECT_MISTS_CLASSIC",
 }
 
 local function SetLootGlobals()
@@ -66,6 +68,16 @@ local function LoadLootListenerShared(ns)
     chunk("DragonToast", ns)
 end
 
+local function LoadLootListenerAdapter(ns, version)
+    local path = "DragonToast/Listeners/LootListener_" .. version .. ".lua"
+    local chunk, err = loadfile(path)
+    if not chunk then
+        error("Failed to load " .. path .. ": " .. (err or "unknown error"))
+    end
+
+    chunk("DragonToast", ns)
+end
+
 local function CreateAddon(eventHandlers)
     return {
         db = {
@@ -93,7 +105,7 @@ local function CreateAddon(eventHandlers)
     }
 end
 
-local function CreateLootListenerHarness(lootCategories)
+local function CreateLootListenerHarness(lootCategories, adapterNames)
     local ns = mock.CreateNamespace()
     local queuedToasts = {}
     local eventHandlers = {}
@@ -107,10 +119,18 @@ local function CreateLootListenerHarness(lootCategories)
     LoadListenerUtils(ns)
     LoadLootListenerShared(ns)
 
-    local listener = ns.LootListenerShared.Create({
-        versionName = "Spec",
-        lootCategories = lootCategories,
-    })
+    local listener
+    if adapterNames then
+        for _, version in ipairs(adapterNames) do
+            LoadLootListenerAdapter(ns, version)
+        end
+        listener = ns.LootListener
+    else
+        listener = ns.LootListenerShared.Create({
+            versionName = "Spec",
+            lootCategories = lootCategories,
+        })
+    end
     local addon = CreateAddon(eventHandlers)
     listener.Initialize(addon)
 
@@ -233,6 +253,69 @@ describe("LootListenerShared loot parsing", function()
         assert.equal(ITEM_LINK, lootData.itemLink)
         assert.equal(ITEM_NAME, lootData.itemName)
         assert.equal(1, lootData.quantity)
+    end)
+end)
+
+describe("LootListener client adapters", function()
+    local savedGlobals
+
+    before_each(function()
+        savedGlobals = SetLootGlobals()
+        mock.SetTime(100)
+        rawset(_G, "WOW_PROJECT_MAINLINE", 1)
+        rawset(_G, "WOW_PROJECT_CAMELOT", 18)
+        rawset(_G, "WOW_PROJECT_BURNING_CRUSADE_CLASSIC", 5)
+        rawset(_G, "WOW_PROJECT_MISTS_CLASSIC", 19)
+    end)
+
+    after_each(function()
+        RestoreLootGlobals(savedGlobals)
+    end)
+
+    it("emits item notifications on WoW: Forever project 18", function()
+        rawset(_G, "WOW_PROJECT_ID", 18)
+        local harness = CreateLootListenerHarness(nil, { "Retail" })
+        local lootData = DispatchLoot(harness, "You receive loot: " .. ITEM_LINK .. "x2")
+
+        assert.equal(12345, lootData.itemID)
+        assert.equal(ITEM_LINK, lootData.itemLink)
+        assert.equal(ITEM_NAME, lootData.itemName)
+        assert.equal(2, lootData.quantity)
+        assert.equal("TestPlayer", lootData.looter)
+        assert.is_true(lootData.isSelf)
+    end)
+
+    it("emits Retail item notifications without a Camelot constant", function()
+        rawset(_G, "WOW_PROJECT_ID", 1)
+        rawset(_G, "WOW_PROJECT_CAMELOT", nil)
+        local harness = CreateLootListenerHarness(nil, { "Retail" })
+        local lootData = DispatchLoot(harness, "Orwyn receives loot: " .. ITEM_LINK .. ".")
+
+        assert.equal(ITEM_LINK, lootData.itemLink)
+        assert.equal(ITEM_NAME, lootData.itemName)
+        assert.equal("Orwyn", lootData.looter)
+        assert.is_false(lootData.isSelf)
+    end)
+
+    it("preserves TBC loot parsing when the Retail adapter loads afterward", function()
+        rawset(_G, "WOW_PROJECT_ID", 5)
+        rawset(_G, "WOW_PROJECT_CAMELOT", nil)
+        local harness = CreateLootListenerHarness(nil, { "TBC", "Retail" })
+        local lootData = DispatchLoot(harness, "You receive loot: " .. ITEM_LINK .. "x2.")
+
+        assert.equal(ITEM_LINK, lootData.itemLink)
+        assert.equal(2, lootData.quantity)
+        assert.is_true(lootData.isSelf)
+    end)
+
+    it("preserves Mists loot parsing when the Retail adapter loads afterward", function()
+        rawset(_G, "WOW_PROJECT_ID", 19)
+        local harness = CreateLootListenerHarness(nil, { "Mists", "Retail" })
+        local lootData = DispatchLoot(harness, "You receive loot: " .. ITEM_LINK .. "x2.")
+
+        assert.equal(ITEM_LINK, lootData.itemLink)
+        assert.equal(2, lootData.quantity)
+        assert.is_true(lootData.isSelf)
     end)
 end)
 

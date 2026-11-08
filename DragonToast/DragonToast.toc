@@ -1,6 +1,7 @@
 ## Interface: 120105
 ## Interface-BCC: 20506
 ## Interface-Mists: 50504
+## Interface-Camelot: 16001
 ## Title: Dragon Toast
 ## Notes: Every drop deserves a toast. A dragon-forged loot feed for your adventures
 ## Notes-zhCN: 物品、金币、经验、邮件等可获取项目的条幅动画通知。
@@ -70,13 +71,13 @@ Listeners\HonorListener_Mists.lua
 Listeners\ReputationListener_Mists.lua
 Listeners\CurrencyListener_Mists.lua
 #@end-version-mists@
-#@version-retail@
-Listeners\LootListener_Retail.lua
-Listeners\MailListener_Retail.lua
-Listeners\HonorListener_Retail.lua
-Listeners\ReputationListener_Retail.lua
-Listeners\CurrencyListener_Retail.lua
-#@end-version-retail@
+
+# Modern client listeners (Retail and Forever)
+Listeners\LootListener_Retail.lua [AllowLoadGameType standard, camelot]
+Listeners\MailListener_Retail.lua [AllowLoadGameType standard, camelot]
+Listeners\HonorListener_Retail.lua [AllowLoadGameType standard, camelot]
+Listeners\ReputationListener_Retail.lua [AllowLoadGameType standard, camelot]
+Listeners\CurrencyListener_Retail.lua [AllowLoadGameType standard, camelot]
 
 # Shared listeners
 Listeners\XPListener.lua
