@@ -8,7 +8,7 @@
 
 [![Latest Release](https://img.shields.io/github/v/release/Xerrion/DragonToast?style=for-the-badge)](https://github.com/Xerrion/DragonToast/releases/latest)
 [![License](https://img.shields.io/github/license/Xerrion/DragonToast?style=for-the-badge)](https://github.com/Xerrion/DragonToast/blob/master/LICENSE)
-[![WoW Versions](https://img.shields.io/badge/WoW-TBC%20Anniversary%20%C2%B7%20MoP%20Classic%20%C2%B7%20Retail-blue?style=for-the-badge&logo=battledotnet)](https://worldofwarcraft.blizzard.com/)
+[![WoW Versions](https://img.shields.io/badge/WoW-TBC%20Anniversary%20%C2%B7%20MoP%20Classic%20%C2%B7%20Retail%20%C2%B7%20Forever-blue?style=for-the-badge&logo=battledotnet)](https://worldofwarcraft.blizzard.com/)
 [![CurseForge](https://img.shields.io/badge/CurseForge-1468628-F16436?style=for-the-badge&logo=curseforge)](https://www.curseforge.com/wow/addons/dragon-toast)
 [![Wago](https://img.shields.io/badge/Wago-E6gvQAN1-C1272D?style=for-the-badge)](https://addons.wago.io/addons/dragon-toast)
 [![Lint](https://img.shields.io/github/actions/workflow/status/Xerrion/DragonToast/lint.yml?style=for-the-badge&label=lint)](https://github.com/Xerrion/DragonToast/actions)
@@ -39,9 +39,10 @@ honor, reputation, mail, and roll wins.
 
 | Version         | Interface | Status       |
 |:----------------|:----------|:-------------|
-| TBC Anniversary | 20505     | ✅ Primary   |
-| Mists Classic   | 50503     | ✅ Supported |
-| Retail          | 120005    | ✅ Secondary |
+| TBC Anniversary | 20506     | ✅ Primary   |
+| Mists Classic   | 50504     | ✅ Supported |
+| Retail          | 120105    | ✅ Secondary |
+| Forever (1.60.1) | 16001    | Supported    |
 
 ## 📦 Installation
 

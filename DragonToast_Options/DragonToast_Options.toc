@@ -1,6 +1,7 @@
 ## Interface: 120105
 ## Interface-BCC: 20506
 ## Interface-Mists: 50504
+## Interface-Camelot: 16001
 ## Title: DragonToast Options
 ## Notes: Configuration panel for DragonToast
 ## Author: Xerrion

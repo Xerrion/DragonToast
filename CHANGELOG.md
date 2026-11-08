@@ -1,5 +1,9 @@
 ## Unreleased
 
+### Features
+
+* Add WoW: Forever 1.60.1 support (interface 16001), including generated Camelot manifests for both addons and activation of the Retail-compatible loot, mail, honor, reputation, and currency listeners.
+
 ### Bug Fixes
 
 * Fix reputation listener initialization and update errors on Retail by using the modern reputation APIs while preserving Classic support.

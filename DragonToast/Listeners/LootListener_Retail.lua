@@ -1,20 +1,24 @@
 -------------------------------------------------------------------------------
 -- LootListener_Retail.lua
--- Retail loot event parsing
+-- Retail and WoW: Forever loot event parsing
 --
--- Supported versions: Retail
+-- Supported versions: Retail, WoW: Forever
 -------------------------------------------------------------------------------
 
 local _, ns = ...
 
 -------------------------------------------------------------------------------
--- Version guard: only run on Retail
+-- Version guard: only run on Retail or WoW: Forever
 -------------------------------------------------------------------------------
 
 local WOW_PROJECT_ID = WOW_PROJECT_ID
 local WOW_PROJECT_MAINLINE = WOW_PROJECT_MAINLINE
+local WOW_PROJECT_CAMELOT = WOW_PROJECT_CAMELOT
 
-if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then return end
+if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE
+    and (WOW_PROJECT_CAMELOT == nil or WOW_PROJECT_ID ~= WOW_PROJECT_CAMELOT) then
+    return
+end
 
 -------------------------------------------------------------------------------
 -- Shared implementation
@@ -22,7 +26,7 @@ if WOW_PROJECT_ID ~= WOW_PROJECT_MAINLINE then return end
 
 if not ns.LootListenerShared or not ns.LootListenerShared.Create then return end
 
--- Retail keeps _SELF fallback strings without trailing periods.
+-- Retail-style _SELF fallback strings omit trailing periods.
 ns.LootListener = ns.LootListenerShared.Create({
     versionName = "Retail",
     lootCategories = {
