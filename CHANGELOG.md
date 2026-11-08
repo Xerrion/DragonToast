@@ -11,6 +11,13 @@
 * Fix money toast rendering, mail-money notifications, and gold test commands after legacy currency API removal.
 * Restore mail-item tooltips and shift-click links by reading the correct item-link API return value.
 
+## [3.7.0](https://github.com/Xerrion/DragonToast/compare/3.6.3...3.7.0) (2026-11-08)
+
+
+### 🚀 Features
+
+* support WoW Forever 1.60.1 ([#206](https://github.com/Xerrion/DragonToast/issues/206)) ([cac7df5](https://github.com/Xerrion/DragonToast/commit/cac7df597605ccd3bc0d32fde47b0f6aa6fc7a9b))
+
 ## [3.6.3](https://github.com/Xerrion/DragonToast/compare/3.6.2...3.6.3) (2026-10-25)
 
 
