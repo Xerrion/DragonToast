@@ -258,6 +258,6 @@ end
 ns.Tabs[#ns.Tabs + 1] = {
     id = "profiles",
     label = L["Profiles"],
-    order = 6,
+    order = 7,
     createFunc = CreateContent,
 }

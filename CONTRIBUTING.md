@@ -123,17 +123,26 @@ All Luacheck warnings **must pass** before merge. CI runs Luacheck automatically
 
 ## Testing
 
-There is no automated test framework. Test manually in-game:
+Run the Lua 5.1 test suite before testing in-game:
+
+```bash
+git submodule update --init DragonToast/Libs/LibAnimate
+busted --verbose
+```
+
+The animation integration suite uses the pinned LibAnimate dependency, real toast frames and lifecycle code, and a deterministic clock. It checks intermediate positions during bursts, hover, exits, and frame reuse. The harness mocks WoW rendering and APIs, so also test the final appearance and mouse interaction in-game:
 
 | Command        | Description                                           |
 |----------------|-------------------------------------------------------|
 | `/dt test`     | Show a single test toast                              |
+| `/dt massloot [count]` | Queue 30 distinct test toasts at once, or choose 1-100 |
 | `/dt testmode` | Toggle continuous test toasts for live config preview |
 | `/dt clear`    | Dismiss all active toasts                             |
 | `/dt config`   | Open the configuration window                         |
 
 Additional testing steps:
 
+- Run `/dt massloot` to exercise burst admission, overflow, and varied effects; `/dt clear` stops the batch. Entries use real sample metadata and separate preview identities so they do not merge with each other or with real loot.
 - Rapid-fire `/dt test` (10+ times) to stress the frame pool
 - Hover and unhover during animations to verify pause/resume behavior
 - Enable script errors to surface Lua errors:

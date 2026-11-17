@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- TestToasts.lua
--- Test toast generation for /dt test, /dt testmode, and /dt stacktest
+-- Test toast generation for /dt test, /dt massloot, and /dt testmode
 --
 -- Supported versions: TBC Anniversary, Retail, MoP Classic
 -------------------------------------------------------------------------------
@@ -24,6 +24,8 @@ local L = ns.L
 -------------------------------------------------------------------------------
 
 local TEST_MODE_INTERVAL = 1.5
+local MASS_LOOT_DEFAULT_COUNT = 30
+local MASS_LOOT_MAX_COUNT = 100
 local STACK_TEST_SECOND_DELAY = 0.3
 local STACK_TEST_THIRD_DELAY = 0.6
 local STACK_TEST_XP_DELAY = 2.0
@@ -38,6 +40,7 @@ local PLAYER_LINK_LEVEL = 70
 
 local testCounter = 0
 local testModeTimer = nil
+local massLootCounter = 0
 
 -------------------------------------------------------------------------------
 -- Module table
@@ -232,6 +235,32 @@ function ns.TestToasts.ShowTestToast()
     local items = GetTestItems()
     local test = items[math_random(#items)]
     ns.ToastManager.ShowToast(BuildTestLootData(test))
+end
+
+-- Submit the entire burst now; the normal admission queue owns pacing and
+-- capacity. Private identities keep the sample catalog from merging into a
+-- few stacks without inventing item IDs or changing ordinary loot stacking.
+function ns.TestToasts.RunMassLootTest(count)
+    if count == nil or count == "" then
+        count = MASS_LOOT_DEFAULT_COUNT
+    else
+        count = tonumber(count)
+    end
+    if not count or count < 1 or count > MASS_LOOT_MAX_COUNT or count ~= math.floor(count) then
+        ns.Print(L["Usage: /dt massloot [count] (1-100, default 30)."])
+        return false
+    end
+
+    local items = GetTestItems()
+    for i = 1, count do
+        testCounter = testCounter + 1
+        massLootCounter = massLootCounter + 1
+        local data = BuildTestLootData(items[(i - 1) % #items + 1])
+        data._testToastID = massLootCounter
+        ns.ToastManager.ShowToast(data)
+    end
+    ns.Print(string_format(L["Queued %d mass loot test toasts. Use /dt clear to stop."], count))
+    return true
 end
 
 -------------------------------------------------------------------------------

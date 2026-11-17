@@ -27,7 +27,7 @@ ns.Presets.order = {
 
 --- Human-readable names for each preset
 ns.Presets.names = {
-    default   = L["Default"],
+    default   = L["Modern (Default)"],
     minimal   = L["Minimal"],
     classic   = L["Classic"],
     dark      = L["Dark"],
@@ -43,21 +43,23 @@ ns.Presets.names = {
 --- that will be copied into db.profile.appearance when the preset is applied.
 ns.Presets.data = {
     default = {
-        fontSize          = 12,
-        secondaryFontSize = 10,
-        fontFace          = "Friz Quadrata TT",
-        fontOutline       = "OUTLINE",
-        backgroundAlpha   = 0.7,
-        backgroundColor   = { r = 0.05, g = 0.05, b = 0.05 },
-        backgroundTexture = "Solid",
-        qualityBorder     = true,
-        qualityGlow       = true,
-        iconSize          = 36,
+        fontFace          = "Dragon UI",
+        fontOutline       = "",
+        backgroundAlpha   = 0.98,
+        backgroundColor   = { r = 0.035, g = 0.047, b = 0.065 },
+        backgroundTexture = "Dragon UI Flat",
+        qualityBorder     = false,
+        qualityBorderAlpha = 0.6,
+        borderColor       = { r = 0.22, g = 0.28, b = 0.35 },
+        borderAlpha       = 1,
+        qualityGlow       = false,
+        glowAlpha         = 0.2,
+        iconCrop          = 0.08,
         borderSize        = 1,
         borderInset       = 0,
-        borderTexture     = "None",
-        glowWidth         = 4,
-        statusBarTexture  = "Blizzard",
+        borderTexture     = "Dragon UI Flat",
+        glowWidth         = 2,
+        statusBarTexture  = "Dragon UI Flat",
     },
     minimal = {
         fontSize          = 11,
@@ -226,16 +228,11 @@ function ns.Presets.ApplyPreset(presetKey)
 
     local appearance = ns.Addon.db.profile.appearance
     for key, value in pairs(preset) do
-        if key == "backgroundColor" then
-            if type(value) == "table" then
-                if type(appearance.backgroundColor) ~= "table" then
-                    appearance.backgroundColor = { r = value.r, g = value.g, b = value.b }
-                else
-                    appearance.backgroundColor.r = value.r
-                    appearance.backgroundColor.g = value.g
-                    appearance.backgroundColor.b = value.b
-                end
-            end
+        if type(value) == "table" then
+            if type(appearance[key]) ~= "table" then appearance[key] = {} end
+            appearance[key].r = value.r
+            appearance[key].g = value.g
+            appearance[key].b = value.b
         else
             appearance[key] = value
         end
@@ -260,8 +257,8 @@ function ns.Presets.DetectPreset()
         local preset = ns.Presets.data[presetKey]
         local matches = true
         for key, value in pairs(preset) do
-            if key == "backgroundColor" then
-                local cur = appearance.backgroundColor
+            if type(value) == "table" then
+                local cur = appearance[key]
                 if type(cur) ~= "table"
                     or math.abs((cur.r or 0) - value.r) > 0.01
                     or math.abs((cur.g or 0) - value.g) > 0.01

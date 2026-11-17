@@ -1,33 +1,23 @@
 -------------------------------------------------------------------------------
 -- ToastAnimations.lua
--- Animation sequences for toast frames using LibAnimate
+-- Independent stack movement and visual effects for toast frames
 --
 -- Supported versions: TBC Anniversary, Retail, MoP Classic
 -------------------------------------------------------------------------------
 
 local ADDON_NAME, ns = ...
 
--------------------------------------------------------------------------------
--- LibAnimate reference
--------------------------------------------------------------------------------
-
 local lib = LibStub("LibAnimate")
 ns.LibAnimate = lib
 
 local GetTime = GetTime
-
-local IDENTITY_ANIMATION_DURATION = 1
 local DEFAULT_SLIDE_SPEED = 0.2
-local HOVER_HOLD_DURATION = 300
 
--------------------------------------------------------------------------------
--- Register the identity ("none") animation for the hold phase.
--- No-op animation: keeps the frame fully visible at its current position.
--------------------------------------------------------------------------------
-
+-- Effects animate the visual child only. Its parent owns the stack position,
+-- so a phase change, pause, or scale-only effect cannot discard stack movement.
 lib:RegisterAnimation("none", {
     type = "attention",
-    defaultDuration = IDENTITY_ANIMATION_DURATION,
+    defaultDuration = 1,
     keyframes = {
         { progress = 0, alpha = 1, scale = 1, translateX = 0, translateY = 0 },
         { progress = 1, alpha = 1, scale = 1, translateX = 0, translateY = 0 },
@@ -35,252 +25,278 @@ lib:RegisterAnimation("none", {
 })
 
 -------------------------------------------------------------------------------
--- Callback reference
---
--- ToastManager.OnToastFinished is the single lifecycle-completion handler.
--- Captured as a local after module tables are initialized (see PlayLifecycle).
+-- Stack movement (layout parent only)
 -------------------------------------------------------------------------------
 
-local OnToastFinished = function(frame)
+local function ApplyLayoutPosition(frame, point, relativeTo, relativePoint, x, y)
+    local layout = frame.layoutFrame
+    layout:ClearAllPoints()
+    layout:SetPoint(point, relativeTo, relativePoint, x, y)
+    frame._layoutPoint = point
+    frame._layoutRelativeTo = relativeTo
+    frame._layoutRelativePoint = relativePoint
+    frame._layoutX = x
+    frame._anchorY = y
+end
+
+local function SampleSlide(frame)
+    local slide = frame._layoutSlide
+    if not slide then return end
+
+    local progress = math.min(math.max((GetTime() - slide.startTime) / slide.duration, 0), 1)
+    ApplyLayoutPosition(frame, slide.point, slide.relativeTo, slide.relativePoint,
+        slide.fromX + (slide.toX - slide.fromX) * progress,
+        slide.fromY + (slide.toY - slide.fromY) * progress)
+    if progress >= 1 then
+        frame._layoutSlide = nil
+        frame.layoutFrame:SetScript("OnUpdate", nil)
+    end
+end
+
+function ns.ToastAnimations.GetLayoutY(frame)
+    SampleSlide(frame)
+    return frame._anchorY
+end
+
+function ns.ToastAnimations.StopSlide(frame)
+    SampleSlide(frame)
+    frame._layoutSlide = nil
+    frame.layoutFrame:SetScript("OnUpdate", nil)
+end
+
+function ns.ToastAnimations.GetSlideRemaining(frame)
+    SampleSlide(frame)
+    local slide = frame._layoutSlide
+    return slide and math.max(slide.startTime + slide.duration - GetTime(), 0) or 0
+end
+
+function ns.ToastAnimations.SetPosition(frame, point, relativeTo, relativePoint, x, y)
+    ns.ToastAnimations.StopSlide(frame)
+    frame._targetY = y
+    ApplyLayoutPosition(frame, point, relativeTo, relativePoint, x, y)
+end
+
+function ns.ToastAnimations.PlaySlide(frame, _, toY, point, relativeTo, relativePoint, x)
+    ns.ToastAnimations.StopSlide(frame)
+    local fromY = frame._anchorY
+    local db = ns.Addon.db.profile.animation
+    local duration = db.enableAnimations and (db.slideSpeed or DEFAULT_SLIDE_SPEED) or 0
+    frame._targetY = toY
+
+    -- A changed anchor basis (for example UP -> DOWN) is a layout edit, not
+    -- movement between coordinates in the same space.
+    if fromY == nil or frame._layoutPoint ~= point
+        or frame._layoutRelativeTo ~= relativeTo or frame._layoutRelativePoint ~= relativePoint
+        or duration <= 0 or (fromY == toY and frame._layoutX == x) then
+        ns.ToastAnimations.SetPosition(frame, point, relativeTo, relativePoint, x, toY)
+        return 0
+    end
+
+    if frame._isHovered then
+        frame._targetY = fromY
+        return 0
+    end
+
+    frame._layoutSlide = {
+        point = point,
+        relativeTo = relativeTo,
+        relativePoint = relativePoint,
+        fromX = frame._layoutX,
+        fromY = fromY,
+        toX = x,
+        toY = toY,
+        startTime = GetTime(),
+        duration = duration,
+    }
+    frame.layoutFrame:SetScript("OnUpdate", function() SampleSlide(frame) end)
+    return duration
+end
+
+-------------------------------------------------------------------------------
+-- Lifecycle ownership
+-------------------------------------------------------------------------------
+
+local function IsCurrent(frame, generation)
+    return not frame._isPooled and frame._lifecycleID == generation and not frame._lifecycleFinished
+end
+
+local function Finish(frame, generation)
+    if not IsCurrent(frame, generation) then return end
+    frame._lifecycleFinished = true
+    frame._phase = nil
     ns.ToastManager.OnToastFinished(frame)
 end
 
--------------------------------------------------------------------------------
--- Phase-start functions (chained via onFinished callbacks)
---
--- Ordering matters: each function calls the next in the chain, so they
--- are declared bottom-up: PlayExit -> PlayHold -> PlayAttention ->
--- PlayAttentionOrHold -> PlayEntrance.
--------------------------------------------------------------------------------
-
---- After lib:Stop() restores the pre-animation anchor (which may be stale
---- if slides happened), re-anchor the frame to its logical target position.
-local function RestoreLogicalAnchor(frame)
-    if frame._targetY == nil then return end
-    local point, relativeTo, relativePoint, x, _ = frame:GetPoint()
-    if point then
-        frame:ClearAllPoints()
-        frame:SetPoint(point, relativeTo, relativePoint, x, frame._targetY)
+local function Animate(frame, name, options, callback)
+    local generation = frame._lifecycleID
+    frame._effectGeneration = (frame._effectGeneration or 0) + 1
+    local effectGeneration = frame._effectGeneration
+    options.onFinished = function()
+        if IsCurrent(frame, generation) and frame._effectGeneration == effectGeneration then callback() end
     end
+    lib:Animate(frame, name, options)
 end
 
---- Exit phase: fade/slide out, then signal lifecycle complete.
-local function PlayExit(frame, db, onLifecycleFinished)
+local function PlayExit(frame)
+    local animation = frame._lifecycleConfig
+    local generation = frame._lifecycleID
     frame._phase = "exit"
+    frame._isEntering = false
     frame._isExiting = true
-    lib:Animate(frame, db.animation.exitAnimation, {
-        duration = db.animation.exitDuration,
-        distance = db.animation.exitDistance,
-        onFinished = onLifecycleFinished,
-    })
+    Animate(frame, animation.exitAnimation, {
+        duration = animation.exitDuration,
+        distance = animation.exitDistance,
+    }, function() Finish(frame, generation) end)
 end
 
---- Extended hold while cursor is over the toast. Keeps an active
---- animation so SlideAnchor repositioning continues to work.
-local function PlayHoverHold(frame, db, onLifecycleFinished)
-    frame._hoverHoldCallback = onLifecycleFinished
-    lib:Animate(frame, "none", {
-        duration = HOVER_HOLD_DURATION,
-        onFinished = function()
-            frame._hoverHoldCallback = nil
-            PlayExit(frame, db, onLifecycleFinished)
-        end,
-    })
+local function PlayHoverHold(frame)
+    local generation = frame._lifecycleID
+    frame._hoverHoldCallback = function()
+        if IsCurrent(frame, generation) then PlayExit(frame) end
+    end
+    Animate(frame, "none", { duration = 1 }, function()
+        frame._hoverHoldCallback = nil
+        PlayExit(frame)
+    end)
     lib:PauseQueue(frame)
 end
 
---- Hold phase: identity animation whose duration IS the display time.
-local function PlayHold(frame, db, onLifecycleFinished)
+local function PlayHold(frame)
     frame._phase = "hold"
-    lib:Animate(frame, "none", {
-        duration = db.animation.holdDuration,
-        onFinished = function()
-            if frame._isHovered then
-                PlayHoverHold(frame, db, onLifecycleFinished)
-            else
-                PlayExit(frame, db, onLifecycleFinished)
-            end
-        end,
-    })
+    Animate(frame, "none", { duration = frame._lifecycleConfig.holdDuration }, function()
+        if frame._isHovered then
+            PlayHoverHold(frame)
+        else
+            PlayExit(frame)
+        end
+    end)
 end
 
---- Attention phase: quality-gated bounce/pulse before the hold.
-local function PlayAttention(frame, db, onLifecycleFinished)
-    frame._phase = "attention"
-    lib:Animate(frame, db.animation.attentionAnimation, {
-        delay = db.animation.attentionDelay,
-        repeatCount = db.animation.attentionRepeatCount,
-        onFinished = function()
-            PlayHold(frame, db, onLifecycleFinished)
-        end,
-    })
-end
-
---- Route to attention or hold based on config and item quality.
-local function PlayAttentionOrHold(frame, db, lootData, onLifecycleFinished)
-    local hasAttention = db.animation.attentionAnimation ~= "none"
-    local meetsQuality = lootData.itemQuality >= (db.animation.attentionMinQuality or 0)
-    if hasAttention and meetsQuality then
-        PlayAttention(frame, db, onLifecycleFinished)
+local function PlayAttentionOrHold(frame, lootData)
+    local animation = frame._lifecycleConfig
+    if animation.attentionAnimation ~= "none"
+        and lootData.itemQuality >= (animation.attentionMinQuality or 0) then
+        frame._phase = "attention"
+        Animate(frame, animation.attentionAnimation, {
+            delay = animation.attentionDelay,
+            repeatCount = animation.attentionRepeatCount,
+        }, function() PlayHold(frame) end)
     else
-        PlayHold(frame, db, onLifecycleFinished)
+        PlayHold(frame)
     end
 end
 
---- Entrance phase: slide/fade in, then chain to attention or hold.
-local function PlayEntrance(frame, db, lootData, onLifecycleFinished)
-    frame._phase = "entrance"
-    frame._isEntering = true
-    lib:Animate(frame, db.animation.entranceAnimation, {
-        duration = db.animation.entranceDuration,
-        distance = db.animation.entranceDistance,
-        onFinished = function()
-            frame._isEntering = false
-            PlayAttentionOrHold(frame, db, lootData, onLifecycleFinished)
-            -- Deferred slide catch-up: if the target moved while entrance
-            -- was playing, issue the slide now that the frame has landed.
-            local args = frame._deferredSlideArgs
-            if args and frame._targetY ~= nil then
-                ns.ToastAnimations.PlaySlide(frame, nil, frame._targetY, args[1], args[2], args[3], args[4])
-                frame._anchorY = frame._targetY
-                frame._deferredSlideArgs = nil
-            end
-        end,
-    })
+local function ScheduleHoldTimer(frame, duration)
+    local generation = frame._lifecycleID
+    frame._holdTimerGeneration = (frame._holdTimerGeneration or 0) + 1
+    local timerGeneration = frame._holdTimerGeneration
+    frame._holdEndTime = GetTime() + duration
+    frame._noAnimTimer = ns.Addon:ScheduleTimer(function()
+        if not IsCurrent(frame, generation) or frame._holdTimerGeneration ~= timerGeneration then return end
+        frame._noAnimTimer = nil
+        frame._holdEndTime = nil
+        Finish(frame, generation)
+    end, duration)
 end
-
--------------------------------------------------------------------------------
--- Play full toast lifecycle (entrance -> [attention] -> hold -> exit)
--------------------------------------------------------------------------------
 
 function ns.ToastAnimations.PlayLifecycle(frame, lootData)
     ns.ToastAnimations.StopAll(frame)
+    local animation = ns.Addon.db.profile.animation
+    frame._animationsEnabled = animation.enableAnimations
+    frame._lifecycleConfig = animation
+    frame._lifecycleFinished = false
+    frame.layoutFrame:Show()
+    frame:Show()
 
-    local db = ns.Addon.db.profile
-
-    -- No-animation fallback: show immediately, hold via timer, then finish
-    if not db.animation.enableAnimations then
-        frame:Show()
+    if not frame._animationsEnabled then
         frame:SetAlpha(1)
         frame._phase = "hold"
-        frame._holdEndTime = GetTime() + db.animation.holdDuration
-        frame._noAnimTimer = ns.Addon:ScheduleTimer(function()
-            frame._noAnimTimer = nil
-            frame._holdEndTime = nil
-            frame._phase = nil
-            OnToastFinished(frame)
-        end, db.animation.holdDuration)
+        ScheduleHoldTimer(frame, animation.holdDuration)
         return
     end
 
-    frame:Show()
-    PlayEntrance(frame, db, lootData, function() OnToastFinished(frame) end)
+    frame._phase = "entrance"
+    frame._isEntering = true
+    Animate(frame, animation.entranceAnimation, {
+        duration = animation.entranceDuration,
+        distance = animation.entranceDistance,
+    }, function()
+        frame._isEntering = false
+        PlayAttentionOrHold(frame, lootData)
+    end)
 end
 
+-- Stacking updates content without replaying effects or extending lifetime.
+function ns.ToastAnimations.UpdateLifecycle() end
+
 -------------------------------------------------------------------------------
--- Resume from hover hold (mouse left the toast)
+-- Hover and dismissal
 -------------------------------------------------------------------------------
+
+function ns.ToastAnimations.PauseForHover(frame)
+    ns.ToastAnimations.StopSlide(frame)
+    if frame._animationsEnabled then
+        if frame._isExiting then lib:PauseQueue(frame) end
+    elseif frame._noAnimTimer and frame._holdEndTime then
+        frame._holdRemaining = math.max(frame._holdEndTime - GetTime(), 0)
+        frame._holdEndTime = nil
+        frame._holdTimerGeneration = (frame._holdTimerGeneration or 0) + 1
+        ns.Addon:CancelTimer(frame._noAnimTimer)
+        frame._noAnimTimer = nil
+    end
+end
 
 function ns.ToastAnimations.ResumeFromHoverHold(frame)
     local callback = frame._hoverHoldCallback
     if not callback then return false end
     frame._hoverHoldCallback = nil
-
-    local db = ns.Addon.db.profile
-    lib:ResumeQueue(frame)
     lib:Stop(frame)
-    RestoreLogicalAnchor(frame)
-    frame._anchorY = frame._targetY
-    PlayExit(frame, db, callback)
+    callback()
     return true
 end
 
--------------------------------------------------------------------------------
--- Update lifecycle for duplicate/stacking items
---
--- Preserve the current lifecycle. Active duplicate stacks update content only
--- so older toasts do not gain extra lifetime or replay animations.
--------------------------------------------------------------------------------
-
-function ns.ToastAnimations.UpdateLifecycle(frame, _)
-    if frame._isExiting or frame._phase == nil then return end
-end
-
--------------------------------------------------------------------------------
--- Play slide animation (reposition in stack)
--------------------------------------------------------------------------------
-
-function ns.ToastAnimations.PlaySlide(frame, _, toY, point, relativeTo,
-                                        relativePoint, x)
-    if frame._isExiting then return end
-
-    -- Hovered toasts are frozen in place. _targetY is already updated by
-    -- the caller (UpdatePositions) so the correct position is known when
-    -- the hover ends.
-    if frame._isHovered then return end
-
-    local db = ns.Addon.db.profile
-
-    if not db.animation.enableAnimations then
-        frame:ClearAllPoints()
-        frame:SetPoint(point, relativeTo, relativePoint, x, toY)
-        return
+function ns.ToastAnimations.ResumeFromHover(frame)
+    if frame._animationsEnabled then
+        if frame._isExiting then
+            lib:ResumeQueue(frame)
+        else
+            ns.ToastAnimations.ResumeFromHoverHold(frame)
+        end
+    elseif frame._holdRemaining ~= nil then
+        local remaining = frame._holdRemaining
+        frame._holdRemaining = nil
+        ScheduleHoldTimer(frame, remaining)
     end
-
-    if not lib.activeAnimations or not lib.activeAnimations[frame] then
-        frame:ClearAllPoints()
-        frame:SetPoint(point, relativeTo, relativePoint, x, toY)
-        return
-    end
-
-    -- SlideAnchor handles in-progress slides correctly: it snaps any existing
-    -- slide to completion, then starts a new slide from the completed position.
-    -- Do NOT call UpdateAnchor before SlideAnchor -- it would clobber the
-    -- in-progress interpolated anchor with a stale value, causing visual jumps.
-    lib:SlideAnchor(frame, x, toY, db.animation.slideSpeed or DEFAULT_SLIDE_SPEED)
 end
-
--------------------------------------------------------------------------------
--- Dismiss (user click)
--------------------------------------------------------------------------------
 
 function ns.ToastAnimations.Dismiss(frame)
-    if frame._phase == "exit" then return end -- already exiting
-
+    if frame._isPooled or frame._phase == nil or frame._phase == "exit" then return end
     frame._hoverHoldCallback = nil
-    local db = ns.Addon.db.profile
-
-    if frame._phase ~= nil and db.animation.enableAnimations then
-        lib:ResumeQueue(frame)
+    if frame._animationsEnabled then
         lib:Stop(frame)
-        -- lib:Stop restores the anchor to whatever position was captured when
-        -- Animate started, which may be stale if slides happened since then.
-        -- Re-anchor to the current logical position before starting the exit.
-        RestoreLogicalAnchor(frame)
-        PlayExit(frame, db, function() OnToastFinished(frame) end)
+        PlayExit(frame)
     else
-        ns.ToastAnimations.StopAll(frame)
-        OnToastFinished(frame)
+        Finish(frame, frame._lifecycleID)
     end
 end
 
--------------------------------------------------------------------------------
--- Stop all animations on a frame
--------------------------------------------------------------------------------
-
 function ns.ToastAnimations.StopAll(frame)
+    frame._lifecycleID = (frame._lifecycleID or 0) + 1
+    frame._effectGeneration = (frame._effectGeneration or 0) + 1
+    frame._holdTimerGeneration = (frame._holdTimerGeneration or 0) + 1
     frame._isExiting = false
     frame._isEntering = false
     frame._phase = nil
     frame._holdEndTime = nil
     frame._holdRemaining = nil
     frame._hoverHoldCallback = nil
+    frame._animationsEnabled = nil
+    frame._lifecycleConfig = nil
 
     if frame._noAnimTimer then
         ns.Addon:CancelTimer(frame._noAnimTimer)
         frame._noAnimTimer = nil
     end
-
-    lib:ResumeQueue(frame)
+    ns.ToastAnimations.StopSlide(frame)
     lib:Stop(frame)
 end

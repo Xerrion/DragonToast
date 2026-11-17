@@ -8,4 +8,24 @@ jobs:
   lint:
     uses: Xerrion/wow-workflows/.github/workflows/lint.yml@main
     with:
-      run-tests: true
+      run-tests: false
+
+  test:
+    name: Busted Tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Initialize the pinned animation library
+        run: git submodule update --init DragonToast/Libs/LibAnimate
+      - uses: leafo/gh-actions-lua@v10
+        with:
+          luaVersion: "5.1"
+      - uses: leafo/gh-actions-luarocks@v4
+      - run: luarocks install busted
+      - name: Run tests
+        run: busted --verbose

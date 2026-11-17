@@ -84,4 +84,27 @@ describe("HandleSlashCommand", function()
         assert.is_true(clearCalled)
         assert.equal("All toasts cleared.", printedMessage)
     end)
+
+    it("routes the default mass loot command", function()
+        local called = false
+        ns.TestToasts.RunMassLootTest = function(count)
+            called = true
+            assert.is_nil(count)
+        end
+        ns.HandleSlashCommand(" MASSLOOT ")
+        assert.is_true(called)
+    end)
+
+    it("passes the optional mass loot count through for validation", function()
+        local count
+        ns.TestToasts.RunMassLootTest = function(value) count = value end
+        ns.HandleSlashCommand("  MASSLOOT   50  ")
+        assert.equal("50", count)
+    end)
+
+    it("reports an unavailable mass loot test module", function()
+        ns.TestToasts = nil
+        ns.HandleSlashCommand("massloot 50")
+        assert.equal("TestToasts module is not loaded.", printedMessage)
+    end)
 end)

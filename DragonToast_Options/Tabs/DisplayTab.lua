@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- DisplayTab.lua
--- Display settings tab: layout, toast size, content, padding, anchor
+-- Layout settings: size, spacing, stack, and exact screen position
 --
 -- Supported versions: Retail, MoP Classic, TBC Anniversary, Cata, Classic
 -------------------------------------------------------------------------------
@@ -36,18 +36,38 @@ local GROW_DIRECTION_VALUES = {
     { value = "DOWN", text = L["Down"] },
 }
 
-local GOLD_FORMAT_VALUES = {
-    { value = "icons", text = L["Icons"] },
-    { value = "short", text = L["Short (1g 2s 3c)"] },
-    { value = "long", text = L["Long (1 Gold 2 Silver 3 Copper)"] },
+local ANCHOR_VALUES = {
+    { value = "TOPLEFT", text = L["Top Left"] },
+    { value = "TOP", text = L["Top"] },
+    { value = "TOPRIGHT", text = L["Top Right"] },
+    { value = "LEFT", text = L["Left"] },
+    { value = "CENTER", text = L["Center"] },
+    { value = "RIGHT", text = L["Right"] },
+    { value = "BOTTOMLEFT", text = L["Bottom Left"] },
+    { value = "BOTTOM", text = L["Bottom"] },
+    { value = "BOTTOMRIGHT", text = L["Bottom Right"] },
 }
+
+local function UpdateAnchor(key, value)
+    local display = dtns.Addon.db.profile.display
+    display[key] = value
+    dtns.ToastManager.SetAnchor(display.anchorPoint, display.anchorX, display.anchorY)
+    if ns.RefreshVisibleWidgets then ns.RefreshVisibleWidgets() end
+end
+
+local function SetAnchorOffset(key, value)
+    local number = tonumber(value)
+    if number and number == number and math.abs(number) < math.huge then
+        UpdateAnchor(key, number)
+    elseif ns.RefreshVisibleWidgets then
+        ns.RefreshVisibleWidgets()
+    end
+end
 
 -------------------------------------------------------------------------------
 -- Section builders
--- Creates the "Layout" section in the Display tab and places its controls into the given parent.
--- The section exposes controls bound to `db.profile.display`: max toasts, grow direction, and spacing.
--- The grow direction control triggers toast repositioning when changed;
--- the spacing control triggers a layout update when changed.
+-- Stack capacity and growth direction retain their existing display settings.
+-- Changing growth direction repositions the live stack.
 -- @param parent UI frame that will contain the section's widgets.
 -- @param yOffset Number vertical offset (in pixels) from the parent's top where the section should start.
 -- @return Number the updated vertical offset after placing the section's widgets.
@@ -55,7 +75,9 @@ local GOLD_FORMAT_VALUES = {
 local function CreateLayoutSection(parent, yOffset)
     local db = dtns.Addon.db
 
-    local header = W.CreateHeader(parent, L["Layout"])
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
+
+    local header = W.CreateHeader(parent, L["Stack"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
@@ -69,16 +91,6 @@ local function CreateLayoutSection(parent, yOffset)
     LC.AnchorWidget(maxToasts, parent, yOffset)
     yOffset = yOffset - maxToasts:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
-    local queueStagger = W.CreateSlider(parent, {
-        label = L["Queue Stagger"],
-        tooltip = L["Delay between showing consecutive toasts from the queue (in seconds)"],
-        min = 0, max = 1, step = 0.05,
-        get = function() return db.profile.display.queueStagger end,
-        set = function(value) db.profile.display.queueStagger = value end,
-    })
-    LC.AnchorWidget(queueStagger, parent, yOffset)
-    yOffset = yOffset - queueStagger:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-
     local growDirection = W.CreateDropdown(parent, {
         label = L["Grow Direction"],
         tooltip = L["Direction toasts stack from the anchor"],
@@ -90,20 +102,7 @@ local function CreateLayoutSection(parent, yOffset)
         end,
     })
     LC.AnchorWidget(growDirection, parent, yOffset)
-    yOffset = yOffset - growDirection:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-
-    local spacing = W.CreateSlider(parent, {
-        label = L["Spacing"],
-        tooltip = L["Space between toasts in pixels"],
-        min = 0, max = 20, step = 1,
-        get = function() return db.profile.display.spacing end,
-        set = function(value)
-            db.profile.display.spacing = value
-            dtns.ToastManager:UpdateLayout()
-        end,
-    })
-    LC.AnchorWidget(spacing, parent, yOffset)
-    yOffset = yOffset - spacing:GetHeight()
+    yOffset = yOffset - growDirection:GetHeight()
 
     return yOffset
 end
@@ -115,8 +114,6 @@ end
 -- @return The updated vertical offset (in pixels) after placing the section's widgets.
 local function CreateSizeSection(parent, yOffset)
     local db = dtns.Addon.db
-
-    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
     local header = W.CreateHeader(parent, L["Toast Size"])
     LC.AnchorWidget(header, parent, yOffset)
@@ -146,104 +143,22 @@ local function CreateSizeSection(parent, yOffset)
         end,
     })
     LC.AnchorWidget(toastHeight, parent, yOffset)
-    yOffset = yOffset - toastHeight:GetHeight()
+    yOffset = yOffset - toastHeight:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+
+    local iconSize = W.CreateSlider(parent, {
+        label = L["Icon Size"],
+        tooltip = L["Size of the item icon on toasts"],
+        min = 16, max = 64, step = 2,
+        get = function() return db.profile.appearance.iconSize end,
+        set = function(value) db.profile.appearance.iconSize = value; LC.NotifyAppearanceChange() end,
+    })
+    LC.AnchorWidget(iconSize, parent, yOffset)
+    yOffset = yOffset - iconSize:GetHeight()
 
     return yOffset
 end
 
--- Builds the "Content" section of the Display tab, creating and anchoring content-related controls.
--- The created controls read and write values in `db.profile.display`. Controls that affect layout will
--- trigger a layout update when changed.
--- @param parent UI frame that will contain the section's widgets.
--- @param yOffset Starting vertical offset (number) where the section
---   should be placed; positive or negative coordinate as used by the
---   caller.
--- @return number The updated vertical offset after placing the section's widgets.
-local function CreateContentSection(parent, yOffset)
-    local db = dtns.Addon.db
-
-    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
-
-    local header = W.CreateHeader(parent, L["Content"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
-
-    local showIcon = W.CreateToggle(parent, {
-        label = L["Show Icon"],
-        tooltip = L["Display the item icon on toasts"],
-        get = function() return db.profile.display.showIcon end,
-        set = function(value)
-            db.profile.display.showIcon = value
-            dtns.ToastManager:UpdateLayout()
-        end,
-    })
-    LC.AnchorWidget(showIcon, parent, yOffset)
-    yOffset = yOffset - showIcon:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-
-    local showItemLevel = W.CreateToggle(parent, {
-        label = L["Show Item Level"],
-        tooltip = L["Display the item level on toasts"],
-        get = function() return db.profile.display.showItemLevel end,
-        set = function(value) db.profile.display.showItemLevel = value end,
-    })
-    LC.AnchorWidget(showItemLevel, parent, yOffset)
-    yOffset = yOffset - showItemLevel:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-
-    local showItemType = W.CreateToggle(parent, {
-        label = L["Show Item Type"],
-        tooltip = L["Display the item type on toasts"],
-        get = function() return db.profile.display.showItemType end,
-        set = function(value) db.profile.display.showItemType = value end,
-    })
-    LC.AnchorWidget(showItemType, parent, yOffset)
-    yOffset = yOffset - showItemType:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-
-    local showQuantity = W.CreateToggle(parent, {
-        label = L["Show Quantity"],
-        tooltip = L["Display the item quantity on toasts"],
-        get = function() return db.profile.display.showQuantity end,
-        set = function(value) db.profile.display.showQuantity = value end,
-    })
-    LC.AnchorWidget(showQuantity, parent, yOffset)
-    yOffset = yOffset - showQuantity:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-
-    local itemCountToggle = W.CreateToggle(parent, {
-        label = L["Show Item Count"],
-        tooltip = L["Display total inventory count of the looted item on the toast"],
-        get = function() return db.profile.display.showItemCount end,
-        set = function(value)
-            db.profile.display.showItemCount = value
-            dtns.ToastManager:UpdateLayout()
-        end,
-    })
-    LC.AnchorWidget(itemCountToggle, parent, yOffset)
-    yOffset = yOffset - itemCountToggle:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-
-    local showLooter = W.CreateToggle(parent, {
-        label = L["Show Looter"],
-        tooltip = L["Display who looted the item"],
-        get = function() return db.profile.display.showLooter end,
-        set = function(value) db.profile.display.showLooter = value end,
-    })
-    LC.AnchorWidget(showLooter, parent, yOffset)
-    yOffset = yOffset - showLooter:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-
-    local goldFormat = W.CreateDropdown(parent, {
-        label = L["Gold Format"],
-        tooltip = L["How to display gold amounts"],
-        values = GOLD_FORMAT_VALUES,
-        get = function() return db.profile.display.goldFormat end,
-        set = function(value) db.profile.display.goldFormat = value end,
-    })
-    LC.AnchorWidget(goldFormat, parent, yOffset)
-    yOffset = yOffset - goldFormat:GetHeight()
-
-    return yOffset
-end
-
--- Creates the "Padding" section inside the given parent, adding vertical
--- and horizontal padding sliders that update the saved display padding
--- and refresh toast layout.
+-- Group the horizontal and vertical text padding with spacing between toasts.
 -- @param parent The parent UI frame to attach the section to.
 -- @param yOffset The current vertical offset (in pixels) where the section should start; used for positioning.
 -- @return The updated vertical offset after placing the section's widgets.
@@ -252,9 +167,22 @@ local function CreatePaddingSection(parent, yOffset)
 
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, L["Padding"])
+    local header = W.CreateHeader(parent, L["Spacing"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+
+    local horzPadding = W.CreateSlider(parent, {
+        label = L["Horizontal Padding"],
+        tooltip = L["Horizontal padding inside toasts in pixels"],
+        min = 0, max = 20, step = 1,
+        get = function() return db.profile.display.textPaddingH end,
+        set = function(value)
+            db.profile.display.textPaddingH = value
+            dtns.ToastManager:UpdateLayout()
+        end,
+    })
+    LC.AnchorWidget(horzPadding, parent, yOffset)
+    yOffset = yOffset - horzPadding:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local vertPadding = W.CreateSlider(parent, {
         label = L["Vertical Padding"],
@@ -269,32 +197,60 @@ local function CreatePaddingSection(parent, yOffset)
     LC.AnchorWidget(vertPadding, parent, yOffset)
     yOffset = yOffset - vertPadding:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
-    local horzPadding = W.CreateSlider(parent, {
-        label = L["Horizontal Padding"],
-        tooltip = L["Horizontal padding inside toasts in pixels"],
+    local spacing = W.CreateSlider(parent, {
+        label = L["Spacing"],
+        tooltip = L["Space between toasts in pixels"],
         min = 0, max = 20, step = 1,
-        get = function() return db.profile.display.textPaddingH end,
+        get = function() return db.profile.display.spacing end,
         set = function(value)
-            db.profile.display.textPaddingH = value
+            db.profile.display.spacing = value
             dtns.ToastManager:UpdateLayout()
         end,
     })
-    LC.AnchorWidget(horzPadding, parent, yOffset)
-    yOffset = yOffset - horzPadding:GetHeight()
+    LC.AnchorWidget(spacing, parent, yOffset)
+    yOffset = yOffset - spacing:GetHeight()
 
     return yOffset
 end
 
--- Creates the "Anchor" section in the Display tab, adding an unlock toggle and a reset-position button.
+-- Position controls update the live anchor; the pinned preview owns its own position.
 -- @param parent The parent UI frame to which the section's widgets will be attached.
 -- @param yOffset The starting vertical offset (number); widgets are placed relative to this value.
 -- @return The updated vertical offset after placing the section's header and widgets.
 local function CreateAnchorSection(parent, yOffset)
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, L["Anchor"])
+    local header = W.CreateHeader(parent, L["Position"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+
+    local point = W.CreateDropdown(parent, {
+        label = L["Anchor Point"],
+        tooltip = L["Screen point used as the origin for the toast position"],
+        values = ANCHOR_VALUES,
+        get = function() return dtns.Addon.db.profile.display.anchorPoint end,
+        set = function(value) UpdateAnchor("anchorPoint", value) end,
+    })
+    LC.AnchorWidget(point, parent, yOffset)
+    yOffset = yOffset - point:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+
+    local offsetX = W.CreateTextInput(parent, {
+        label = L["Horizontal Offset"],
+        tooltip = L["Horizontal distance from the anchor point; positive moves right"],
+        get = function() return tostring(dtns.Addon.db.profile.display.anchorX) end,
+        set = function(value) SetAnchorOffset("anchorX", value) end,
+    })
+    LC.AnchorWidget(offsetX, parent, yOffset)
+    yOffset = yOffset - offsetX:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+
+    local offsetY = W.CreateTextInput(parent, {
+        label = L["Vertical Offset"],
+        tooltip = L["Vertical distance from the anchor point; positive moves up"],
+        get = function() return tostring(dtns.Addon.db.profile.display.anchorY) end,
+        set = function(value) SetAnchorOffset("anchorY", value) end,
+    })
+    LC.AnchorWidget(offsetY, parent, yOffset)
+    yOffset = yOffset - offsetY:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local unlockAnchor = W.CreateToggle(parent, {
         label = L["Unlock Anchor"],
@@ -312,7 +268,10 @@ local function CreateAnchorSection(parent, yOffset)
         text = L["Reset Position"],
         tooltip = L["Reset the anchor to the default position"],
         onClick = function()
-            dtns.ToastManager:SetAnchor("RIGHT", -20, 0)
+            local display = dtns.Addon.db.profile.display
+            display.anchorPoint, display.anchorX, display.anchorY = "RIGHT", -20, 0
+            dtns.ToastManager.SetAnchor("RIGHT", -20, 0)
+            if ns.RefreshVisibleWidgets then ns.RefreshVisibleWidgets() end
             dtns.Print(L["Anchor position reset to default."])
         end,
     })
@@ -330,10 +289,9 @@ local function CreateContent(parent)
     dtns = ns.dtns
     local yOffset = LC.PADDING_TOP
 
-    yOffset = CreateLayoutSection(parent, yOffset)
     yOffset = CreateSizeSection(parent, yOffset)
-    yOffset = CreateContentSection(parent, yOffset)
     yOffset = CreatePaddingSection(parent, yOffset)
+    yOffset = CreateLayoutSection(parent, yOffset)
     yOffset = CreateAnchorSection(parent, yOffset)
 
     parent:SetHeight(math_abs(yOffset) + LC.PADDING_BOTTOM)
@@ -345,7 +303,7 @@ end
 
 ns.Tabs[#ns.Tabs + 1] = {
     id = "display",
-    label = L["Display"],
-    order = 3,
+    label = L["Layout"],
+    order = 2,
     createFunc = CreateContent,
 }

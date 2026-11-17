@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- AppearanceTab.lua
--- Appearance settings tab: preset, font, background, border, glow, icon
+-- Appearance settings: preset, typography, background, border, glow, icon, integration
 --
 -- Supported versions: Retail, MoP Classic, TBC Anniversary, Cata, Classic
 -------------------------------------------------------------------------------
@@ -27,6 +27,27 @@ local L = ns.L
 -------------------------------------------------------------------------------
 
 local dtns
+local appearanceControls = {}
+
+local function RefreshDependencies()
+    local profile = dtns.Addon.db.profile
+    local appearance = profile.appearance
+    local hasElvUI = dtns.ElvUISkin and dtns.ElvUISkin.IsElvUI and dtns.ElvUISkin.IsElvUI() or false
+    local useElvUI = hasElvUI and profile.elvui and profile.elvui.useSkin
+    local states = {
+        borderColor = appearance.qualityBorder or useElvUI,
+        borderAlpha = appearance.qualityBorder or useElvUI,
+        qualityBorderAlpha = not appearance.qualityBorder,
+        statusBarTexture = not appearance.qualityGlow,
+        glowWidth = not appearance.qualityGlow,
+        glowAlpha = not appearance.qualityGlow,
+        elvui = not hasElvUI,
+        fontFace = useElvUI,
+    }
+    for key, control in pairs(appearanceControls) do
+        control:SetDisabled(not not states[key])
+    end
+end
 
 -------------------------------------------------------------------------------
 -- Static tables
@@ -42,7 +63,7 @@ local FONT_OUTLINE_VALUES = {
 -- Builds a list of available appearance presets.
 -- @return An array of tables where each entry has `value` (preset key) and `text` (preset display name).
 local function GetPresetValues()
-    local values = {}
+    local values = { { value = "custom", text = L["Custom"] } }
     for _, key in ipairs(dtns.Presets.order) do
         values[#values + 1] = { value = key, text = dtns.Presets.names[key] }
     end
@@ -65,8 +86,9 @@ local function CreatePresetSection(parent, yOffset)
         label = L["Skin Preset"],
         tooltip = L["Apply a preset appearance theme"],
         values = GetPresetValues,
-        get = function() return dtns.Presets.DetectPreset() or "default" end,
+        get = function() return dtns.Presets.DetectPreset() or "custom" end,
         set = function(value)
+            if value == "custom" then return end
             dtns.Presets.ApplyPreset(value)
             if ns.RefreshVisibleWidgets then ns.RefreshVisibleWidgets() end
         end,
@@ -97,6 +119,7 @@ local function CreateFontSection(parent, db, yOffset)
         get = function() return db.profile.appearance.fontFace end,
         set = function(value) db.profile.appearance.fontFace = value; LC.NotifyAppearanceChange() end,
     })
+    appearanceControls.fontFace = fontFace
     LC.AnchorWidget(fontFace, parent, yOffset)
     yOffset = yOffset - fontFace:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
@@ -200,7 +223,7 @@ local function CreateBackgroundSection(parent, db, yOffset)
     return yOffset
 end
 
--- Builds the "Border and Glow" section in the Appearance tab and lays out its controls.
+-- Builds the "Border" section in the Appearance tab and lays out its controls.
 -- @param parent UI container/frame to which the section widgets are attached.
 -- @param db Addon database table (expects db.profile.appearance to exist and be writable).
 -- @param yOffset Number vertical offset (in pixels) from the top where layout should start.
@@ -208,7 +231,7 @@ end
 local function CreateBorderSection(parent, db, yOffset)
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, L["Border and Glow"])
+    local header = W.CreateHeader(parent, L["Border"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
@@ -216,7 +239,11 @@ local function CreateBorderSection(parent, db, yOffset)
         label = L["Quality Border"],
         tooltip = L["Color the border based on item quality"],
         get = function() return db.profile.appearance.qualityBorder end,
-        set = function(value) db.profile.appearance.qualityBorder = value; LC.NotifyAppearanceChange() end,
+        set = function(value)
+            db.profile.appearance.qualityBorder = value
+            RefreshDependencies()
+            LC.NotifyAppearanceChange()
+        end,
     })
     LC.AnchorWidget(qualityBorder, parent, yOffset)
     yOffset = yOffset - qualityBorder:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
@@ -255,19 +282,49 @@ local function CreateBorderSection(parent, db, yOffset)
     LC.AnchorWidget(borderTexture, parent, yOffset)
     yOffset = yOffset - borderTexture:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
-    local qualityGlow = W.CreateToggle(parent, {
-        label = L["Quality Glow"],
-        tooltip = L["Add a quality-colored glow effect"],
-        get = function() return db.profile.appearance.qualityGlow end,
-        set = function(value) db.profile.appearance.qualityGlow = value; LC.NotifyAppearanceChange() end,
+    local borderColor = W.CreateColorPicker(parent, {
+        label = L["Border Color"],
+        tooltip = L["Border color when quality coloring and ElvUI matching are off"],
+        hasAlpha = false,
+        get = function()
+            local c = db.profile.appearance.borderColor or { r = 0.3, g = 0.3, b = 0.3 }
+            return c.r, c.g, c.b
+        end,
+        set = function(r, g, b)
+            db.profile.appearance.borderColor = { r = r, g = g, b = b }
+            LC.NotifyAppearanceChange()
+        end,
     })
-    LC.AnchorWidget(qualityGlow, parent, yOffset)
-    yOffset = yOffset - qualityGlow:GetHeight()
+    appearanceControls.borderColor = borderColor
+    LC.AnchorWidget(borderColor, parent, yOffset)
+    yOffset = yOffset - borderColor:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+
+    local borderAlpha = W.CreateSlider(parent, {
+        label = L["Border Opacity"],
+        tooltip = L["Opacity of the border when quality coloring is off"],
+        min = 0, max = 1, step = 0.05, isPercent = true,
+        get = function() return db.profile.appearance.borderAlpha or 0.8 end,
+        set = function(value) db.profile.appearance.borderAlpha = value; LC.NotifyAppearanceChange() end,
+    })
+    appearanceControls.borderAlpha = borderAlpha
+    LC.AnchorWidget(borderAlpha, parent, yOffset)
+    yOffset = yOffset - borderAlpha:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+
+    local qualityBorderAlpha = W.CreateSlider(parent, {
+        label = L["Quality Border Opacity"],
+        tooltip = L["Opacity of borders colored by item quality or reward type"],
+        min = 0, max = 1, step = 0.05, isPercent = true,
+        get = function() return db.profile.appearance.qualityBorderAlpha or 0.6 end,
+        set = function(value) db.profile.appearance.qualityBorderAlpha = value; LC.NotifyAppearanceChange() end,
+    })
+    appearanceControls.qualityBorderAlpha = qualityBorderAlpha
+    LC.AnchorWidget(qualityBorderAlpha, parent, yOffset)
+    yOffset = yOffset - qualityBorderAlpha:GetHeight()
 
     return yOffset
 end
 
--- Creates the Glowing Border section in the Appearance tab and returns the updated vertical offset.
+-- Creates the Glow section in the Appearance tab and returns the updated vertical offset.
 -- @param parent The parent UI frame to attach the section's widgets to.
 -- @param db The addon's database table; the function reads and writes values under `db.profile.appearance`.
 -- @param yOffset The starting vertical offset (number) where the section should be placed.
@@ -275,9 +332,22 @@ end
 local function CreateGlowingBorderSection(parent, db, yOffset)
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, L["Glowing Border"])
+    local header = W.CreateHeader(parent, L["Glow"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+
+    local qualityGlow = W.CreateToggle(parent, {
+        label = L["Quality Glow"],
+        tooltip = L["Add a quality-colored glow effect"],
+        get = function() return db.profile.appearance.qualityGlow end,
+        set = function(value)
+            db.profile.appearance.qualityGlow = value
+            RefreshDependencies()
+            LC.NotifyAppearanceChange()
+        end,
+    })
+    LC.AnchorWidget(qualityGlow, parent, yOffset)
+    yOffset = yOffset - qualityGlow:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local statusBarTexture = W.CreateDropdown(parent, {
         label = L["Glow Texture"],
@@ -290,6 +360,7 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
+    appearanceControls.statusBarTexture = statusBarTexture
     LC.AnchorWidget(statusBarTexture, parent, yOffset)
     yOffset = yOffset - statusBarTexture:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
@@ -300,20 +371,25 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
         get = function() return db.profile.appearance.glowWidth end,
         set = function(value) db.profile.appearance.glowWidth = value; LC.NotifyAppearanceChange() end,
     })
+    appearanceControls.glowWidth = glowWidth
     LC.AnchorWidget(glowWidth, parent, yOffset)
-    yOffset = yOffset - glowWidth:GetHeight()
+    yOffset = yOffset - glowWidth:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+
+    local glowAlpha = W.CreateSlider(parent, {
+        label = L["Glow Opacity"],
+        tooltip = L["Opacity of the quality-colored glow"],
+        min = 0, max = 1, step = 0.05, isPercent = true,
+        get = function() return db.profile.appearance.glowAlpha or 0.8 end,
+        set = function(value) db.profile.appearance.glowAlpha = value; LC.NotifyAppearanceChange() end,
+    })
+    appearanceControls.glowAlpha = glowAlpha
+    LC.AnchorWidget(glowAlpha, parent, yOffset)
+    yOffset = yOffset - glowAlpha:GetHeight()
 
     return yOffset
 end
 
--- Creates the "Icon" appearance section on the given parent and places
--- an icon size slider bound to the appearance settings.
--- @param parent UI frame that will contain the section.
--- @param db Addon database; the slider reads and updates
---   db.profile.appearance.iconSize.
--- @param yOffset Starting vertical offset (pixels) from the parent's
---   top; the function positions widgets relative to this value.
--- @return The updated vertical offset after adding the section's widgets.
+-- Texture crop is independent of the icon size on the Layout page.
 local function CreateIconSection(parent, db, yOffset)
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
@@ -321,17 +397,38 @@ local function CreateIconSection(parent, db, yOffset)
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
-    local iconSize = W.CreateSlider(parent, {
-        label = L["Icon Size"],
-        tooltip = L["Size of the item icon on toasts"],
-        min = 16, max = 64, step = 2,
-        get = function() return db.profile.appearance.iconSize end,
-        set = function(value) db.profile.appearance.iconSize = value; LC.NotifyAppearanceChange() end,
+    local iconCrop = W.CreateSlider(parent, {
+        label = L["Icon Crop"],
+        tooltip = L["Amount trimmed from each edge of the icon"],
+        min = 0, max = 0.25, step = 0.01, isPercent = true,
+        get = function() return db.profile.appearance.iconCrop or 0.08 end,
+        set = function(value) db.profile.appearance.iconCrop = value; LC.NotifyAppearanceChange() end,
     })
-    LC.AnchorWidget(iconSize, parent, yOffset)
-    yOffset = yOffset - iconSize:GetHeight()
+    LC.AnchorWidget(iconCrop, parent, yOffset)
+    yOffset = yOffset - iconCrop:GetHeight()
 
     return yOffset
+end
+
+local function CreateIntegrationSection(parent, db, yOffset)
+    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
+    local header = W.CreateHeader(parent, L["Integration"])
+    LC.AnchorWidget(header, parent, yOffset)
+    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+
+    local elvui = W.CreateToggle(parent, {
+        label = L["Match ElvUI Style"],
+        tooltip = L["Use ElvUI fonts and border colors when ElvUI is loaded"],
+        get = function() return db.profile.elvui and db.profile.elvui.useSkin == true end,
+        set = function(value)
+            db.profile.elvui.useSkin = value
+            RefreshDependencies()
+            LC.NotifyAppearanceChange()
+        end,
+    })
+    appearanceControls.elvui = elvui
+    LC.AnchorWidget(elvui, parent, yOffset)
+    return yOffset - elvui:GetHeight()
 end
 
 -------------------------------------------------------------------------------
@@ -341,6 +438,7 @@ end
 local function CreateContent(parent)
     dtns = ns.dtns
     local db = dtns.Addon.db
+    appearanceControls = {}
     local yOffset = LC.PADDING_TOP
 
     yOffset = CreatePresetSection(parent, yOffset)
@@ -349,6 +447,8 @@ local function CreateContent(parent)
     yOffset = CreateBorderSection(parent, db, yOffset)
     yOffset = CreateGlowingBorderSection(parent, db, yOffset)
     yOffset = CreateIconSection(parent, db, yOffset)
+    yOffset = CreateIntegrationSection(parent, db, yOffset)
+    RefreshDependencies()
 
     parent:SetHeight(math_abs(yOffset) + LC.PADDING_BOTTOM)
 end
@@ -360,6 +460,7 @@ end
 ns.Tabs[#ns.Tabs + 1] = {
     id = "appearance",
     label = L["Appearance"],
-    order = 5,
+    order = 4,
     createFunc = CreateContent,
+    refreshFunc = RefreshDependencies,
 }

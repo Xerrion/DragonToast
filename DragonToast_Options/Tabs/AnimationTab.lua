@@ -120,16 +120,6 @@ local function CreateEntranceSection(parent, yOffset)
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
-    local duration = W.CreateSlider(parent, {
-        label = L["Entrance Duration"],
-        tooltip = L["Duration of the entrance animation in seconds"],
-        min = 0.1, max = 1.0, step = 0.05,
-        get = function() return db.profile.animation.entranceDuration end,
-        set = function(value) db.profile.animation.entranceDuration = value end,
-    })
-    LC.AnchorWidget(duration, parent, yOffset)
-    yOffset = yOffset - duration:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-
     local animation = W.CreateDropdown(parent, {
         label = L["Entrance Animation"],
         tooltip = L["Animation style for toast entrance"],
@@ -139,6 +129,16 @@ local function CreateEntranceSection(parent, yOffset)
     })
     LC.AnchorWidget(animation, parent, yOffset)
     yOffset = yOffset - animation:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+
+    local duration = W.CreateSlider(parent, {
+        label = L["Entrance Duration"],
+        tooltip = L["Duration of the entrance animation in seconds"],
+        min = 0.1, max = 1.0, step = 0.05,
+        get = function() return db.profile.animation.entranceDuration end,
+        set = function(value) db.profile.animation.entranceDuration = value end,
+    })
+    LC.AnchorWidget(duration, parent, yOffset)
+    yOffset = yOffset - duration:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local distance = W.CreateSlider(parent, {
         label = L["Entrance Distance"],
@@ -203,16 +203,6 @@ local function CreateExitSection(parent, yOffset)
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
 
-    local duration = W.CreateSlider(parent, {
-        label = L["Exit Duration"],
-        tooltip = L["Duration of the exit animation in seconds"],
-        min = 0.1, max = 2.0, step = 0.1,
-        get = function() return db.profile.animation.exitDuration end,
-        set = function(value) db.profile.animation.exitDuration = value end,
-    })
-    LC.AnchorWidget(duration, parent, yOffset)
-    yOffset = yOffset - duration:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-
     local animation = W.CreateDropdown(parent, {
         label = L["Exit Animation"],
         tooltip = L["Animation style for toast exit"],
@@ -222,6 +212,16 @@ local function CreateExitSection(parent, yOffset)
     })
     LC.AnchorWidget(animation, parent, yOffset)
     yOffset = yOffset - animation:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+
+    local duration = W.CreateSlider(parent, {
+        label = L["Exit Duration"],
+        tooltip = L["Duration of the exit animation in seconds"],
+        min = 0.1, max = 2.0, step = 0.1,
+        get = function() return db.profile.animation.exitDuration end,
+        set = function(value) db.profile.animation.exitDuration = value end,
+    })
+    LC.AnchorWidget(duration, parent, yOffset)
+    yOffset = yOffset - duration:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local distance = W.CreateSlider(parent, {
         label = L["Exit Distance"],
@@ -245,9 +245,19 @@ local function CreateSlideSection(parent, yOffset)
 
     yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
 
-    local header = W.CreateHeader(parent, L["Slide"])
+    local header = W.CreateHeader(parent, L["Stack Timing"])
     LC.AnchorWidget(header, parent, yOffset)
     yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+
+    local queueStagger = W.CreateSlider(parent, {
+        label = L["Queue Stagger"],
+        tooltip = L["Delay between showing consecutive toasts from the queue (in seconds)"],
+        min = 0, max = 1, step = 0.05,
+        get = function() return db.profile.display.queueStagger end,
+        set = function(value) db.profile.display.queueStagger = value end,
+    })
+    LC.AnchorWidget(queueStagger, parent, yOffset)
+    yOffset = yOffset - queueStagger:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local speed = W.CreateSlider(parent, {
         label = L["Slide Speed"],
@@ -350,10 +360,10 @@ local function CreateContent(parent)
 
     yOffset = CreateAnimationSection(parent, yOffset, attentionState)
     yOffset = CreateEntranceSection(parent, yOffset)
+    yOffset = CreateAttentionSection(parent, yOffset, attentionState)
     yOffset = CreateHoldSection(parent, yOffset)
     yOffset = CreateExitSection(parent, yOffset)
     yOffset = CreateSlideSection(parent, yOffset)
-    yOffset = CreateAttentionSection(parent, yOffset, attentionState)
     currentAttentionState = attentionState
 
     parent:SetHeight(math_abs(yOffset) + LC.PADDING_BOTTOM)
@@ -366,7 +376,7 @@ end
 ns.Tabs[#ns.Tabs + 1] = {
     id = "animation",
     label = L["Animation"],
-    order = 4,
+    order = 5,
     createFunc = CreateContent,
     refreshFunc = function()
         local state = currentAttentionState

@@ -75,19 +75,24 @@ local defaults = {
         appearance = {
             fontSize = 12,
             secondaryFontSize = 10,
-            fontFace = "Friz Quadrata TT",
-            fontOutline = "OUTLINE",
-            backgroundAlpha = 0.7,
-            backgroundColor = { r = 0.05, g = 0.05, b = 0.05 },
-            backgroundTexture = "Solid",
-            qualityBorder = true,
-            qualityGlow = true,
+            fontFace = "Dragon UI",
+            fontOutline = "",
+            backgroundAlpha = 0.98,
+            backgroundColor = { r = 0.035, g = 0.047, b = 0.065 },
+            backgroundTexture = "Dragon UI Flat",
+            qualityBorder = false,
+            qualityBorderAlpha = 0.6,
+            borderColor = { r = 0.22, g = 0.28, b = 0.35 },
+            borderAlpha = 1,
+            qualityGlow = false,
+            glowAlpha = 0.2,
+            iconCrop = 0.08,
             iconSize = 36,
             borderSize = 1,
             borderInset = 0,
-            borderTexture = "None",
-            glowWidth = 4,
-            statusBarTexture = "Blizzard",
+            borderTexture = "Dragon UI Flat",
+            glowWidth = 2,
+            statusBarTexture = "Dragon UI Flat",
         },
 
         sound = {
@@ -100,7 +105,7 @@ local defaults = {
         },
 
         elvui = {
-            useSkin = true,
+            useSkin = false,
         },
 
         minimap = {

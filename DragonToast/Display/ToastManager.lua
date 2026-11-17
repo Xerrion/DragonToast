@@ -30,7 +30,12 @@ local toastQueue = QueueUtils.New()            -- overflow queue (FIFO, O(1) pus
 local combatQueue = QueueUtils.New()           -- deferred-during-combat queue (FIFO, O(1) push/pop)
 local anchorFrame = nil    -- invisible anchor frame for positioning
 local isInitialized = false
-local flushStaggerTimer = nil  -- pending AceTimer handle for staggered queue flush
+local flushStaggerTimer = nil  -- single pending admission timer
+local admissionPending = false -- reserve the entry row before revealing a toast
+local nextAdmissionTime = 0
+local layoutSpacing, layoutDirection
+local ScheduleFlush
+local POSITION_EPSILON = 0.00001
 
 -------------------------------------------------------------------------------
 -- Constants
@@ -63,6 +68,10 @@ local function IsRecentLoot(timestamp, now)
 end
 
 local function GetDuplicateKind(existingLootData, incomingLootData)
+    -- Mass-loot previews keep real item metadata but each occupies its own
+    -- toast. Ordinary loot has no test identity and retains normal stacking.
+    if existingLootData._testToastID ~= incomingLootData._testToastID then return nil end
+
     if incomingLootData.isXP and existingLootData.isXP then
         return DUPLICATE_KIND_XP
     end
@@ -233,10 +242,15 @@ end
 -- Positioning
 -------------------------------------------------------------------------------
 
+local function GetToastSpacing()
+    local db = ns.Addon.db.profile.display
+    return db.toastHeight + (db.spacing or TOAST_SPACING)
+        + (ns.Addon.db.profile.appearance.borderSize or 0)
+end
+
 local function GetToastPosition(index)
     local db = ns.Addon.db.profile.display
-    local borderSize = ns.Addon.db.profile.appearance.borderSize or 0
-    local spacing = db.toastHeight + (db.spacing or TOAST_SPACING) + borderSize
+    local spacing = GetToastSpacing()
     local offset = (index - 1) * spacing
 
     if db.growDirection == "UP" then
@@ -246,81 +260,83 @@ local function GetToastPosition(index)
     end
 end
 
+-- Plan in growth-direction coordinates. A hovered toast pins its exact
+-- physical position; never move a neighbor across it or reserve a rounded row.
+local function PlanPositions(reserveEntry)
+    local db = ns.Addon.db.profile.display
+    local spacing = GetToastSpacing()
+    local direction = db.growDirection == "UP" and 1 or -1
+    local nextOffset = reserveEntry and spacing or 0
+    local positions = {}
+    for i, toast in ipairs(activeToasts) do
+        local current = ns.ToastAnimations.GetLayoutY(toast)
+        local offset = nextOffset
+        if toast._isHovered and current ~= nil then
+            offset = current * direction
+            if offset + POSITION_EPSILON < nextOffset then return nil end
+        end
+        positions[i] = offset * direction
+        nextOffset = offset + spacing
+    end
+    return positions, spacing, db.growDirection
+end
+
 function ns.ToastManager.UpdatePositions()
-    if not isInitialized then return end
+    if not isInitialized then return false end
 
-    -- Collect visual slots reserved by hovered toasts.
-    -- A hovered toast keeps its current _anchorY, so other toasts must skip
-    -- that slot to avoid overlap.
-    local reservedSlots = {}
-    for _, toast in ipairs(activeToasts) do
-        if toast._isHovered and toast._anchorY ~= nil then
-            local db = ns.Addon.db.profile.display
-            local borderSize = ns.Addon.db.profile.appearance.borderSize or 0
-            local spacing = db.toastHeight + (db.spacing or TOAST_SPACING) + borderSize
-            if spacing > 0 then
-                local slot
-                if db.growDirection == "UP" then
-                    slot = math.floor(toast._anchorY / spacing + 0.5) + 1
-                else
-                    slot = math.floor(-toast._anchorY / spacing + 0.5) + 1
-                end
-                reservedSlots[slot] = true
-            end
+    local spacing = GetToastSpacing()
+    local direction = ns.Addon.db.profile.display.growDirection
+    local geometryChanged = layoutSpacing ~= nil
+        and (layoutSpacing ~= spacing or layoutDirection ~= direction)
+    if geometryChanged then
+        -- A new row size/direction cannot preserve a pin in the old geometry.
+        -- End hover before planning so resized cards cannot remain overlapping.
+        for _, toast in ipairs(activeToasts) do
+            if toast._isHovered then ns.ToastFrame.ClearHover(toast) end
         end
     end
+    local positions = PlanPositions(admissionPending)
+    if not positions then return false end
+    local point, relativeTo, relativePoint, x = GetToastPosition(1)
+    local changed = geometryChanged
+    for i, toast in ipairs(activeToasts) do
+        if toast._targetY ~= positions[i] then changed = true end
+    end
 
-    -- Assign visual slots: hovered toasts keep theirs, others fill remaining
-    -- slots in order.
-    local nextSlot = 1
-    for _, toast in ipairs(activeToasts) do
-        local slot
-        if toast._isHovered and toast._anchorY ~= nil then
-            local db = ns.Addon.db.profile.display
-            local borderSize = ns.Addon.db.profile.appearance.borderSize or 0
-            local spacing = db.toastHeight + (db.spacing or TOAST_SPACING) + borderSize
-            if spacing > 0 then
-                if db.growDirection == "UP" then
-                    slot = math.floor(toast._anchorY / spacing + 0.5) + 1
-                else
-                    slot = math.floor(-toast._anchorY / spacing + 0.5) + 1
-                end
-            else
-                slot = nextSlot
-            end
-        else
-            while reservedSlots[nextSlot] do
-                nextSlot = nextSlot + 1
-            end
-            slot = nextSlot
-            nextSlot = nextSlot + 1
-        end
-
-        local point, relativeTo, relativePoint, x, y = GetToastPosition(slot)
-
-        if toast._targetY == nil then
+    local remaining = 0
+    for i, toast in ipairs(activeToasts) do
+        local y = positions[i]
+        if toast._anchorY == nil or geometryChanged then
+            ns.ToastAnimations.SetPosition(toast, point, relativeTo, relativePoint, x, y)
+        elseif toast._isHovered then
+            ns.ToastAnimations.StopSlide(toast)
             toast._targetY = y
-            toast._anchorY = y
-            toast:ClearAllPoints()
-            toast:SetPoint(point, relativeTo, relativePoint, x, y)
-        elseif toast._targetY ~= y then
-            if not toast._isExiting then
-                if toast._isEntering then
-                    toast._targetY = y
-                    toast._deferredSlideArgs = { point, relativeTo, relativePoint, x }
-                elseif toast._isHovered then
-                    toast._targetY = y
-                else
-                    local startY = toast._anchorY or toast._targetY or y
-                    toast._targetY = y
-                    toast._anchorY = y
-                    ns.ToastAnimations.PlaySlide(
-                        toast, startY, y, point, relativeTo, relativePoint, x
-                    )
-                end
-            end
+        elseif changed then
+            -- All moving rows share a start time and duration. Interpolating
+            -- two ordered, spaced layouts preserves the gap between neighbors.
+            ns.ToastAnimations.PlaySlide(toast, nil, y, point, relativeTo, relativePoint, x)
+        end
+        remaining = math.max(remaining, ns.ToastAnimations.GetSlideRemaining(toast))
+    end
+    layoutSpacing, layoutDirection = spacing, direction
+    if geometryChanged and QueueUtils.Size(toastQueue) > 0 then
+        -- Clearing a geometry-incompatible hover may unblock admission. Wake
+        -- the single pump asynchronously; UpdatePositions also runs inside it.
+        ScheduleFlush(0)
+    end
+    return true, remaining
+end
+
+function ns.ToastManager.OnHoverChanged()
+    if admissionPending and not PlanPositions(true) then
+        admissionPending = false
+        if flushStaggerTimer then
+            ns.Addon:CancelTimer(flushStaggerTimer)
+            flushStaggerTimer = nil
         end
     end
+    ns.ToastManager.UpdatePositions()
+    ns.ToastManager.FlushQueue()
 end
 
 function ns.ToastManager.UpdateLayout()
@@ -344,7 +360,7 @@ end
 -- Duplicate Detection
 -------------------------------------------------------------------------------
 
-local function FindDuplicate(lootData)
+local function FindDuplicate(lootData, activeOnly)
     if lootData.isCurrency and not lootData.copperAmount and not lootData.currencyID then return nil end
 
     -- Active toasts stack for their full visible lifetime (until _isExiting).
@@ -357,6 +373,8 @@ local function FindDuplicate(lootData)
             end
         end
     end
+
+    if activeOnly then return nil end
 
     -- Queued entries are time-gated: entries older than DUPLICATE_WINDOW do not receive
     -- stacks and a new entry is queued instead. This intentionally differs from the active
@@ -391,52 +409,37 @@ ns.ToastManager.FormatNumber = ns.FormatNumber
 -- Display a Toast
 -------------------------------------------------------------------------------
 
-local function ShowToast(lootData)
-    local db = ns.Addon.db.profile
-
-    -- Check for duplicate
-    local existing, activeIndex, duplicateKind = FindDuplicate(lootData)
-    if existing then
-        -- nil activeIndex means the duplicate was found in a pending queue
-        -- and has already been updated in-place by FindDuplicate
-        if activeIndex == nil then return end
-
+local function StackDuplicate(lootData, activeOnly)
+    local existing, activeIndex, duplicateKind = FindDuplicate(lootData, activeOnly)
+    if not existing then return false end
+    if activeIndex then
         ApplyDuplicateStack(existing.lootData, lootData, duplicateKind, GetActiveStackTimestamp(duplicateKind))
         ns.ToastFrame.Populate(existing, existing.lootData)
-        -- Preserve the current lifecycle - stacked active toasts only update content.
         ns.ToastAnimations.UpdateLifecycle(existing, existing.lootData)
-        return
     end
+    return true
+end
 
-    -- Check max visible
-    if #activeToasts >= db.display.maxToasts then
-        -- Queue for later
-        QueueUtils.Push(toastQueue, lootData)
-        return
-    end
-
-    -- Acquire and populate a frame
+-- Only the admission pump may acquire a visible frame. Its row is already
+-- clear, including when several older toasts finish in the same render tick.
+local function ActivateToast(lootData)
+    local db = ns.Addon.db.profile
     local toast = ns.ToastFrame.Acquire()
     ns.ToastFrame.Populate(toast, lootData)
-
-    -- Always insert at position 1 (the feed entry point).
-    -- Hovered toasts keep their physical position because UpdatePositions
-    -- skips movement for hovered frames -- only _targetY is updated.
     table.insert(activeToasts, 1, toast)
-
-    -- Position all toasts
     ns.ToastManager.UpdatePositions()
-
-    -- Play full toast lifecycle (entrance -> hold -> exit)
     ns.ToastAnimations.PlayLifecycle(toast, lootData)
 
-    -- Play sound if enabled
     if db.sound.enabled and db.sound.soundFile and db.sound.soundFile ~= "None" then
         local soundPath = LSM:Fetch("sound", db.sound.soundFile)
-        if soundPath then
-            PlaySoundFile(soundPath, "SFX")
-        end
+        if soundPath then PlaySoundFile(soundPath, "SFX") end
     end
+end
+
+local function ShowToast(lootData)
+    if StackDuplicate(lootData) then return end
+    QueueUtils.Push(toastQueue, lootData)
+    ns.ToastManager.FlushQueue()
 end
 
 ns.ToastManager.ShowToast = ShowToast
@@ -470,28 +473,56 @@ function ns.ToastManager.QueueToast(lootData)
     ShowToast(lootData)
 end
 
-local function FlushNext()
-    flushStaggerTimer = nil
-    local db = ns.Addon.db.profile
-    local stagger = db.display.queueStagger or 0
-    while QueueUtils.Size(toastQueue) > 0 and #activeToasts < db.display.maxToasts do
-        local lootData = QueueUtils.Pop(toastQueue)
-        ShowToast(lootData)
-        if stagger > 0 then
-            flushStaggerTimer = ns.Addon:ScheduleTimer(FlushNext, stagger)
-            return
-        end
-    end
+ScheduleFlush = function(delay)
+    if flushStaggerTimer then return end
+    flushStaggerTimer = ns.Addon:ScheduleTimer(function()
+        flushStaggerTimer = nil
+        ns.ToastManager.FlushQueue()
+    end, delay)
 end
 
 function ns.ToastManager.FlushQueue()
-    -- Cancel any pending stagger timer before starting a new flush pass
-    if flushStaggerTimer then
-        ns.Addon:CancelTimer(flushStaggerTimer)
-        flushStaggerTimer = nil
+    if not isInitialized or flushStaggerTimer then return end
+    local db = ns.Addon.db.profile
+
+    while QueueUtils.Size(toastQueue) > 0 and #activeToasts < db.display.maxToasts do
+        local wait = nextAdmissionTime - GetTime()
+        if wait > POSITION_EPSILON then
+            ScheduleFlush(wait)
+            return
+        end
+
+        if not admissionPending then
+            -- If making room would cross a hovered toast, wait for a removal
+            -- or hover change. Other visible lifecycles continue normally.
+            if not PlanPositions(true) then return end
+            admissionPending = true
+        end
+        local possible, remaining = ns.ToastManager.UpdatePositions()
+        if not possible then
+            admissionPending = false
+            ns.ToastManager.UpdatePositions()
+            return
+        end
+        if remaining > POSITION_EPSILON then
+            ScheduleFlush(remaining)
+            return
+        end
+
+        local lootData = QueueUtils.Pop(toastQueue)
+        if not StackDuplicate(lootData, true) then
+            admissionPending = false
+            ActivateToast(lootData)
+            nextAdmissionTime = GetTime() + math.max(db.display.queueStagger or 0, 0)
+        end
     end
-    FlushNext()
+
+    if admissionPending then
+        admissionPending = false
+        ns.ToastManager.UpdatePositions()
+    end
 end
+
 
 local function FlushCombatQueue()
     while QueueUtils.Size(combatQueue) > 0 do
@@ -509,13 +540,16 @@ function ns.ToastManager.DismissToast(toast)
 end
 
 function ns.ToastManager.OnToastFinished(toast)
-    -- Remove from active list
+    -- Ignore stale/duplicate completions; only an active toast owns a slot.
+    local found = false
     for i, t in ipairs(activeToasts) do
         if t == toast then
             table.remove(activeToasts, i)
+            found = true
             break
         end
     end
+    if not found then return end
 
     -- Release frame back to pool
     ns.ToastAnimations.StopAll(toast)
@@ -533,6 +567,9 @@ function ns.ToastManager.ClearAll()
         ns.Addon:CancelTimer(flushStaggerTimer)
         flushStaggerTimer = nil
     end
+    admissionPending = false
+    nextAdmissionTime = 0
+    layoutSpacing, layoutDirection = nil, nil
     ns.TestToasts.StopTestMode()
     -- Cancel all animations and hide all toasts
     for _, toast in ipairs(activeToasts) do

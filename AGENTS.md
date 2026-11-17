@@ -3,12 +3,13 @@
 ## In-Game Test Commands
 
 1. `/dt test` - show a single test toast
-2. `/dt testmode` - toggle continuous test toasts (2.5s interval) for live config preview
+2. `/dt testmode` - toggle continuous test toasts (1.5s interval) for live config preview
 3. `/dt clear` - dismiss all active toasts
 4. `/dt config` - open config window
-5. Rapid-fire `/dt test` (10+ times) to stress the frame pool
-6. Hover/unhover during animations to verify pause/resume
-7. `/console scriptErrors 1` to surface Lua errors
+5. `/dt massloot [count]` - queue a simultaneous burst of 30 distinct test toasts (optional count 1-100); `/dt clear` stops it
+6. Rapid-fire `/dt test` (10+ times) to stress the frame pool
+7. Hover/unhover during animations to verify pause/resume
+8. `/console scriptErrors 1` to surface Lua errors
 
 ## Ace3 Stack
 
@@ -28,11 +29,18 @@ For local dev, Ace3 is a git submodule at `Libs/Ace3/`. The `.pkgmeta` externals
 
 1. Loot event -> `LootListener` / `XPListener` parses and calls `ToastManager.QueueToast(lootData)`
 2. QueueToast -> Checks combat deferral and duplicate stacking, then calls `ShowToast()`
-3. ShowToast -> `ToastFrame.Acquire()` gets frame from pool, `Populate()` fills it, `PlayLifecycle()` starts animation
-4. PlayLifecycle -> Builds a `lib:Queue()`: entrance -> attention (optional, quality-gated) -> exit (with hold delay)
-5. Queue completes -> `OnToastFinished()` -> `StopAll()` -> `Release()` returns frame to pool
+3. ShowToast -> Merges duplicates or appends to the FIFO queue. One admission timer respects `queueStagger` and waits for the entry row to be clear.
+4. Admission -> `ToastFrame.Acquire()` gets a frame and its layout parent from the pool, `Populate()` fills it, and `PlayLifecycle()` starts the visual effects.
+5. PlayLifecycle -> Chains entrance -> attention (optional, quality-gated) -> hold -> exit through LibAnimate callbacks on the visual Button.
+6. Completion -> `OnToastFinished()` -> `StopAll()` -> `Release()` returns both frames to the pool and allows another queued toast to enter.
 
-Frames are recycled via `Acquire()` / `Release()`. `Release()` calls `ClearQueue()`, clears state fields, and has a pool duplication guard. Always call `StopAll()` before starting a new queue on an acquired frame.
+The private `layoutFrame` exclusively owns stack positioning. LibAnimate exclusively animates its visual Button child. `_anchorY` is the sampled physical position; `_targetY` is the destination. Do not use LibAnimate anchor/slide state for stack layout.
+
+Hovered toasts pin their exact physical position. Incoming entries wait if creating space would cross a hovered toast; other toast lifecycles continue. Exiting toasts remain part of the moving layout until released. Active duplicate updates never restart or extend lifetime.
+
+`Release()` marks the frame pooled before hiding, stops layout/effects/timers, restores hover strata, and clears state. Lifecycle, effect, and timer generations prevent stale callbacks from acting on reused frames.
+
+See [animation design and contracts](docs/animations.md). Run the real-library animation regressions with `git submodule update --init DragonToast/Libs/LibAnimate` followed by `busted --verbose`.
 
 ## ElvUI Integration
 

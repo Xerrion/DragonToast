@@ -212,7 +212,18 @@ function M.CreateNamespace()
     ns.ToastAnimations = {
         PlayLifecycle = function() end,
         UpdateLifecycle = function() end,
-        PlaySlide = function() end,
+        SetPosition = function(frame, point, relativeTo, relativePoint, x, y)
+            frame:SetPoint(point, relativeTo, relativePoint, x, y)
+            frame._anchorY, frame._targetY = y, y
+        end,
+        GetLayoutY = function(frame) return frame._anchorY end,
+        PlaySlide = function(frame, _, y, point, relativeTo, relativePoint, x)
+            frame:SetPoint(point, relativeTo, relativePoint, x, y)
+            frame._anchorY, frame._targetY = y, y
+            return 0
+        end,
+        StopSlide = function() end,
+        GetSlideRemaining = function() return 0 end,
         StopAll = function() end,
         Dismiss = function() end,
     }

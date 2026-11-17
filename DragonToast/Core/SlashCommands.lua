@@ -78,6 +78,7 @@ local HELP_ENTRIES = {
     { " config",          L["Open settings panel"] },
     { " lock",            L["Toggle anchor lock (drag to move)"] },
     { " test",            L["Show a test toast"] },
+    { " massloot [count]", L["Queue a burst of test loot (default 30; max 100)"] },
     { " test stack",      L["Test item stacking (3 rapid items)"] },
     { " test xp",         L["Test XP accumulation"] },
     { " test gold",       L["Test gold accumulation"] },
@@ -154,6 +155,13 @@ function ns.HandleSlashCommand(input)
         end
         local subCmd = cmd:match("^test (.+)$")
         ns.TestToasts.RunStackTest(subCmd)
+
+    elseif cmd == "massloot" or cmd:find("^massloot%s") then
+        if not ns.TestToasts then
+            ns.Print(L["TestToasts module is not loaded."])
+            return
+        end
+        ns.TestToasts.RunMassLootTest(cmd:match("^massloot%s+(.+)$"))
 
     elseif cmd == "testmode" then
         if not ns.TestToasts then
