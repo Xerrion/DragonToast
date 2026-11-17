@@ -1,152 +1,80 @@
 <div align="center">
 
-![Dragon Toast Logo](https://raw.githubusercontent.com/Xerrion/DragonToast/refs/heads/master/assets/dragon-toast.png)
+<img src="assets/dragon-toast.png" alt="Dragon Toast logo" width="96">
 
 # Dragon Toast
 
-*Every drop deserves a toast: a dragon-forged loot feed for your adventures.*
+**See what dropped while the group keeps moving.**
 
-[![Latest Release](https://img.shields.io/github/v/release/Xerrion/DragonToast?style=for-the-badge)](https://github.com/Xerrion/DragonToast/releases/latest)
-[![License](https://img.shields.io/github/license/Xerrion/DragonToast?style=for-the-badge)](https://github.com/Xerrion/DragonToast/blob/master/LICENSE)
-[![WoW Versions](https://img.shields.io/badge/WoW-TBC%20Anniversary%20%C2%B7%20MoP%20Classic%20%C2%B7%20Retail%20%C2%B7%20Forever-blue?style=for-the-badge&logo=battledotnet)](https://worldofwarcraft.blizzard.com/)
-[![CurseForge](https://img.shields.io/badge/CurseForge-1468628-F16436?style=for-the-badge&logo=curseforge)](https://www.curseforge.com/wow/addons/dragon-toast)
-[![Wago](https://img.shields.io/badge/Wago-E6gvQAN1-C1272D?style=for-the-badge)](https://addons.wago.io/addons/dragon-toast)
-[![Lint](https://img.shields.io/github/actions/workflow/status/Xerrion/DragonToast/lint.yml?style=for-the-badge&label=lint)](https://github.com/Xerrion/DragonToast/actions)
+[Get it on CurseForge](https://www.curseforge.com/wow/addons/dragon-toast) · [Get it on Wago](https://addons.wago.io/addons/dragon-toast) · [GitHub releases](https://github.com/Xerrion/DragonToast/releases/latest)
 
 </div>
 
-DragonToast displays clean, configurable toast notifications for in-game events: loot, gold, currency, quest items, XP,
-honor, reputation, mail, and roll wins.
+An orange item name catches your eye. It’s a Warglaive of Azzinoth, item level 156, and Vaela just looted it.
+Hover over the card to inspect it or shift-click to share it in chat. On a cloth run, that same spot can show six pieces
+of Runecloth coming in and how many you now have in your bags.
 
-## 🐉 Features
+![Dragon Toast showing a group member’s Warglaive, six Runecloth bringing the bag total to 48, gold, and reputation with The Sha’tar](docs/images/toast-stack.png)
 
-- Toasts for items, gold, currency, quest items, XP, honor, reputation, mail, and roll wins
-- Separate reputation gain and loss notifications; losses reflect net changes between discoverable faction snapshots
-- Event-driven item loading and staggered queue for smooth performance during heavy loot sessions
-- Stacking toasts that respect their full visible lifetime for natural feed growth
-- Inventory item count badge displayed on item toasts (configurable)
-- Configurable slot-based layout with adjustable stack direction, spacing, and max toast count
-- Hover-pause - holding your cursor over a toast extends its visible lifetime for reading tooltips
-- Built-in skin presets for quick visual restyling (Minimal, Dark, Neon, Parchment, and more)
-- LibSharedMedia integration: full control over fonts, background textures, and borders
-- Sound picker with bundled default notification sounds
-- Defer-in-combat option to delay toast display until after combat ends
-- DragonLoot AceComm integration: suppresses duplicate loot toasts and queues celebration toasts for roll wins
-- Companion `DragonToast_Options` LoadOnDemand addon (embeds DragonWidgets shared library)
-- 11 locales: English, German, Spanish (EU/MX), French, Italian, Korean, Portuguese, Russian, and Chinese (CN/TW)
+*Offline render of the Modern skin with bag counts enabled. Type `/dt test` to see a card animate in your own UI.*
 
-## 🎮 Supported Versions
+## Pick what gets your attention
 
-| Version         | Interface | Status       |
-|:----------------|:----------|:-------------|
-| TBC Anniversary | 20506     | ✅ Primary   |
-| Mists Classic   | 50504     | ✅ Supported |
-| Retail          | 120105    | ✅ Secondary |
-| Forever (1.60.1) | 16001    | Supported    |
+**On a farming run**, repeat drops add to the card that’s already on screen. Turn on **Show Item Count** and you can
+see when you’ve collected enough cloth for your next bandage.
 
-## 📦 Installation
+**In a raid**, choose the minimum item quality you want to see and whether to include other players’ drops. Give epics
+a pulse when they land. If you want the screen clear during a fight, **Defer in Combat** holds new cards until combat
+ends.
 
-### Download
+**While leveling**, watch XP from a string of kills add up on one card. Reputation changes show the faction involved.
+Use **Filters** to decide whether gold, currency, honor, and mailbox pickups belong in the stack too.
 
-The recommended way to install DragonToast is via a management client like CurseForge or Wago.
+## Make it fit your UI
 
-- **CurseForge**: [Download](https://www.curseforge.com/wow/addons/dragon-toast)
-- **Wago**: [Download](https://addons.wago.io/addons/dragon-toast)
-- **GitHub**: [Latest Release](https://github.com/Xerrion/DragonToast/releases/latest)
+Try **Parchment** for a warm, paper-colored backdrop or **Minimal** for a small icon and borderless card. The sample
+in `/dt config` stays in view as you change fonts, glow, textures, or spacing. Set the stack to grow upward from
+your action bars or downward beside your unit frames. If you run ElvUI, you can use its font and border color here too.
 
-### Manual Install
+![Dragon Toast Layout settings showing an epic item preview above the card size, spacing, and stack controls](docs/images/layout-settings.png)
 
-1. Download the latest release.
-2. Extract the `DragonToast` and `DragonToast_Options` folders into your AddOns directory.
-3. Restart World of Warcraft or type `/reload`.
+*Offline preview of the Layout page in `/dt config`.*
 
-## 🔌 Sub-addons
+## Get started
 
-DragonToast is split into two parts to keep memory usage low:
-- **DragonToast**: The main engine and listeners. Always loaded.
-- **DragonToast_Options**: The configuration panel. Loads on demand only when you open the settings.
+1. Install Dragon Toast with your addon manager. For a manual install, extract both `DragonToast` and `DragonToast_Options` from the release ZIP into your client’s `Interface/AddOns/` folder and reload the UI.
+2. In game, type `/dt test` for a sample drop. Type `/dt lock`, drag the anchor where you want your cards, and type
+   `/dt lock` again to keep it there.
+3. Open `/dt config` and pick a skin under **Appearance**. To see how it handles a busy pull, run `/dt massloot 8`.
+   Clear the samples with `/dt clear`.
 
-## 🍞 Toast Types
+**Supported clients** include Retail, WoW Forever, TBC Anniversary, and Mists of Pandaria Classic.
 
-| Type | Description |
-|:-----|:------------|
-| Loot | Items looted by yourself or group members with quality filtering |
-| XP | Experience gains with consecutive aggregation |
-| Honor | Honor gains with faction-specific icon support |
-| Reputation | Direction-aware reputation gains and net observable losses with separate filters |
-| Mail | Notifications for new mail, auction sales, and won auctions |
-| Currency | Track gold, badges, and other currency gains |
-| Roll-Win | Celebration toasts for items won via rolls (requires DragonLoot) |
+## Pair it with Dragon Loot
 
-## ⌨️ Slash Commands
+Dragon Loot handles the loot window and group rolls. Use the two together to see who won a roll in your toast stack.
+While the loot window is open, Dragon Loot can keep those same items from popping up a second time.
+[Get Dragon Loot](https://github.com/Xerrion/DragonLoot)
 
-Use `/dt` or the alias `/dragontoast`.
+<details>
+<summary>More commands and project links</summary>
 
-| Command | Description |
-|:--------|:------------|
-| `/dt help` | Show the command list |
-| `/dt toggle` | Toggle the addon on or off |
-| `/dt config` | Open the options panel (aliases: `options`, `settings`) |
-| `/dt lock` | Toggle the anchor frame for repositioning (aliases: `unlock`, `move`) |
-| `/dt test` | Show a sample toast |
-| `/dt reset` | Reset the toast anchor position |
-| `/dt clear` | Dismiss all active toasts |
-| `/dt status` | Show current configuration status |
+| Command | What it does |
+| --- | --- |
+| `/dt config` | Open settings. Left-clicking the minimap button also opens them. |
+| `/dt lock` | Unlock or lock the movable anchor. |
+| `/dt reset` | Return the anchor to its original position. |
+| `/dt test` · `/dt testmode` | Show one sample, or toggle a continuous stream while you adjust the stack. |
+| `/dt massloot [count]` · `/dt clear` | Preview a burst of drops, or dismiss everything on screen and in the queue. |
+| `/dt toggle` · `/dt status` | Enable or disable the addon, or check its current settings. |
+| `/dt help` | List all commands. |
 
-## ⚙️ Configuration
+For authors, Dragon Toast accepts custom notifications and item suppression requests through local AceEvent messages.
+[Integration API and example](AGENTS.md#cross-addon-messaging-api) · [Options preview guide](docs/options-preview.md)
 
-Settings are stored in the `DragonToastDB` global and managed via the options panel:
+Found a bug or want to help with a translation? Please include your client and addon version when reporting a problem.
+[Report an issue](https://github.com/Xerrion/DragonToast/issues) · [Contributing](CONTRIBUTING.md)
 
-| Tab | Settings |
-|:----|:---------|
-| General | Addon toggle, anchor lock, minimap icon, combat deferral, sound toggle |
-| Filters | Quality threshold, loot sources, and individual toggles for each toast type |
-| Display | Toast dimensions, slot count, stack direction, spacing, and bag count badge |
-| Animation | Entrance/exit styles and durations, attention animations, and hover-pause |
-| Appearance | Skin presets, fonts, backgrounds, quality borders, and ElvUI style matching |
-| Profiles | Standard AceDB profile management (create, copy, reset) |
+Made by [Xerrion](https://github.com/Xerrion). [MIT License](LICENSE) · [GitHub Sponsors](https://github.com/sponsors/Xerrion) · [Ko-fi](https://ko-fi.com/Xerrion). World of Warcraft artwork and icons © Blizzard Entertainment.
 
-## 🔌 Integration API
-
-DragonToast listens for AceComm-3.0 messages. Other addons can trigger or suppress toasts without a hard dependency.
-
-| Message | Payload | Description |
-|:--------|:--------|:------------|
-| `DRAGONTOAST_SUPPRESS` | `source` (string) | Suppress normal loot toasts (120s safety timer) |
-| `DRAGONTOAST_UNSUPPRESS` | `source` (string) | Clear suppression for the given source |
-| `DRAGONTOAST_QUEUE_TOAST` | `data` (table) | Queue a toast with a custom data payload |
-
-### Example Usage
-
-```lua
--- Queue a custom toast via AceEvent-3.0
-local payload = {
-    itemName = "Sulfuras, Hand of Ragnaros",
-    itemIcon = 132711,
-    itemQuality = 5,
-    quantity = 1,
-    isSelf = true
-}
-LibStub("AceEvent-3.0"):SendMessage("DRAGONTOAST_QUEUE_TOAST", payload)
-```
-
-## 🌍 Localization
-
-DragonToast is fully localized for 11 regions: enUS, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, and zhTW.
-Translation contributions are always welcome via GitHub pull requests.
-
-## 🤝 Contributing
-
-Contributions are welcome! If you are a developer, please refer to the `AGENTS.md` file in the repository root for
-detailed coding standards and architecture documentation. The project uses `luacheck` for linting and `busted` for
-unit testing.
-
-## ❤️ Support
-
-If you would like to support the development of DragonToast, you can sponsor the project on [GitHub Sponsors](https://github.com/sponsors/Xerrion) or buy me a coffee on [Ko-fi](https://ko-fi.com/Xerrion).
-
-## 📄 License
-
-This project is licensed under the **MIT License**. See the [LICENSE](https://github.com/Xerrion/DragonToast/blob/master/LICENSE) file for details.
-
-Made with ❤️ by [Xerrion]
+</details>
