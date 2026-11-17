@@ -149,11 +149,16 @@ describe("Modern toast theme", function()
                 return control
             end
         end })
+        function W.CreateSection()
+            return { content = {}, SetContentHeight = function() end }
+        end
+        local function anchor(_, _, yOffset) return yOffset end
         local ns = {
             dtns = dt, Tabs = {}, L = L,
             DW = { Widgets = W, LayoutConstants = {
-                AnchorWidget = function() end, PADDING_TOP = 0, PADDING_BOTTOM = 0,
-                SPACING_AFTER_HEADER = 0, SPACING_BETWEEN_WIDGETS = 0, SPACING_BETWEEN_SECTIONS = 0,
+                AnchorWidget = anchor, AnchorSection = anchor,
+                PADDING_TOP = 0, PADDING_BOTTOM = 0, SECTION_PADDING_TOP = 0, SECTION_PADDING_BOTTOM = 0,
+                SPACING_BETWEEN_WIDGETS = 0, SPACING_BETWEEN_SECTIONS = 0,
             } },
         }
         loadModule("DragonToast_Options/Tabs/AppearanceTab.lua", ns)

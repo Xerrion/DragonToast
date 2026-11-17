@@ -17,6 +17,13 @@ local function frame()
     return result
 end
 
+local function anchor(widget, parent, yOffset)
+    parent.anchored = parent.anchored or {}
+    parent.anchored[#parent.anchored + 1] = widget
+    widget.anchorParent = parent
+    return yOffset - widget:GetHeight()
+end
+
 describe("Options live preview", function()
     local saved, ns, dw, dt, callbacks, controls, refreshCount, previewCalls, appearanceChanges
 
@@ -53,16 +60,27 @@ describe("Options live preview", function()
             },
             LayoutConstants = {
                 PADDING_TOP = -10, PADDING_BOTTOM = 20,
-                SPACING_AFTER_HEADER = 8, SPACING_BETWEEN_WIDGETS = 6, SPACING_BETWEEN_SECTIONS = 16,
-                AnchorWidget = function() end,
+                SECTION_PADDING_TOP = 8, SECTION_PADDING_BOTTOM = 12,
+                SPACING_BETWEEN_WIDGETS = 6, SPACING_BETWEEN_SECTIONS = 16,
+                AnchorWidget = anchor, AnchorSection = anchor,
                 NotifyAppearanceChange = function() appearanceChanges = appearanceChanges + 1 end,
             },
         }
+        dw.Widgets.CreateSection = function(_, title)
+            local section = frame()
+            section.title = title
+            section.content = frame()
+            function section:SetContentHeight(height)
+                self:SetHeight(height)
+            end
+            return section
+        end
         for _, kind in ipairs({
             "Button", "Header", "Dropdown", "Slider", "ColorPicker", "Toggle", "TextInput", "Description",
         }) do
-            dw.Widgets["Create" .. kind] = function(_, opts)
+            dw.Widgets["Create" .. kind] = function(parent, opts)
                 local widget = frame()
+                widget.parent = parent
                 widget.options = opts
                 function widget:GetValue()
                     return type(opts) == "table" and opts.get and opts.get() or self.value
@@ -122,6 +140,11 @@ describe("Options live preview", function()
 
     it("refreshes profile changes before the Profiles tab is ever created", function()
         _G.DragonToast_Options.Open()
+        assert.is_nil(dw.config.width)
+        assert.is_nil(dw.config.height)
+        assert.is_nil(dw.config.navigation)
+        assert.is_nil(dw.config.settingsLayout)
+        assert.is_nil(dw.config.preview.height)
         assert.are.equal(ns.CreatePreview, dw.config.preview.createFunc)
         assert.are.equal(0, #ns.Tabs)
         for _, event in ipairs({
@@ -335,6 +358,40 @@ describe("Options live preview", function()
         local ids = {}
         for _, tab in ipairs(ns.Tabs) do ids[#ids + 1] = tab.id end
         assert.are.same({ "general", "display", "content", "appearance", "animation", "filters", "profiles" }, ids)
+    end)
+
+    it("groups each page's controls inside its registered section cards", function()
+        ns.dtns = dt
+        dt.Addon.db.profile = { appearance = {}, animation = {}, sound = {} }
+        local cases = {
+            General = { "Core Settings", "Sound", "Testing" },
+            Display = { "Toast Size", "Spacing", "Stack", "Position" },
+            Content = { "Content" },
+            Appearance = { "Preset", "Font", "Background", "Border", "Glow", "Icon", "Integration" },
+            Animation = { "Animation", "Entrance", "Attention", "Hold", "Exit", "Stack Timing" },
+            Filters = { "Loot Quality", "Loot Sources", "Currency and Rewards" },
+            Profiles = { "Current Profile", "Profile Actions" },
+        }
+        for name, expected in pairs(cases) do
+            local page = frame()
+            local firstControl = #controls + 1
+            loadOptions("Tabs/" .. name .. "Tab.lua", ns)
+            ns.Tabs[#ns.Tabs].createFunc(page)
+
+            local titles, containers = {}, {}
+            for i, section in ipairs(page.anchored) do
+                assert.is_table(section.content)
+                assert.is_table(section.content.anchored)
+                titles[i] = section.title
+                containers[section.content] = true
+            end
+            assert.are.same(expected, titles)
+            for i = firstControl, #controls do
+                local widget = controls[i]
+                assert.is_true(containers[widget.parent])
+                assert.are.equal(widget.parent, widget.anchorParent)
+            end
+        end
     end)
 
 end)

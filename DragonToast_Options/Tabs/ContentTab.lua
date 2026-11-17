@@ -18,11 +18,11 @@ local GOLD_FORMAT_VALUES = {
 local function CreateContentSection(parent, yOffset)
     local db = dtns.Addon.db
 
-    local header = W.CreateHeader(parent, L["Content"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+    local section = W.CreateSection(parent, L["Content"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local showIcon = W.CreateToggle(parent, {
+    local showIcon = W.CreateToggle(content, {
         label = L["Show Icon"],
         tooltip = L["Display the item icon on toasts"],
         get = function() return db.profile.display.showIcon end,
@@ -31,10 +31,9 @@ local function CreateContentSection(parent, yOffset)
             dtns.ToastManager:UpdateLayout()
         end,
     })
-    LC.AnchorWidget(showIcon, parent, yOffset)
-    yOffset = yOffset - showIcon:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(showIcon, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local showItemLevel = W.CreateToggle(parent, {
+    local showItemLevel = W.CreateToggle(content, {
         label = L["Show Item Level"],
         tooltip = L["Display the item level on toasts"],
         get = function() return db.profile.display.showItemLevel end,
@@ -43,10 +42,9 @@ local function CreateContentSection(parent, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(showItemLevel, parent, yOffset)
-    yOffset = yOffset - showItemLevel:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(showItemLevel, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local showItemType = W.CreateToggle(parent, {
+    local showItemType = W.CreateToggle(content, {
         label = L["Show Item Type"],
         tooltip = L["Display the item type on toasts"],
         get = function() return db.profile.display.showItemType end,
@@ -55,10 +53,9 @@ local function CreateContentSection(parent, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(showItemType, parent, yOffset)
-    yOffset = yOffset - showItemType:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(showItemType, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local showQuantity = W.CreateToggle(parent, {
+    local showQuantity = W.CreateToggle(content, {
         label = L["Show Quantity"],
         tooltip = L["Display the item quantity on toasts"],
         get = function() return db.profile.display.showQuantity end,
@@ -67,10 +64,9 @@ local function CreateContentSection(parent, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(showQuantity, parent, yOffset)
-    yOffset = yOffset - showQuantity:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(showQuantity, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local itemCountToggle = W.CreateToggle(parent, {
+    local itemCountToggle = W.CreateToggle(content, {
         label = L["Show Item Count"],
         tooltip = L["Display total inventory count of the looted item on the toast"],
         get = function() return db.profile.display.showItemCount end,
@@ -79,10 +75,9 @@ local function CreateContentSection(parent, yOffset)
             dtns.ToastManager:UpdateLayout()
         end,
     })
-    LC.AnchorWidget(itemCountToggle, parent, yOffset)
-    yOffset = yOffset - itemCountToggle:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(itemCountToggle, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local showLooter = W.CreateToggle(parent, {
+    local showLooter = W.CreateToggle(content, {
         label = L["Show Looter"],
         tooltip = L["Display who looted the item"],
         get = function() return db.profile.display.showLooter end,
@@ -91,10 +86,9 @@ local function CreateContentSection(parent, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(showLooter, parent, yOffset)
-    yOffset = yOffset - showLooter:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(showLooter, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local goldFormat = W.CreateDropdown(parent, {
+    local goldFormat = W.CreateDropdown(content, {
         label = L["Gold Format"],
         tooltip = L["How to display gold amounts"],
         values = GOLD_FORMAT_VALUES,
@@ -104,10 +98,10 @@ local function CreateContentSection(parent, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(goldFormat, parent, yOffset)
-    yOffset = yOffset - goldFormat:GetHeight()
+    innerY = LC.AnchorWidget(goldFormat, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    return yOffset
+    section:SetContentHeight(math.abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 

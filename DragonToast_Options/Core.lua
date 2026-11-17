@@ -106,11 +106,7 @@ local function CreateOptionsPanel()
     panelResult = DW.CreateOptionsPanel({
         name = "DragonToastOptionsFrame",
         title = "DragonToast Options",
-        width = 1080,
-        height = 720,
-        navigation = "sidebar",
-        settingsLayout = true,
-        preview = { height = 170, createFunc = ns.CreatePreview },
+        preview = { createFunc = ns.CreatePreview },
         tabs = tabDefs,
     })
 

@@ -33,20 +33,14 @@ local dtns
 -------------------------------------------------------------------------------
 
 local function CreateFilterToggles(parent, yOffset, db, entries)
-    for i, entry in ipairs(entries) do
+    for _, entry in ipairs(entries) do
         local toggle = W.CreateToggle(parent, {
             label = entry.label,
             tooltip = entry.tooltip,
             get = function() return db.profile.filters[entry.key] end,
             set = function(value) db.profile.filters[entry.key] = value end,
         })
-        LC.AnchorWidget(toggle, parent, yOffset)
-        -- No trailing spacing after the last toggle in a section
-        if i < #entries then
-            yOffset = yOffset - toggle:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
-        else
-            yOffset = yOffset - toggle:GetHeight()
-        end
+        yOffset = LC.AnchorWidget(toggle, parent, yOffset) - LC.SPACING_BETWEEN_WIDGETS
     end
     return yOffset
 end
@@ -62,21 +56,21 @@ end
 local function CreateQualitySection(parent, yOffset)
     local db = dtns.Addon.db
 
-    local header = W.CreateHeader(parent, L["Loot Quality"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+    local section = W.CreateSection(parent, L["Loot Quality"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local minQuality = W.CreateDropdown(parent, {
+    local minQuality = W.CreateDropdown(content, {
         label = L["Minimum Quality"],
         tooltip = L["Only show toasts for items of this quality or higher"],
         values = ns.QualityValues,
         get = function() return db.profile.filters.minQuality end,
         set = function(value) db.profile.filters.minQuality = tonumber(value) or 0 end,
     })
-    LC.AnchorWidget(minQuality, parent, yOffset)
-    yOffset = yOffset - minQuality:GetHeight()
+    innerY = LC.AnchorWidget(minQuality, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    return yOffset
+    section:SetContentHeight(math_abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 local SOURCE_TOGGLES = {
@@ -95,15 +89,14 @@ local SOURCE_TOGGLES = {
 local function CreateSourcesSection(parent, yOffset)
     local db = dtns.Addon.db
 
-    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
+    local section = W.CreateSection(parent, L["Loot Sources"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local header = W.CreateHeader(parent, L["Loot Sources"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+    innerY = CreateFilterToggles(content, innerY, db, SOURCE_TOGGLES)
 
-    yOffset = CreateFilterToggles(parent, yOffset, db, SOURCE_TOGGLES)
-
-    return yOffset
+    section:SetContentHeight(math_abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 local CURRENCY_TOGGLES = {
@@ -125,15 +118,14 @@ local CURRENCY_TOGGLES = {
 local function CreateCurrencySection(parent, yOffset)
     local db = dtns.Addon.db
 
-    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
+    local section = W.CreateSection(parent, L["Currency and Rewards"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local header = W.CreateHeader(parent, L["Currency and Rewards"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+    innerY = CreateFilterToggles(content, innerY, db, CURRENCY_TOGGLES)
 
-    yOffset = CreateFilterToggles(parent, yOffset, db, CURRENCY_TOGGLES)
-
-    return yOffset
+    section:SetContentHeight(math_abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 -------------------------------------------------------------------------------

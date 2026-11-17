@@ -78,11 +78,11 @@ end
 -- @return The updated vertical offset (pixels) after the preset section has been added.
 
 local function CreatePresetSection(parent, yOffset)
-    local header = W.CreateHeader(parent, L["Preset"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+    local section = W.CreateSection(parent, L["Preset"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local presetDropdown = W.CreateDropdown(parent, {
+    local presetDropdown = W.CreateDropdown(content, {
         label = L["Skin Preset"],
         tooltip = L["Apply a preset appearance theme"],
         values = GetPresetValues,
@@ -93,10 +93,10 @@ local function CreatePresetSection(parent, yOffset)
             if ns.RefreshVisibleWidgets then ns.RefreshVisibleWidgets() end
         end,
     })
-    LC.AnchorWidget(presetDropdown, parent, yOffset)
-    yOffset = yOffset - presetDropdown:GetHeight()
+    innerY = LC.AnchorWidget(presetDropdown, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    return yOffset
+    section:SetContentHeight(math_abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 -- Builds the Font section UI inside the Appearance tab and returns the updated vertical offset.
@@ -105,13 +105,11 @@ end
 -- @param yOffset Current vertical offset from the top of `parent` where widgets should be anchored.
 -- @return The updated vertical offset after placing the Font section.
 local function CreateFontSection(parent, db, yOffset)
-    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
+    local section = W.CreateSection(parent, L["Font"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local header = W.CreateHeader(parent, L["Font"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
-
-    local fontFace = W.CreateDropdown(parent, {
+    local fontFace = W.CreateDropdown(content, {
         label = L["Font"],
         tooltip = L["Font face for toast text"],
         values = function() return LC.BuildLSMValues("font") end,
@@ -120,20 +118,18 @@ local function CreateFontSection(parent, db, yOffset)
         set = function(value) db.profile.appearance.fontFace = value; LC.NotifyAppearanceChange() end,
     })
     appearanceControls.fontFace = fontFace
-    LC.AnchorWidget(fontFace, parent, yOffset)
-    yOffset = yOffset - fontFace:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(fontFace, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local fontSize = W.CreateSlider(parent, {
+    local fontSize = W.CreateSlider(content, {
         label = L["Primary Font Size"],
         tooltip = L["Size of the main text"],
         min = 8, max = 20, step = 1,
         get = function() return db.profile.appearance.fontSize end,
         set = function(value) db.profile.appearance.fontSize = value; LC.NotifyAppearanceChange() end,
     })
-    LC.AnchorWidget(fontSize, parent, yOffset)
-    yOffset = yOffset - fontSize:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(fontSize, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local secondaryFontSize = W.CreateSlider(parent, {
+    local secondaryFontSize = W.CreateSlider(content, {
         label = L["Secondary Font Size"],
         tooltip = L["Size of secondary text"],
         min = 6, max = 16, step = 1,
@@ -143,20 +139,19 @@ local function CreateFontSection(parent, db, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(secondaryFontSize, parent, yOffset)
-    yOffset = yOffset - secondaryFontSize:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(secondaryFontSize, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local fontOutline = W.CreateDropdown(parent, {
+    local fontOutline = W.CreateDropdown(content, {
         label = L["Font Outline"],
         tooltip = L["Outline style for text"],
         values = FONT_OUTLINE_VALUES,
         get = function() return db.profile.appearance.fontOutline end,
         set = function(value) db.profile.appearance.fontOutline = value; LC.NotifyAppearanceChange() end,
     })
-    LC.AnchorWidget(fontOutline, parent, yOffset)
-    yOffset = yOffset - fontOutline:GetHeight()
+    innerY = LC.AnchorWidget(fontOutline, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    return yOffset
+    section:SetContentHeight(math_abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 -- Creates the "Background" subsection of the Appearance tab, adding
@@ -169,13 +164,11 @@ end
 --   value.
 -- @return number The updated vertical offset after placing the section's widgets.
 local function CreateBackgroundSection(parent, db, yOffset)
-    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
+    local section = W.CreateSection(parent, L["Background"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local header = W.CreateHeader(parent, L["Background"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
-
-    local bgColor = W.CreateColorPicker(parent, {
+    local bgColor = W.CreateColorPicker(content, {
         label = L["Background Color"],
         tooltip = L["Toast background color"],
         hasAlpha = false,
@@ -190,10 +183,9 @@ local function CreateBackgroundSection(parent, db, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(bgColor, parent, yOffset)
-    yOffset = yOffset - bgColor:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(bgColor, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local bgAlpha = W.CreateSlider(parent, {
+    local bgAlpha = W.CreateSlider(content, {
         label = L["Background Alpha"],
         tooltip = L["Opacity of the toast background"],
         min = 0, max = 1, step = 0.05, isPercent = true,
@@ -203,10 +195,9 @@ local function CreateBackgroundSection(parent, db, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(bgAlpha, parent, yOffset)
-    yOffset = yOffset - bgAlpha:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(bgAlpha, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local bgTexture = W.CreateDropdown(parent, {
+    local bgTexture = W.CreateDropdown(content, {
         label = L["Background Texture"],
         tooltip = L["Texture for the toast background"],
         values = function() return LC.BuildLSMValues("background") end,
@@ -217,10 +208,10 @@ local function CreateBackgroundSection(parent, db, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(bgTexture, parent, yOffset)
-    yOffset = yOffset - bgTexture:GetHeight()
+    innerY = LC.AnchorWidget(bgTexture, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    return yOffset
+    section:SetContentHeight(math_abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 -- Builds the "Border" section in the Appearance tab and lays out its controls.
@@ -229,13 +220,11 @@ end
 -- @param yOffset Number vertical offset (in pixels) from the top where layout should start.
 -- @return number The updated vertical offset after placing the section's widgets.
 local function CreateBorderSection(parent, db, yOffset)
-    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
+    local section = W.CreateSection(parent, L["Border"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local header = W.CreateHeader(parent, L["Border"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
-
-    local qualityBorder = W.CreateToggle(parent, {
+    local qualityBorder = W.CreateToggle(content, {
         label = L["Quality Border"],
         tooltip = L["Color the border based on item quality"],
         get = function() return db.profile.appearance.qualityBorder end,
@@ -245,30 +234,27 @@ local function CreateBorderSection(parent, db, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(qualityBorder, parent, yOffset)
-    yOffset = yOffset - qualityBorder:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(qualityBorder, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local borderSize = W.CreateSlider(parent, {
+    local borderSize = W.CreateSlider(content, {
         label = L["Border Size"],
         tooltip = L["Thickness of the toast border"],
         min = 0, max = 20, step = 1,
         get = function() return db.profile.appearance.borderSize end,
         set = function(value) db.profile.appearance.borderSize = value; LC.NotifyAppearanceChange() end,
     })
-    LC.AnchorWidget(borderSize, parent, yOffset)
-    yOffset = yOffset - borderSize:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(borderSize, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local borderInset = W.CreateSlider(parent, {
+    local borderInset = W.CreateSlider(content, {
         label = L["Border Inset"],
         tooltip = L["Inset of the border from the toast edge"],
         min = 0, max = 20, step = 1,
         get = function() return db.profile.appearance.borderInset end,
         set = function(value) db.profile.appearance.borderInset = value; LC.NotifyAppearanceChange() end,
     })
-    LC.AnchorWidget(borderInset, parent, yOffset)
-    yOffset = yOffset - borderInset:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(borderInset, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local borderTexture = W.CreateDropdown(parent, {
+    local borderTexture = W.CreateDropdown(content, {
         label = L["Border Texture"],
         tooltip = L["Texture for the toast border"],
         values = function() return LC.BuildLSMValues("border") end,
@@ -279,10 +265,9 @@ local function CreateBorderSection(parent, db, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(borderTexture, parent, yOffset)
-    yOffset = yOffset - borderTexture:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(borderTexture, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local borderColor = W.CreateColorPicker(parent, {
+    local borderColor = W.CreateColorPicker(content, {
         label = L["Border Color"],
         tooltip = L["Border color when quality coloring and ElvUI matching are off"],
         hasAlpha = false,
@@ -296,10 +281,9 @@ local function CreateBorderSection(parent, db, yOffset)
         end,
     })
     appearanceControls.borderColor = borderColor
-    LC.AnchorWidget(borderColor, parent, yOffset)
-    yOffset = yOffset - borderColor:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(borderColor, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local borderAlpha = W.CreateSlider(parent, {
+    local borderAlpha = W.CreateSlider(content, {
         label = L["Border Opacity"],
         tooltip = L["Opacity of the border when quality coloring is off"],
         min = 0, max = 1, step = 0.05, isPercent = true,
@@ -307,10 +291,9 @@ local function CreateBorderSection(parent, db, yOffset)
         set = function(value) db.profile.appearance.borderAlpha = value; LC.NotifyAppearanceChange() end,
     })
     appearanceControls.borderAlpha = borderAlpha
-    LC.AnchorWidget(borderAlpha, parent, yOffset)
-    yOffset = yOffset - borderAlpha:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(borderAlpha, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local qualityBorderAlpha = W.CreateSlider(parent, {
+    local qualityBorderAlpha = W.CreateSlider(content, {
         label = L["Quality Border Opacity"],
         tooltip = L["Opacity of borders colored by item quality or reward type"],
         min = 0, max = 1, step = 0.05, isPercent = true,
@@ -318,10 +301,10 @@ local function CreateBorderSection(parent, db, yOffset)
         set = function(value) db.profile.appearance.qualityBorderAlpha = value; LC.NotifyAppearanceChange() end,
     })
     appearanceControls.qualityBorderAlpha = qualityBorderAlpha
-    LC.AnchorWidget(qualityBorderAlpha, parent, yOffset)
-    yOffset = yOffset - qualityBorderAlpha:GetHeight()
+    innerY = LC.AnchorWidget(qualityBorderAlpha, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    return yOffset
+    section:SetContentHeight(math_abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 -- Creates the Glow section in the Appearance tab and returns the updated vertical offset.
@@ -330,13 +313,11 @@ end
 -- @param yOffset The starting vertical offset (number) where the section should be placed.
 -- @return The updated vertical offset after placing the section's widgets.
 local function CreateGlowingBorderSection(parent, db, yOffset)
-    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
+    local section = W.CreateSection(parent, L["Glow"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local header = W.CreateHeader(parent, L["Glow"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
-
-    local qualityGlow = W.CreateToggle(parent, {
+    local qualityGlow = W.CreateToggle(content, {
         label = L["Quality Glow"],
         tooltip = L["Add a quality-colored glow effect"],
         get = function() return db.profile.appearance.qualityGlow end,
@@ -346,10 +327,9 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
             LC.NotifyAppearanceChange()
         end,
     })
-    LC.AnchorWidget(qualityGlow, parent, yOffset)
-    yOffset = yOffset - qualityGlow:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(qualityGlow, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local statusBarTexture = W.CreateDropdown(parent, {
+    local statusBarTexture = W.CreateDropdown(content, {
         label = L["Glow Texture"],
         tooltip = L["Texture for the glowing border"],
         values = function() return LC.BuildLSMValues("statusbar") end,
@@ -361,10 +341,9 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
         end,
     })
     appearanceControls.statusBarTexture = statusBarTexture
-    LC.AnchorWidget(statusBarTexture, parent, yOffset)
-    yOffset = yOffset - statusBarTexture:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(statusBarTexture, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local glowWidth = W.CreateSlider(parent, {
+    local glowWidth = W.CreateSlider(content, {
         label = L["Glow Width"],
         tooltip = L["Width of the quality glow effect"],
         min = 0, max = 12, step = 1,
@@ -372,10 +351,9 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
         set = function(value) db.profile.appearance.glowWidth = value; LC.NotifyAppearanceChange() end,
     })
     appearanceControls.glowWidth = glowWidth
-    LC.AnchorWidget(glowWidth, parent, yOffset)
-    yOffset = yOffset - glowWidth:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
+    innerY = LC.AnchorWidget(glowWidth, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    local glowAlpha = W.CreateSlider(parent, {
+    local glowAlpha = W.CreateSlider(content, {
         label = L["Glow Opacity"],
         tooltip = L["Opacity of the quality-colored glow"],
         min = 0, max = 1, step = 0.05, isPercent = true,
@@ -383,40 +361,37 @@ local function CreateGlowingBorderSection(parent, db, yOffset)
         set = function(value) db.profile.appearance.glowAlpha = value; LC.NotifyAppearanceChange() end,
     })
     appearanceControls.glowAlpha = glowAlpha
-    LC.AnchorWidget(glowAlpha, parent, yOffset)
-    yOffset = yOffset - glowAlpha:GetHeight()
+    innerY = LC.AnchorWidget(glowAlpha, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    return yOffset
+    section:SetContentHeight(math_abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 -- Texture crop is independent of the icon size on the Layout page.
 local function CreateIconSection(parent, db, yOffset)
-    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
+    local section = W.CreateSection(parent, L["Icon"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local header = W.CreateHeader(parent, L["Icon"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
-
-    local iconCrop = W.CreateSlider(parent, {
+    local iconCrop = W.CreateSlider(content, {
         label = L["Icon Crop"],
         tooltip = L["Amount trimmed from each edge of the icon"],
         min = 0, max = 0.25, step = 0.01, isPercent = true,
         get = function() return db.profile.appearance.iconCrop or 0.08 end,
         set = function(value) db.profile.appearance.iconCrop = value; LC.NotifyAppearanceChange() end,
     })
-    LC.AnchorWidget(iconCrop, parent, yOffset)
-    yOffset = yOffset - iconCrop:GetHeight()
+    innerY = LC.AnchorWidget(iconCrop, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
 
-    return yOffset
+    section:SetContentHeight(math_abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 local function CreateIntegrationSection(parent, db, yOffset)
-    yOffset = yOffset - LC.SPACING_BETWEEN_SECTIONS
-    local header = W.CreateHeader(parent, L["Integration"])
-    LC.AnchorWidget(header, parent, yOffset)
-    yOffset = yOffset - header:GetHeight() - LC.SPACING_AFTER_HEADER
+    local section = W.CreateSection(parent, L["Integration"])
+    local content = section.content
+    local innerY = -LC.SECTION_PADDING_TOP
 
-    local elvui = W.CreateToggle(parent, {
+    local elvui = W.CreateToggle(content, {
         label = L["Match ElvUI Style"],
         tooltip = L["Use ElvUI fonts and border colors when ElvUI is loaded"],
         get = function() return db.profile.elvui and db.profile.elvui.useSkin == true end,
@@ -427,8 +402,10 @@ local function CreateIntegrationSection(parent, db, yOffset)
         end,
     })
     appearanceControls.elvui = elvui
-    LC.AnchorWidget(elvui, parent, yOffset)
-    return yOffset - elvui:GetHeight()
+    innerY = LC.AnchorWidget(elvui, content, innerY) - LC.SPACING_BETWEEN_WIDGETS
+
+    section:SetContentHeight(math_abs(innerY) + LC.SECTION_PADDING_BOTTOM)
+    return LC.AnchorSection(section, parent, yOffset) - LC.SPACING_BETWEEN_SECTIONS
 end
 
 -------------------------------------------------------------------------------
