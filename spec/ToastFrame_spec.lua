@@ -60,8 +60,10 @@ local function CreateTextureSpy()
     return texture
 end
 
-local function CreateRichMockFrame()
+local function CreateRichMockFrame(_, name, parent)
     local frame = {
+        _name = name,
+        _parent = parent,
         _points = {},
         _shown = false,
         _size = { w = 0, h = 0 },
@@ -91,11 +93,11 @@ local function CreateRichMockFrame()
     function frame:SetFrameLevel(l) self._frameLevel = l end
     function frame:GetFrameLevel() return self._frameLevel end
     function frame:SetBackdrop(bd) self._backdrop = bd end
-    function frame:SetBackdropColor() end
+    function frame:SetBackdropColor(...) self._backdropColor = { ... } end
     function frame:SetBackdropBorderColor() end
     function frame:SetAlpha(a) self._alpha = a end
     function frame:SetScale(s) self._scale = s end
-    function frame:EnableMouse() end
+    function frame:EnableMouse(enabled) self._mouseEnabled = enabled end
     function frame:RegisterForClicks() end
     function frame:SetAllPoints() end
     function frame:SetMovable() end
@@ -180,8 +182,8 @@ describe("ToastFrame display", function()
 
         -- Override CreateFrame and UIParent with richer mocks before loading
         -- luacheck: ignore 122
-        rawset(_G, "CreateFrame", function()
-            return CreateRichMockFrame()
+        rawset(_G, "CreateFrame", function(...)
+            return CreateRichMockFrame(...)
         end)
         -- luacheck: ignore 122
         rawset(_G, "UIParent", CreateRichMockFrame())
@@ -437,5 +439,67 @@ describe("ToastFrame display", function()
         assert.equal(0.95, frame.itemName._textColor.r)
         assert.equal(0.3, frame.itemName._textColor.g)
         assert.equal(0.3, frame.itemName._textColor.b)
+    end)
+    it("keeps the preview anonymous and independent of the live pool and lifecycle", function()
+        local live = frame
+        ns.ToastFrame.Release(live)
+        frame = nil
+        local parent = CreateRichMockFrame()
+        parent:SetSize(500, 130)
+        local oldManager, oldAnimations, oldTestToasts = ns.ToastManager, ns.ToastAnimations, ns.TestToasts
+        local forbidden = setmetatable({}, { __index = function() error("Preview touched live toast state") end })
+        ns.ToastManager, ns.ToastAnimations, ns.TestToasts = forbidden, forbidden, forbidden
+
+        local preview = ns.ToastFrame.CreatePreview(parent)
+        preview:Refresh(makeItemData())
+        assert.is_nil(preview.frame._name)
+        assert.are.equal(parent, preview.frame.layoutFrame._parent)
+        assert.is_false(preview.frame._mouseEnabled)
+        assert.is_false(preview.frame.iconFrame._mouseEnabled)
+        assert.is_nil(preview.frame._scripts.OnClick)
+        assert.is_nil(preview.frame._scripts.OnEnter)
+        assert.is_nil(preview.frame._scripts.OnLeave)
+        preview:OnHide()
+        assert.is_false(preview.frame:IsShown())
+        assert.is_false(preview.frame.layoutFrame:IsShown())
+
+        ns.ToastManager, ns.ToastAnimations, ns.TestToasts = oldManager, oldAnimations, oldTestToasts
+        frame = ns.ToastFrame.Acquire()
+        assert.are.equal(live, frame)
+    end)
+
+    it("redraws the preview from current settings and only scales down to fit", function()
+        local parent = CreateRichMockFrame()
+        parent:SetSize(200, 100)
+        local preview = ns.ToastFrame.CreatePreview(parent)
+        local profile = ns.Addon.db.profile
+        local display, appearance = profile.display, profile.appearance
+        local oldWidth, oldFont = display.toastWidth, appearance.fontSize
+        local oldColor, oldAlpha = appearance.backgroundColor, appearance.backgroundAlpha
+        local anchorPoint, anchorX, anchorY = display.anchorPoint, display.anchorX, display.anchorY
+
+        preview:Refresh(makeItemData())
+        assert.is_true(preview.frame.layoutFrame._scale < 1)
+        display.toastWidth = 160
+        appearance.fontSize = 16
+        appearance.backgroundColor = { r = 0.1, g = 0.2, b = 0.3 }
+        appearance.backgroundAlpha = 0.5
+        local width, height, scale = preview:Refresh(makeItemData({ itemQuality = 5, itemIcon = 654321 }))
+
+        assert.are.equal(160, preview.frame:GetWidth())
+        assert.are.equal(160, width)
+        assert.are.equal(preview.frame:GetHeight(), height)
+        assert.are.equal(1, scale)
+        assert.are.equal(16, preview.frame.itemName._font[2])
+        assert.are.same({ 0.1, 0.2, 0.3, 0.5 }, preview.frame._backdropColor)
+        assert.are.equal(654321, preview.frame.icon._texture)
+        assert.are.equal(1, preview.frame.itemName._textColor.r)
+        assert.are.equal(0.5, preview.frame.itemName._textColor.g)
+        assert.are.equal(1, preview.frame.layoutFrame._scale)
+        assert.are.same({ anchorPoint, anchorX, anchorY },
+            { display.anchorPoint, display.anchorX, display.anchorY })
+
+        display.toastWidth, appearance.fontSize = oldWidth, oldFont
+        appearance.backgroundColor, appearance.backgroundAlpha = oldColor, oldAlpha
     end)
 end)

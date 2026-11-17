@@ -67,6 +67,22 @@ end)
 -------------------------------------------------------------------------------
 
 local panelResult
+local profileCallbacksRegistered = false
+
+local function RefreshProfileState()
+    if panelResult then panelResult.RefreshVisibleWidgets() end
+end
+
+local function RegisterProfileCallbacks()
+    if profileCallbacksRegistered then return end
+    local db = ns.dtns.Addon.db
+    for _, event in ipairs({
+        "OnProfileChanged", "OnProfileCopied", "OnProfileReset", "OnNewProfile", "OnProfileDeleted",
+    }) do
+        db.RegisterCallback(ns, event, RefreshProfileState)
+    end
+    profileCallbacksRegistered = true
+end
 
 -------------------------------------------------------------------------------
 -- Create the options panel (called lazily on first Open)
@@ -79,6 +95,9 @@ local function CreateOptionsPanel()
         return
     end
 
+    -- Register before lazy tab creation, so profile changes work from every tab.
+    RegisterProfileCallbacks()
+
     local tabDefs = {}
     for i = 1, #ns.Tabs do
         tinsert(tabDefs, ns.Tabs[i])
@@ -87,12 +106,16 @@ local function CreateOptionsPanel()
     panelResult = DW.CreateOptionsPanel({
         name = "DragonToastOptionsFrame",
         title = "DragonToast Options",
-        width = 800,
-        height = 600,
+        width = 1080,
+        height = 720,
+        navigation = "sidebar",
+        settingsLayout = true,
+        preview = { height = 170, createFunc = ns.CreatePreview },
         tabs = tabDefs,
     })
 
     ns.RefreshVisibleWidgets = panelResult.RefreshVisibleWidgets
+    ns.RefreshPreview = panelResult.RefreshPreview
 end
 
 -------------------------------------------------------------------------------

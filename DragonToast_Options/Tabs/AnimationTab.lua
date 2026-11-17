@@ -29,6 +29,7 @@ local L = ns.L
 -------------------------------------------------------------------------------
 
 local dtns
+local currentAttentionState
 
 -------------------------------------------------------------------------------
 -- Helpers
@@ -353,6 +354,7 @@ local function CreateContent(parent)
     yOffset = CreateExitSection(parent, yOffset)
     yOffset = CreateSlideSection(parent, yOffset)
     yOffset = CreateAttentionSection(parent, yOffset, attentionState)
+    currentAttentionState = attentionState
 
     parent:SetHeight(math_abs(yOffset) + LC.PADDING_BOTTOM)
 end
@@ -366,4 +368,10 @@ ns.Tabs[#ns.Tabs + 1] = {
     label = L["Animation"],
     order = 4,
     createFunc = CreateContent,
+    refreshFunc = function()
+        local state = currentAttentionState
+        if state then
+            UpdateAttentionDisabledState(state.enableToggle, state.dropdown, state.widgets)
+        end
+    end,
 }

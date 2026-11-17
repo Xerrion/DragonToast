@@ -65,9 +65,9 @@ local function CreatePresetSection(parent, yOffset)
         label = L["Skin Preset"],
         tooltip = L["Apply a preset appearance theme"],
         values = GetPresetValues,
-        get = function() return dtns.Presets:DetectPreset() or "default" end,
+        get = function() return dtns.Presets.DetectPreset() or "default" end,
         set = function(value)
-            dtns.Presets:ApplyPreset(value)
+            dtns.Presets.ApplyPreset(value)
             if ns.RefreshVisibleWidgets then ns.RefreshVisibleWidgets() end
         end,
     })

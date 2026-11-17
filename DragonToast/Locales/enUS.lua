@@ -52,6 +52,23 @@ L["Stealth"] = true
 -- DragonToast/Core/ConfigWindow.lua
 L["DragonToast_Options addon not found. Please ensure it is installed."] = true
 
+-- DragonToast_Options/Preview.lua
+L["Live Preview"] = true
+L["%d x %d · %d%%"] = true
+L["Sample: %s"] = true
+L["Rarity: %s"] = true
+L["Cycle the item rarity in the preview"] = true
+L["Cycle the notification shown in the preview"] = true
+L["Example item"] = true
+L["Example encounter"] = true
+L["Example faction"] = true
+L["Item"] = true
+L["Experience"] = true
+L["Honor"] = true
+L["Reputation"] = true
+L["Armor"] = true
+L["Cloth"] = true
+
 -- DragonToast/Core/SlashCommands.lua
 L["--- DragonToast Status ---"] = true
 L["--- DragonToast Commands ---"] = true

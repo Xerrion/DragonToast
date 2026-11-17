@@ -569,14 +569,22 @@ local function SetupToastScripts(frame)
     end)
 end
 
-local function CreateToastFrame()
-    frameCount = frameCount + 1
-    local frameName = "DragonToastFrame" .. frameCount
+local function CreateToastFrame(previewParent)
+    local frameName
+    if not previewParent then
+        frameCount = frameCount + 1
+        frameName = "DragonToastFrame" .. frameCount
+    end
 
     -- Root frame: outer border + background only
-    local frame = CreateFrame("Button", frameName, UIParent, "BackdropTemplate")
-    frame:SetFrameStrata("MEDIUM")
-    frame:SetFrameLevel(BASE_FRAME_LEVEL + frameCount)
+    local frame = CreateFrame("Button", frameName, previewParent or UIParent, "BackdropTemplate")
+    if previewParent then
+        frame:SetFrameLevel(previewParent:GetFrameLevel() + 1)
+        frame:EnableMouse(false)
+    else
+        frame:SetFrameStrata("MEDIUM")
+        frame:SetFrameLevel(BASE_FRAME_LEVEL + frameCount)
+    end
     frame:Hide()
 
     frame:SetBackdrop({
@@ -612,7 +620,13 @@ local function CreateToastFrame()
 
     CreateToastTextures(frame)
     CreateToastTexts(frame)
-    SetupToastScripts(frame)
+    if previewParent then
+        frame.borderFrame:EnableMouse(false)
+        frame.content:EnableMouse(false)
+        frame.iconFrame:EnableMouse(false)
+    else
+        SetupToastScripts(frame)
+    end
 
     return frame
 end
@@ -782,6 +796,47 @@ end
 -------------------------------------------------------------------------------
 -- Public Interface
 -------------------------------------------------------------------------------
+
+-- An options-only renderer. It has no pool membership, click scripts, lifecycle,
+-- manager callbacks, or saved anchor state; its parent owns its position.
+function ns.ToastFrame.CreatePreview(parent)
+    local layoutFrame = CreateFrame("Frame", nil, parent)
+    layoutFrame:EnableMouse(false)
+    layoutFrame:SetPoint("CENTER", parent, "CENTER", 0, 0)
+    layoutFrame:Hide()
+    local frame = CreateToastFrame(layoutFrame)
+    frame.layoutFrame = layoutFrame
+    frame:SetPoint("CENTER", layoutFrame, "CENTER", 0, 0)
+    local controller = { frame = frame }
+
+    function controller:Refresh(lootData)
+        if lootData then PopulateToast(frame, lootData) end
+        if not frame.lootData then return end
+        if not lootData then PopulateToast(frame, frame.lootData) end
+
+        local width, height = frame:GetWidth(), frame:GetHeight()
+        local availableWidth, availableHeight = parent:GetWidth(), parent:GetHeight()
+        -- Width can be unresolved until the first panel layout pass.
+        if availableWidth <= 0 or availableHeight <= 0 then return end
+        local border = ns.Addon.db.profile.appearance.borderSize or DEFAULT_BORDER_SIZE
+        local scale = math.min(1, availableWidth / (width + border * 2),
+            availableHeight / (height + border * 2))
+        layoutFrame:SetSize(width, height)
+        layoutFrame:SetScale(scale)
+        frame:SetAlpha(1)
+        frame:SetScale(1)
+        layoutFrame:Show()
+        frame:Show()
+        return width, height, scale
+    end
+
+    function controller:OnHide()
+        frame:Hide()
+        layoutFrame:Hide()
+    end
+
+    return controller
+end
 
 function ns.ToastFrame.Acquire()
     local frame = table.remove(framePool)

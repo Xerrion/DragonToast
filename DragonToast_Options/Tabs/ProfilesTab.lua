@@ -131,13 +131,14 @@ local function CreateCurrentProfileSection(parent, yOffset, refreshAll)
             refreshAll()
         end,
     })
+    activeDropdown._layoutFullWidth = true
     LC.AnchorWidget(activeDropdown, parent, yOffset)
     yOffset = yOffset - activeDropdown:GetHeight() - LC.SPACING_BETWEEN_WIDGETS
 
     local newProfileInput = W.CreateTextInput(parent, {
         label = L["New Profile Name"],
         tooltip = L["Enter a name for a new profile"],
-        get = function() return "" end,
+        get = function() return newProfileName end,
         set = function(value) newProfileName = value end,
     })
     LC.AnchorWidget(newProfileInput, parent, yOffset)
@@ -223,7 +224,6 @@ end
 
 local function CreateContent(parent)
     dtns = ns.dtns
-    local db = dtns.Addon.db
     local yOffset = LC.PADDING_TOP
 
     -- Forward-declare widget refs for refresh closure
@@ -249,12 +249,6 @@ local function CreateContent(parent)
 
     parent:SetHeight(math_abs(yOffset) + LC.PADDING_BOTTOM)
 
-    -- Register AceDB profile callbacks (only once, CreateContent is called via lazy init)
-    db.RegisterCallback(db, "OnProfileChanged", RefreshProfileWidgets)
-    db.RegisterCallback(db, "OnProfileCopied", RefreshProfileWidgets)
-    db.RegisterCallback(db, "OnProfileReset", RefreshProfileWidgets)
-    db.RegisterCallback(db, "OnNewProfile", RefreshProfileWidgets)
-    db.RegisterCallback(db, "OnProfileDeleted", RefreshProfileWidgets)
 end
 
 -------------------------------------------------------------------------------

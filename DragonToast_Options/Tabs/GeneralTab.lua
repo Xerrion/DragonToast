@@ -30,6 +30,7 @@ local L = ns.L
 
 local dtns
 local LSM = LibStub("LibSharedMedia-3.0", true)
+local soundControl
 
 -------------------------------------------------------------------------------
 -- Helpers
@@ -144,6 +145,7 @@ local function CreateSoundSection(parent, yOffset)
     })
     LC.AnchorWidget(soundDropdown, parent, yOffset)
     if not db.profile.sound.enabled then soundDropdown:SetDisabled(true) end
+    soundControl = soundDropdown
     yOffset = yOffset - soundDropdown:GetHeight()
 
     return yOffset
@@ -219,4 +221,7 @@ ns.Tabs[#ns.Tabs + 1] = {
     label = L["General"],
     order = 1,
     createFunc = CreateContent,
+    refreshFunc = function()
+        if soundControl then soundControl:SetDisabled(not dtns.Addon.db.profile.sound.enabled) end
+    end,
 }
