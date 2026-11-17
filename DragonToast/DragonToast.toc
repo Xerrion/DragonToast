@@ -58,19 +58,15 @@ Listeners\MailListener_Shared.lua
 Listeners\LootListener_Shared.lua
 
 # Version-specific listeners
-#@version-bcc@
 Listeners\LootListener_TBC.lua
 Listeners\MailListener_TBC.lua
 Listeners\HonorListener_TBC.lua
 Listeners\ReputationListener_TBC.lua
-#@end-version-bcc@
-#@version-mists@
 Listeners\LootListener_Mists.lua
 Listeners\MailListener_Mists.lua
 Listeners\HonorListener_Mists.lua
 Listeners\ReputationListener_Mists.lua
 Listeners\CurrencyListener_Mists.lua
-#@end-version-mists@
 
 # Modern client listeners (Retail and Forever)
 Listeners\LootListener_Retail.lua [AllowLoadGameType standard, camelot]
