@@ -240,8 +240,21 @@ function Harness:Restore()
     if not ok then error(err) end
 end
 
+local LIBRARY_PATH = "DragonToast/Libs/LibAnimate/"
+
+--- Whether the pinned LibAnimate submodule can be loaded. Specs that need it
+--- skip themselves when it is absent so a plain checkout still runs the rest
+--- of the suite. CI sets DRAGONTOAST_REQUIRE_LIBANIMATE so a missing submodule
+--- there is a hard failure from New() instead of a silent skip.
+function M.IsAvailable()
+    if os.getenv("DRAGONTOAST_REQUIRE_LIBANIMATE") then return true end
+    local file = io.open(LIBRARY_PATH .. "LibAnimate.lua", "r")
+    if file then file:close() end
+    return file ~= nil
+end
+
 function M.New(overrides)
-    local libraryPath = "DragonToast/Libs/LibAnimate/"
+    local libraryPath = LIBRARY_PATH
     local libraryChunk, libraryError = loadfile(libraryPath .. "LibAnimate.lua")
     assert(libraryChunk, "Initialize the pinned animation dependency with "
         .. "`git submodule update --init DragonToast/Libs/LibAnimate`: " .. tostring(libraryError))

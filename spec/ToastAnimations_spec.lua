@@ -8,6 +8,13 @@
 local Harness = require("spec.animation_harness")
 local EPSILON = 0.001
 
+if not Harness.IsAvailable() then
+    describe("Toast animation integration", function()
+        pending("LibAnimate submodule missing: git submodule update --init DragonToast/Libs/LibAnimate")
+    end)
+    return
+end
+
 describe("Toast animation integration", function()
     local h
 

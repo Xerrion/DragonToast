@@ -28,4 +28,7 @@ jobs:
       - uses: leafo/gh-actions-luarocks@v4
       - run: luarocks install busted
       - name: Run tests
+        env:
+          # A missing submodule must fail here, not silently skip specs.
+          DRAGONTOAST_REQUIRE_LIBANIMATE: "1"
         run: busted --verbose

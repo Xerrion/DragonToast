@@ -7,6 +7,13 @@
 
 local Harness = require("spec.animation_harness")
 
+if not Harness.IsAvailable() then
+    describe("Mass loot test", function()
+        pending("LibAnimate submodule missing: git submodule update --init DragonToast/Libs/LibAnimate")
+    end)
+    return
+end
+
 describe("Mass loot test", function()
     local h
 
