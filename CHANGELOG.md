@@ -11,6 +11,13 @@
 * Fix money toast rendering, mail-money notifications, and gold test commands after legacy currency API removal.
 * Restore mail-item tooltips and shift-click links by reading the correct item-link API return value.
 
+## [3.10.1](https://github.com/Xerrion/DragonToast/compare/3.10.0...3.10.1) (2026-11-17)
+
+
+### ⚙️ Miscellaneous Tasks
+
+* pin DragonWidgets to 0.4.0 ([#219](https://github.com/Xerrion/DragonToast/issues/219)) ([f947982](https://github.com/Xerrion/DragonToast/commit/f947982168165a52f7d5f028acd9f869cdc44c50))
+
 ## [3.10.0](https://github.com/Xerrion/DragonToast/compare/3.9.0...3.10.0) (2026-11-17)
 
 
