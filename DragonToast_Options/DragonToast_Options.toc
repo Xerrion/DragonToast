@@ -32,8 +32,9 @@ Core.lua
 Preview.lua
 
 Tabs\GeneralTab.lua
-Tabs\FiltersTab.lua
 Tabs\DisplayTab.lua
-Tabs\AnimationTab.lua
+Tabs\ContentTab.lua
 Tabs\AppearanceTab.lua
+Tabs\AnimationTab.lua
+Tabs\FiltersTab.lua
 Tabs\ProfilesTab.lua

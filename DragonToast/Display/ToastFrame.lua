@@ -187,15 +187,14 @@ end
 --- Apply quality-based or default border colors to border and icon frames
 local function ApplyBorderColors(frame, db, qualityR, qualityG, qualityB)
     if db.appearance.qualityBorder and qualityR then
-        frame.borderFrame:SetBackdropBorderColor(qualityR, qualityG, qualityB, QUALITY_BORDER_ALPHA)
-        frame.iconFrame:SetBackdropBorderColor(qualityR, qualityG, qualityB, QUALITY_BORDER_ALPHA)
+        local alpha = db.appearance.qualityBorderAlpha or QUALITY_BORDER_ALPHA
+        frame.borderFrame:SetBackdropBorderColor(qualityR, qualityG, qualityB, alpha)
+        frame.iconFrame:SetBackdropBorderColor(qualityR, qualityG, qualityB, alpha)
     else
-        frame.borderFrame:SetBackdropBorderColor(
-            DEFAULT_BORDER_COLOR.r, DEFAULT_BORDER_COLOR.g, DEFAULT_BORDER_COLOR.b, DEFAULT_BORDER_COLOR.a
-        )
-        frame.iconFrame:SetBackdropBorderColor(
-            DEFAULT_BORDER_COLOR.r, DEFAULT_BORDER_COLOR.g, DEFAULT_BORDER_COLOR.b, DEFAULT_BORDER_COLOR.a
-        )
+        local color = db.appearance.borderColor or DEFAULT_BORDER_COLOR
+        local alpha = db.appearance.borderAlpha or DEFAULT_BORDER_COLOR.a
+        frame.borderFrame:SetBackdropBorderColor(color.r, color.g, color.b, alpha)
+        frame.iconFrame:SetBackdropBorderColor(color.r, color.g, color.b, alpha)
     end
 end
 
@@ -257,13 +256,14 @@ local function ApplyGlow(frame, db, r, g, b)
 
     if db.appearance.qualityGlow then
         local glowWidth = db.appearance.glowWidth or DEFAULT_GLOW_WIDTH
+        local glowAlpha = db.appearance.glowAlpha or GLOW_ALPHA
         frame.qualityGlow:SetWidth(glowWidth)
         local statusBarPath = LSM:Fetch("statusbar", db.appearance.statusBarTexture)
         if statusBarPath then
             frame.qualityGlow:SetTexture(statusBarPath)
-            frame.qualityGlow:SetVertexColor(r, g, b, GLOW_ALPHA)
+            frame.qualityGlow:SetVertexColor(r, g, b, glowAlpha)
         else
-            frame.qualityGlow:SetColorTexture(r, g, b, GLOW_ALPHA)
+            frame.qualityGlow:SetColorTexture(r, g, b, glowAlpha)
         end
         frame.qualityGlow:Show()
     else
@@ -770,6 +770,8 @@ local function PopulateToast(frame, lootData)
     -- Icon
     if showIcon then
         frame.icon:SetTexture(lootData.itemIcon or Utils.QUESTION_MARK_ICON)
+        local crop = db.appearance.iconCrop or ICON_TEX_COORD_MIN
+        frame.icon:SetTexCoord(crop, 1 - crop, crop, 1 - crop)
         frame.icon:Show()
     end
 

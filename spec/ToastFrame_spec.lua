@@ -46,10 +46,10 @@ end
 local function CreateTextureSpy()
     local texture = {
         SetAllPoints = function() end,
-        SetColorTexture = function() end,
+        SetColorTexture = function(self, ...) self._color = { ... } end,
         SetTexture = function(self, value) self._texture = value end,
-        SetVertexColor = function() end,
-        SetTexCoord = function() end,
+        SetVertexColor = function(self, ...) self._vertexColor = { ... } end,
+        SetTexCoord = function(self, ...) self._texCoord = { ... } end,
         SetSize = function() end,
         SetPoint = function() end,
         ClearAllPoints = function() end,
@@ -94,7 +94,7 @@ local function CreateRichMockFrame(_, name, parent)
     function frame:GetFrameLevel() return self._frameLevel end
     function frame:SetBackdrop(bd) self._backdrop = bd end
     function frame:SetBackdropColor(...) self._backdropColor = { ... } end
-    function frame:SetBackdropBorderColor() end
+    function frame:SetBackdropBorderColor(...) self._borderColor = { ... } end
     function frame:SetAlpha(a) self._alpha = a end
     function frame:SetScale(s) self._scale = s end
     function frame:EnableMouse(enabled) self._mouseEnabled = enabled end
@@ -245,8 +245,18 @@ describe("ToastFrame display", function()
         ns.ElvUISkin = nil
 
         -- Load ToastFrame.lua - it overwrites ns.ToastFrame
+        local originalLibStub = _G.LibStub
+        rawset(_G, "LibStub", function(name, ...)
+            if name == "LibSharedMedia-3.0" then
+                return { Fetch = function(_, mediaType, key)
+                    if mediaType == "statusbar" and key == "Example texture" then return "example.blp" end
+                end }
+            end
+            return originalLibStub(name, ...)
+        end)
         local chunk = assert(loadfile("DragonToast/Display/ToastFrame.lua"))
         chunk("DragonToast", ns)
+        rawset(_G, "LibStub", originalLibStub)
     end)
 
     teardown(function()
@@ -266,6 +276,11 @@ describe("ToastFrame display", function()
 
         -- Reset appearance config to known defaults
         ns.Addon.db.profile.appearance.secondaryFontSize = 10
+        local appearance = ns.Addon.db.profile.appearance
+        appearance.borderColor, appearance.borderAlpha = nil, nil
+        appearance.qualityBorderAlpha, appearance.glowAlpha, appearance.iconCrop = nil, nil, nil
+        appearance.qualityBorder, appearance.qualityGlow = false, false
+        appearance.statusBarTexture = nil
 
         -- Reset display padding to known defaults
         ns.Addon.db.profile.display.textPaddingH = 8
@@ -502,4 +517,55 @@ describe("ToastFrame display", function()
         display.toastWidth, appearance.fontSize = oldWidth, oldFont
         appearance.backgroundColor, appearance.backgroundAlpha = oldColor, oldAlpha
     end)
+
+    it("retains the historical border, glow, and crop when new profile fields are absent", function()
+        local appearance = ns.Addon.db.profile.appearance
+        local data = makeItemData({ itemQuality = 4 })
+        appearance.qualityBorder, appearance.qualityGlow = true, true
+        ns.ToastFrame.Populate(frame, data)
+        assert.are.same({ 0.64, 0.21, 0.93, 0.6 }, frame.borderFrame._borderColor)
+        assert.are.same(frame.borderFrame._borderColor, frame.iconFrame._borderColor)
+        assert.are.same({ 0.64, 0.21, 0.93, 0.8 }, frame.qualityGlow._color)
+        assert.are.same({ 0.08, 0.92, 0.08, 0.92 }, frame.icon._texCoord)
+
+        appearance.qualityBorder = false
+        ns.ToastFrame.Populate(frame, data)
+        assert.are.same({ 0.3, 0.3, 0.3, 0.8 }, frame.borderFrame._borderColor)
+    end)
+
+    it("redraws custom border, glow, and icon crop on live and isolated frames including zero opacity", function()
+        local appearance = ns.Addon.db.profile.appearance
+        appearance.borderColor = { r = 0.1, g = 0.2, b = 0.4 }
+        appearance.borderAlpha = 0.25
+        appearance.qualityGlow = true
+        appearance.glowAlpha = 0.35
+        appearance.statusBarTexture = "Example texture"
+        appearance.iconCrop = 0.15
+        local data = makeItemData({ itemQuality = 4 })
+        local parent = CreateRichMockFrame()
+        parent:SetSize(500, 100)
+        local preview = ns.ToastFrame.CreatePreview(parent)
+        local display = ns.Addon.db.profile.display
+        local position = { display.anchorPoint, display.anchorX, display.anchorY }
+
+        ns.ToastFrame.Populate(frame, data)
+        preview:Refresh(data)
+        for _, rendered in ipairs({ frame, preview.frame }) do
+            assert.are.same({ 0.1, 0.2, 0.4, 0.25 }, rendered.borderFrame._borderColor)
+            assert.are.same({ 0.64, 0.21, 0.93, 0.35 }, rendered.qualityGlow._vertexColor)
+            assert.are.same({ 0.15, 0.85, 0.15, 0.85 }, rendered.icon._texCoord)
+        end
+
+        appearance.qualityBorder = true
+        appearance.qualityBorderAlpha, appearance.glowAlpha, appearance.iconCrop = 0, 0, 0
+        preview:Refresh(data)
+        assert.are.same({ 0.64, 0.21, 0.93, 0 }, preview.frame.borderFrame._borderColor)
+        assert.are.same({ 0.64, 0.21, 0.93, 0 }, preview.frame.qualityGlow._vertexColor)
+        assert.are.same({ 0, 1, 0, 1 }, preview.frame.icon._texCoord)
+        appearance.qualityBorder, appearance.borderAlpha = false, 0
+        preview:Refresh(data)
+        assert.are.same({ 0.1, 0.2, 0.4, 0 }, preview.frame.borderFrame._borderColor)
+        assert.are.same(position, { display.anchorPoint, display.anchorX, display.anchorY })
+    end)
+
 end)
