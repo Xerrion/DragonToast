@@ -11,6 +11,24 @@
 * Fix money toast rendering, mail-money notifications, and gold test commands after legacy currency API removal.
 * Restore mail-item tooltips and shift-click links by reading the correct item-link API return value.
 
+## [3.9.0](https://github.com/Xerrion/DragonToast/compare/3.8.0...3.9.0) (2026-11-17)
+
+
+### 🚀 Features
+
+* modernize toast defaults and organize customization ([#215](https://github.com/Xerrion/DragonToast/issues/215)) ([bc8182f](https://github.com/Xerrion/DragonToast/commit/bc8182f43f9465565012f292022bfa4dc0e2bb5a))
+* redesign options with sidebar and live toast preview ([#211](https://github.com/Xerrion/DragonToast/issues/211)) ([669012f](https://github.com/Xerrion/DragonToast/commit/669012f791df3bab019756bc51734501610222fc))
+
+
+### 🐛 Bug Fixes
+
+* declare Forever compatibility in source manifests ([#213](https://github.com/Xerrion/DragonToast/issues/213)) ([2986b56](https://github.com/Xerrion/DragonToast/commit/2986b5691c6b23dd9769bcab41c6e01a761cfb20))
+
+
+### 🚜 Refactor
+
+* separate toast layout from effects and rewrite ToastFrame ([#214](https://github.com/Xerrion/DragonToast/issues/214)) ([3c07b1c](https://github.com/Xerrion/DragonToast/commit/3c07b1ceb2d02acc3acb21224191727d88844ae3))
+
 ## [3.8.0](https://github.com/Xerrion/DragonToast/compare/3.7.0...3.8.0) (2026-11-17)
 
 
