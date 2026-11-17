@@ -81,7 +81,8 @@ function ns.ElvUISkin.SkinToast(frame)
     -- Apply ElvUI border color (unless quality border is active - quality takes priority)
     if not db.appearance.qualityBorder then
         local br, bg, bb, ba = ns.ElvUISkin.GetBorderColor()
-        frame:SetBackdropBorderColor(br, bg, bb, ba)
+        -- The edge lives on borderFrame; the root frame only draws the background.
+        frame.borderFrame:SetBackdropBorderColor(br, bg, bb, ba)
         frame.iconFrame:SetBackdropBorderColor(br, bg, bb, ba)
     end
 end
