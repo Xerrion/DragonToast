@@ -16,15 +16,15 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - name: Initialize the pinned animation library
         run: git submodule update --init DragonToast/Libs/LibAnimate
-      - uses: leafo/gh-actions-lua@v10
+      - uses: leafo/gh-actions-lua@v13
         with:
           luaVersion: "5.1"
-      - uses: leafo/gh-actions-luarocks@v4
+      - uses: leafo/gh-actions-luarocks@v6
       - run: luarocks install busted
       - name: Run tests
         env:
