@@ -11,6 +11,25 @@
 * Fix money toast rendering, mail-money notifications, and gold test commands after legacy currency API removal.
 * Restore mail-item tooltips and shift-click links by reading the correct item-link API return value.
 
+## 3.10.2 (2026-11-18)
+
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
+## What's Changed
+### ⚙️ Other Changes
+* docs: showcase Dragon Toast with updated artwork and screenshots by @Xerrion in https://github.com/Xerrion/DragonToast/pull/221
+* ci: validate PR titles as conventional commits by @Xerrion in https://github.com/Xerrion/DragonToast/pull/225
+* chore: use GitHub-generated release notes to credit contributors by @Xerrion in https://github.com/Xerrion/DragonToast/pull/224
+* ci: run lint and tests on pull_request instead of pull_request_target by @Xerrion in https://github.com/Xerrion/DragonToast/pull/223
+* ci: include vanilla in TOC update flavors by @Xerrion in https://github.com/Xerrion/DragonToast/pull/227
+* docs: drop AI disclosure requirement by @Xerrion in https://github.com/Xerrion/DragonToast/pull/228
+* ci: add PR labeler and unify release note categories by @Xerrion in https://github.com/Xerrion/DragonToast/pull/229
+* ci: use pull_request triggers and update action versions by @Xerrion in https://github.com/Xerrion/DragonToast/pull/230
+* ci: run the PR labeler on pull_request_target for fork PRs by @Xerrion in https://github.com/Xerrion/DragonToast/pull/231
+
+
+**Full Changelog**: https://github.com/Xerrion/DragonToast/compare/3.10.1...3.10.2
+
 ## [3.10.1](https://github.com/Xerrion/DragonToast/compare/3.10.0...3.10.1) (2026-11-17)
 
 
