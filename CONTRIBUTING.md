@@ -198,6 +198,24 @@ Additional testing steps:
 
 ---
 
+## AI Code of Conduct
+
+If you use AI tools (chat assistants, coding agents, autocomplete) to prepare a contribution, these rules apply. This policy is separate from the [Code of Conduct](CODE_OF_CONDUCT.md). AI agents working in the repository also follow [AGENTS.md](AGENTS.md).
+
+1. **Disclose AI assistance.** In the PR description, say which tool you used and how much of the change it produced.
+2. **Review everything.** You must review, understand, and be able to explain every line you submit. Do not submit unreviewed agent output.
+3. **Verify your work.** Run `luacheck .` and `busted --verbose` (see [Linting](#linting) and [Testing](#testing)), and test in-game before submitting. Never claim a check passed without running it.
+4. **Do not invent WoW API behaviour.** Verify it against [warcraft.wiki.gg](https://warcraft.wiki.gg) and Blizzard's FrameXML source.
+5. **No spam.** Do not open bulk or drive-by AI-generated issues or PRs. Keep to one scoped change per PR, linked to an issue.
+6. **You are responsible for licensing.** Do not paste code of unknown origin.
+7. **Agents follow the repo rules.** Agents follow AGENTS.md, never push to `master`, never merge release-please PRs (`chore(master): release X.Y.Z`; the owner merges those), and do not touch secrets or workflow permissions without explicit approval.
+
+PR titles must be conventional commits (`feat:`, `fix(scope):`, `chore:` ...). Squash merges use the PR title as the commit message, and release-please derives versions from it.
+
+Maintainers may close undisclosed or unreviewed AI-assisted PRs without review.
+
+---
+
 ## What Happens After Your PR
 
 - **CI** runs Luacheck automatically on your Pull Request.
