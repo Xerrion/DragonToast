@@ -1,7 +1,7 @@
 name: Lint
 
 on:
-  pull_request_target:
+  pull_request:
     branches: [master]
 
 jobs:
@@ -18,7 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
       - name: Initialize the pinned animation library
         run: git submodule update --init DragonToast/Libs/LibAnimate
