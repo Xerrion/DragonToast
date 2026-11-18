@@ -132,13 +132,12 @@ AceEvent:SendMessage("DRAGONTOAST_UNSUPPRESS", "MyLootAddon")
 
 Applies to every AI agent working in this repository. This policy is separate from [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
-1. **Disclose.** State in the PR description which tool produced the change and how much of it the tool wrote.
-2. **Keep a human in the loop.** A human must review, understand, and be able to explain every line you submit. Never submit unreviewed agent output.
-3. **Verify.** Run `luacheck .` and `busted --verbose` (see Toast Lifecycle for the LibAnimate submodule setup), and test in-game with the commands in In-Game Test Commands, before submitting. Never claim a check passed without running it.
-4. **Do not fabricate.** Do not invent WoW API behaviour. Verify it against [warcraft.wiki.gg](https://warcraft.wiki.gg) and Blizzard's FrameXML source.
-5. **No spam.** Do not open bulk or drive-by AI-generated issues or PRs. One scoped change per PR, linked to an issue.
-6. **Licensing.** Contributors are responsible for licensing. Do not paste code of unknown origin.
-7. **Agent conduct.**
+1. **Keep a human in the loop.** A human must review, understand, and be able to explain every line you submit. Never submit unreviewed agent output.
+2. **Verify.** Run `luacheck .` and `busted --verbose` (see Toast Lifecycle for the LibAnimate submodule setup), and test in-game with the commands in In-Game Test Commands, before submitting. Never claim a check passed without running it.
+3. **Do not fabricate.** Do not invent WoW API behaviour. Verify it against [warcraft.wiki.gg](https://warcraft.wiki.gg) and Blizzard's FrameXML source.
+4. **No spam.** Do not open bulk or drive-by AI-generated issues or PRs. One scoped change per PR, linked to an issue.
+5. **Licensing.** Contributors are responsible for licensing. Do not paste code of unknown origin.
+6. **Agent conduct.**
    - Follow this AGENTS.md.
    - Never push to `master`.
    - Never merge release-please PRs (`chore(master): release X.Y.Z`); the owner merges those.
@@ -146,7 +145,7 @@ Applies to every AI agent working in this repository. This policy is separate fr
 
 PR titles must be conventional commits (`feat:`, `fix(scope):`, `chore:` ...). Squash merges use the PR title as the commit message, and release-please derives versions from it.
 
-Maintainers may close undisclosed or unreviewed AI-assisted PRs without review.
+Maintainers may close unreviewed AI-assisted PRs without review.
 
 ## Labels
 
