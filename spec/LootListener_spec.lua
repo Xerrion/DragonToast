@@ -11,7 +11,7 @@ local ITEM_NAME = "Amani Training Dummy"
 local LOOT_GLOBALS = {
     "C_Item", "GetItemInfo", "GOLD_AMOUNT", "SILVER_AMOUNT", "COPPER_AMOUNT",
     "GOLD_AMOUNT_TEXTURE", "SILVER_AMOUNT_TEXTURE", "COPPER_AMOUNT_TEXTURE", "UNKNOWN", "geterrorhandler",
-    "WOW_PROJECT_ID", "WOW_PROJECT_MAINLINE", "WOW_PROJECT_CAMELOT",
+    "WOW_PROJECT_ID", "WOW_PROJECT_MAINLINE", "WOW_PROJECT_CLASSIC", "WOW_PROJECT_CAMELOT",
     "WOW_PROJECT_BURNING_CRUSADE_CLASSIC", "WOW_PROJECT_MISTS_CLASSIC",
 }
 
@@ -263,6 +263,7 @@ describe("LootListener client adapters", function()
         savedGlobals = SetLootGlobals()
         mock.SetTime(100)
         rawset(_G, "WOW_PROJECT_MAINLINE", 1)
+        rawset(_G, "WOW_PROJECT_CLASSIC", 2)
         rawset(_G, "WOW_PROJECT_CAMELOT", 18)
         rawset(_G, "WOW_PROJECT_BURNING_CRUSADE_CLASSIC", 5)
         rawset(_G, "WOW_PROJECT_MISTS_CLASSIC", 19)
@@ -301,6 +302,17 @@ describe("LootListener client adapters", function()
         rawset(_G, "WOW_PROJECT_ID", 5)
         rawset(_G, "WOW_PROJECT_CAMELOT", nil)
         local harness = CreateLootListenerHarness(nil, { "TBC", "Retail" })
+        local lootData = DispatchLoot(harness, "You receive loot: " .. ITEM_LINK .. "x2.")
+
+        assert.equal(ITEM_LINK, lootData.itemLink)
+        assert.equal(2, lootData.quantity)
+        assert.is_true(lootData.isSelf)
+    end)
+
+    it("emits item notifications on Classic Era project 2 via the TBC adapter", function()
+        rawset(_G, "WOW_PROJECT_ID", 2)
+        rawset(_G, "WOW_PROJECT_CAMELOT", nil)
+        local harness = CreateLootListenerHarness(nil, { "TBC", "Mists", "Retail" })
         local lootData = DispatchLoot(harness, "You receive loot: " .. ITEM_LINK .. "x2.")
 
         assert.equal(ITEM_LINK, lootData.itemLink)

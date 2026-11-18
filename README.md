@@ -48,7 +48,7 @@ your action bars or downward beside your unit frames. If you run ElvUI, you can 
 3. Open `/dt config` and pick a skin under **Appearance**. To see how it handles a busy pull, run `/dt massloot 8`.
    Clear the samples with `/dt clear`.
 
-**Supported clients** include Retail, WoW Forever, TBC Anniversary, and Mists of Pandaria Classic.
+**Supported clients** include Retail, WoW Forever, Classic Era, TBC Anniversary, and Mists of Pandaria Classic.
 
 ## Pair it with Dragon Loot
 
