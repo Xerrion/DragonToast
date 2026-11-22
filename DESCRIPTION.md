@@ -9,7 +9,7 @@ DragonToast replaces the default loot scroll with a sleek, animated toast feed t
 - Full LibSharedMedia-3.0 support for fonts, textures, and sounds
 - Minimap icon with quick-access controls
 
-Supports **TBC Anniversary** and **Retail** WoW versions.
+Supports **Retail**, **WoW Forever**, **Classic Era**, **TBC Anniversary** and **MoP Classic** WoW versions.
 
 Use `/dt config` to open the settings panel and customize filters, appearance, growth direction, max visible toasts, and more. Every display element — icon, item level, type, looter name, quantity — can be toggled independently.
 
