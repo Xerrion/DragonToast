@@ -11,6 +11,19 @@
 * Fix money toast rendering, mail-money notifications, and gold test commands after legacy currency API removal.
 * Restore mail-item tooltips and shift-click links by reading the correct item-link API return value.
 
+## 3.11.0 (2026-11-22)
+
+<!-- Release notes generated using configuration in .github/release.yml at master -->
+
+## What's Changed
+### 🚀 Features
+* feat: add Classic Era (Vanilla) support by @jeske in https://github.com/Xerrion/DragonToast/pull/222
+
+## New Contributors
+* @jeske made their first contribution in https://github.com/Xerrion/DragonToast/pull/222
+
+**Full Changelog**: https://github.com/Xerrion/DragonToast/compare/3.10.2...3.11.0
+
 ## 3.10.2 (2026-11-18)
 
 <!-- Release notes generated using configuration in .github/release.yml at master -->
